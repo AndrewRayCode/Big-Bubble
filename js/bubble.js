@@ -173,6 +173,7 @@ var render = function() {
         mesh.position.x = -xLimit + bubble.radius;
     }
 
+    zoom(cameraData.zoom + 1);
 
     pointLight1.position.x = mesh.position.x + 100;
     pointLight1.position.y = mesh.position.y;

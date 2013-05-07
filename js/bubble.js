@@ -20,16 +20,22 @@ var scene = new THREE.Scene();
 var geometry = new THREE.SphereGeometry( 100, 32, 16 );
 
 var material = new THREE.MeshLambertMaterial({
-    color: 0xCC0000
+    color: 0xddddff
 });
 
-var pointLight = new THREE.PointLight(0xFFFFFF);
+var pointLight1 = new THREE.PointLight(0x888888);
+var pointLight2 = new THREE.PointLight(0x8888FF);
+var pointLight3 = new THREE.PointLight(0xAA00AA);
 
 // set its position
-pointLight.position.z = 1030;
+pointLight1.position.z = 1030;
+pointLight2.position.z = 1030;
+pointLight3.position.z = 1030;
 
 // add to the scene
-scene.add(pointLight);
+scene.add(pointLight1);
+scene.add(pointLight2);
+scene.add(pointLight3);
 
 var mesh = new THREE.Mesh( geometry, material );
 
@@ -39,6 +45,28 @@ mesh.position.z = 0;
 mesh.scale.x = mesh.scale.y = mesh.scale.z = 4;
 
 scene.add( mesh );
+
+var spheres = [],
+    tesh;
+
+var baterial = new THREE.MeshLambertMaterial({
+    color: 0x44aa44
+});
+
+for ( var i = 0; i < 500; i ++ ) {
+
+    tesh = new THREE.Mesh( geometry, baterial );
+
+    tesh.position.x = Math.random() * 10000 - 5000;
+    tesh.position.y = Math.random() * 10000 - 5000;
+    tesh.position.z = 0;
+
+    tesh.scale.x = tesh.scale.y = tesh.scale.z = Math.random() * 2 + 1;
+
+    scene.add( tesh );
+    spheres.push( tesh );
+
+}
 
 var animate = function() {
     requestAnimationFrame( animate );
@@ -78,8 +106,28 @@ var render = function() {
     } else if ( inertia.x ) {
         inertia.x -= sign( inertia.x ) * movePhys.deceleration;
 
-        if( inertia.x <= movePhys.deceleration ) {
+        if( Math.abs( inertia.x ) <= movePhys.deceleration ) {
             inertia.x = 0;
+        }
+    }
+
+    if( keysDown.up ) {
+        inertia.y += movePhys.acceleration;
+
+        if( inertia.y > movePhys.max ) {
+            inertia.y = movePhys.max;
+        }
+    } else if( keysDown.down ) {
+        inertia.y -= movePhys.acceleration;
+
+        if( inertia.y < -movePhys.max ) {
+            inertia.y = -movePhys.max;
+        }
+    } else if ( inertia.y ) {
+        inertia.y -= sign( inertia.y ) * movePhys.deceleration;
+
+        if( Math.abs( inertia.y ) <= movePhys.deceleration ) {
+            inertia.y = 0;
         }
     }
 
@@ -87,8 +135,14 @@ var render = function() {
     mesh.position.x += inertia.x;
     mesh.position.y += inertia.y;
 
-    pointLight.position.x = mesh.position.x;
-    pointLight.position.y = mesh.position.y;
+    pointLight1.position.x = mesh.position.x + 100;
+    pointLight1.position.y = mesh.position.y;
+
+    pointLight2.position.x = mesh.position.x - 100;
+    pointLight2.position.y = mesh.position.y;
+
+    pointLight3.position.x = mesh.position.x + 100;
+    pointLight3.position.y = mesh.position.y + 100;
 
     camera.position.x = 0;
     camera.position.y = 0;

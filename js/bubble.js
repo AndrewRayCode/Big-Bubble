@@ -17,13 +17,14 @@ var inertia = { x: 0, y: 0 },
     keysDown = {},
     bubble = {
         radius: 30,
+        origRadius: 30,
         scale: 1,
         segments: 32
     },
     movePhys = {
-        acceleration: 3,
+        acceleration: 0.5,
         deceleration: 1,
-        max: 30
+        max: 15
     };
 
 if ( !window.Detector.webgl ) {
@@ -81,7 +82,7 @@ mesh.scale.x = mesh.scale.y = mesh.scale.z = 1;
 
 scene.add( mesh );
 
-var spheres = [],
+var spheres = {},
     tesh;
 
 var baterial = new THREE.MeshLambertMaterial({
@@ -96,9 +97,10 @@ for ( var i = 0; i < 50; i ++ ) {
     tesh.position.z = 0;
 
     tesh.scale.x = tesh.scale.y = tesh.scale.z = 0.5 + Math.random() / 100;
+    tesh.r = tesh.scale.x * bubble.radius;
 
     scene.add( tesh );
-    spheres.push( tesh );
+    spheres[i] = tesh;
 }
 
 var animate = function() {
@@ -162,18 +164,20 @@ var render = function() {
 
     if( mesh.position.y > yLimit - bubble.radius ) {
         mesh.position.y = yLimit - bubble.radius;
+        inertia.y = 0;
     }
     if( mesh.position.y < -yLimit + bubble.radius ) {
         mesh.position.y = -yLimit + bubble.radius;
+        inertia.y = 0;
     }
     if( mesh.position.x > xLimit - bubble.radius ) {
         mesh.position.x = xLimit - bubble.radius;
+        inertia.x = 0;
     }
     if( mesh.position.x < -xLimit + bubble.radius ) {
         mesh.position.x = -xLimit + bubble.radius;
+        inertia.x = 0;
     }
-
-    zoom(cameraData.zoom + 1);
 
     pointLight1.position.x = mesh.position.x + 100;
     pointLight1.position.y = mesh.position.y;
@@ -185,13 +189,19 @@ var render = function() {
     pointLight3.position.y = mesh.position.y + 100;
 
 
-    //camera.position.x = 0;
-    //camera.position.y = 0;
+    //camera.lookAt( mesh.position );
 
-    //camera.lookAt( scene.position );
-
+    var sphere;
+    for( var key in spheres ) {
+        sphere = spheres[key];
+        // (x2-x1)^2 + (y1-y2)^2 <= (r1+r2)^2
+        if( collision( sphere.position, mesh.position, sphere.r, bubble.radius ) ) {
+            scene.remove(sphere);
+            grow( sphere.r / 3 );
+            delete spheres[key];
+        }
+    }
     //for ( var i = 0, il = spheres.length; i < il; i ++ ) {
-
         //var sphere = spheres[ i ];
 
         //sphere.position.x = 5000 * Math.cos( timer + i );
@@ -202,6 +212,15 @@ var render = function() {
     renderer.clear();
     renderer.render( scene, camera );
 
+};
+
+var collision = function( position1, position2, radius1, radius2 ) {
+    return Math.pow( position2.x - position1.x, 2 ) +  Math.pow( position1.y - position2.y, 2 ) <= Math.pow( radius1 + radius2, 2);
+};
+
+var grow = function( radius ) {
+    bubble.radius += radius;
+    bubble.scale = mesh.scale.x = mesh.scale.y = mesh.scale.z = bubble.radius / bubble.origRadius;
 };
 
 var udpateStageSize = function(x, y) {

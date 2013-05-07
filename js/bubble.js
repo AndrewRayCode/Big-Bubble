@@ -1,26 +1,58 @@
 (function() {
 
+var cameraData = {
+    zoom: 1200,
+    fov: 60,
+    frustrum: {}
+};
+
 var stage = {
     width: 400, // window.innerWidth
     height: 600 // window.innerHeight
 };
+stage.aspect = stage.width / stage.height;
 
-if ( ! window.Detector.webgl ) {
+var inertia = { x: 0, y: 0 },
+    moving,
+    keysDown = {},
+    bubble = {
+        radius: 30,
+        scale: 1,
+        segments: 32
+    },
+    movePhys = {
+        acceleration: 3,
+        deceleration: 1,
+        max: 30
+    };
+
+if ( !window.Detector.webgl ) {
     window.Detector.addGetWebGLMessage();
 }
     
 var $container = $('#game')
     .css({ width: stage.width + 'px', height: stage.height + 'px' });
+
 var renderer = new THREE.WebGLRenderer( { antialias: true } );
 renderer.setSize( stage.width, stage.height );
 renderer.autoClear = false;
 $container.append( renderer.domElement );
 
-var camera = new THREE.PerspectiveCamera( 60, stage.width / stage.height, 1, 100000 );
-camera.position.z = 3200;
+var zoom = function( level ) {
+    cameraData.zoom = camera.position.z = level;
+    var frustumHeight = 2.0 * cameraData.zoom * Math.tan(cameraData.fov * 0.5 * ( Math.PI / 180 ) );
+    cameraData.frustrum = {
+        x: frustumHeight * stage.aspect,
+        y: frustumHeight
+    };
+};
+
+// PerspectiveCamera( fov, aspect, near, far )
+var camera = new THREE.PerspectiveCamera( cameraData.fov, stage.width / stage.height, 1, 100000 );
+zoom( cameraData.zoom );
 
 var scene = new THREE.Scene();
-var geometry = new THREE.SphereGeometry( 100, 32, 16 );
+var geometry = new THREE.SphereGeometry( bubble.radius, bubble.segments, bubble.segments );
 
 var material = new THREE.MeshLambertMaterial({
     color: 0xddddff
@@ -42,10 +74,10 @@ scene.add(pointLight3);
 
 var mesh = new THREE.Mesh( geometry, material );
 
-mesh.position.x = -575;
-mesh.position.y =  -497;
+mesh.position.x = 0;
+mesh.position.y = 0;
 mesh.position.z = 0;
-mesh.scale.x = mesh.scale.y = mesh.scale.z = 4;
+mesh.scale.x = mesh.scale.y = mesh.scale.z = 1;
 
 scene.add( mesh );
 
@@ -56,34 +88,23 @@ var baterial = new THREE.MeshLambertMaterial({
     color: 0x44aa44
 });
 
-for ( var i = 0; i < 500; i ++ ) {
-
+for ( var i = 0; i < 50; i ++ ) {
     tesh = new THREE.Mesh( geometry, baterial );
 
-    tesh.position.x = Math.random() * 10000 - 5000;
-    tesh.position.y = Math.random() * 10000 - 5000;
+    tesh.position.x = ( Math.random() * cameraData.frustrum.x ) - ( cameraData.frustrum.x / 2 );
+    tesh.position.y = ( Math.random() * cameraData.frustrum.y ) - ( cameraData.frustrum.y / 2 );
     tesh.position.z = 0;
 
-    tesh.scale.x = tesh.scale.y = tesh.scale.z = Math.random() * 2 + 1;
+    tesh.scale.x = tesh.scale.y = tesh.scale.z = 0.5 + Math.random() / 100;
 
     scene.add( tesh );
     spheres.push( tesh );
-
 }
 
 var animate = function() {
     window.requestAnimationFrame( animate );
     render();
 };
-
-var inertia = { x: 0, y: 0 },
-    moving,
-    keysDown = {},
-    movePhys = {
-        acceleration: 4,
-        deceleration: 2,
-        max: 40
-    };
 
 var sign = function(num) {
     return num ? num < 0 ? -1 : 1 : 0;
@@ -133,9 +154,25 @@ var render = function() {
         }
     }
 
-
     mesh.position.x += inertia.x;
     mesh.position.y += inertia.y;
+
+    var xLimit = cameraData.frustrum.x / 2,
+        yLimit = cameraData.frustrum.y / 2;
+
+    if( mesh.position.y > yLimit - bubble.radius ) {
+        mesh.position.y = yLimit - bubble.radius;
+    }
+    if( mesh.position.y < -yLimit + bubble.radius ) {
+        mesh.position.y = -yLimit + bubble.radius;
+    }
+    if( mesh.position.x > xLimit - bubble.radius ) {
+        mesh.position.x = xLimit - bubble.radius;
+    }
+    if( mesh.position.x < -xLimit + bubble.radius ) {
+        mesh.position.x = -xLimit + bubble.radius;
+    }
+
 
     pointLight1.position.x = mesh.position.x + 100;
     pointLight1.position.y = mesh.position.y;
@@ -146,13 +183,11 @@ var render = function() {
     pointLight3.position.x = mesh.position.x + 100;
     pointLight3.position.y = mesh.position.y + 100;
 
-    camera.position.x = 0;
-    camera.position.y = 0;
 
-    camera.lookAt( scene.position );
+    //camera.position.x = 0;
+    //camera.position.y = 0;
 
-    renderer.setSize( stage.width + inertia.x, stage.height + inertia.y );
-    $container.css({ width: stage.width + inertia.x + 'px', height: stage.height + inertia.y  + 'px' });
+    //camera.lookAt( scene.position );
 
     //for ( var i = 0, il = spheres.length; i < il; i ++ ) {
 
@@ -168,7 +203,13 @@ var render = function() {
 
 };
 
-animate();
+var udpateStageSize = function(x, y) {
+    renderer.setSize( stage.width + inertia.x, stage.height + inertia.y );
+    $container.css({
+        width: stage.width + inertia.x + 'px',
+        height: stage.height + inertia.y  + 'px'
+    });
+};
 
 var keyListen = function(key) {
     Mousetrap.bind(key, function() {
@@ -186,5 +227,7 @@ var keyListen = function(key) {
 $( window ).blur(function() {
     keysDown = {};
 });
+
+animate();
 
 }());

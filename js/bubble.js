@@ -9,7 +9,8 @@ if ( ! window.Detector.webgl ) {
     window.Detector.addGetWebGLMessage();
 }
     
-var $container = $('<div></div>').css({ height: '200px', width: '400px' }).appendTo(document.body);
+var $container = $('#game')
+    .css({ width: stage.width + 'px', height: stage.height + 'px' });
 var renderer = new THREE.WebGLRenderer( { antialias: true } );
 renderer.setSize( stage.width, stage.height );
 renderer.autoClear = false;
@@ -79,9 +80,9 @@ var inertia = { x: 0, y: 0 },
     moving,
     keysDown = {},
     movePhys = {
-        acceleration: 6,
-        deceleration: 3,
-        max: 70
+        acceleration: 4,
+        deceleration: 2,
+        max: 40
     };
 
 var sign = function(num) {
@@ -150,6 +151,9 @@ var render = function() {
 
     camera.lookAt( scene.position );
 
+    renderer.setSize( stage.width + inertia.x, stage.height + inertia.y );
+    $container.css({ width: stage.width + inertia.x + 'px', height: stage.height + inertia.y  + 'px' });
+
     //for ( var i = 0, il = spheres.length; i < il; i ++ ) {
 
         //var sphere = spheres[ i ];
@@ -177,6 +181,10 @@ var keyListen = function(key) {
 
 ['right', 'left', 'up', 'down'].forEach(function(key) {
     keyListen(key);
+});
+
+$( window ).blur(function() {
+    keysDown = {};
 });
 
 }());

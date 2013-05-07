@@ -12,6 +12,8 @@ var stage = {
 };
 stage.aspect = stage.width / stage.height;
 
+var zoomTimer = 0;
+
 var inertia = { x: 0, y: 0 },
     moving,
     keysDown = {},
@@ -89,19 +91,23 @@ var baterial = new THREE.MeshLambertMaterial({
     color: 0x44aa44
 });
 
-for ( var i = 0; i < 50; i ++ ) {
-    tesh = new THREE.Mesh( geometry, baterial );
+var sScale = 0.5;
+var makeSpheres = function(scale) {
+    for ( var i = 0; i < 5; i ++ ) {
+        tesh = new THREE.Mesh( geometry, baterial );
 
-    tesh.position.x = ( Math.random() * cameraData.frustrum.x ) - ( cameraData.frustrum.x / 2 );
-    tesh.position.y = ( Math.random() * cameraData.frustrum.y ) - ( cameraData.frustrum.y / 2 );
-    tesh.position.z = 0;
+        tesh.position.x = ( Math.random() * cameraData.frustrum.x ) - ( cameraData.frustrum.x / 2 );
+        tesh.position.y = ( Math.random() * cameraData.frustrum.y ) - ( cameraData.frustrum.y / 2 );
+        tesh.position.z = 0;
 
-    tesh.scale.x = tesh.scale.y = tesh.scale.z = 0.5 + Math.random() / 100;
-    tesh.r = tesh.scale.x * bubble.radius;
+        tesh.scale.x = tesh.scale.y = tesh.scale.z = sScale + Math.random() / 100;
+        tesh.r = tesh.scale.x * bubble.radius;
 
-    scene.add( tesh );
-    spheres[i] = tesh;
-}
+        scene.add( tesh );
+        spheres[i] = tesh;
+    }
+};
+makeSpheres(sScale);
 
 var animate = function() {
     window.requestAnimationFrame( animate );
@@ -199,6 +205,20 @@ var render = function() {
             scene.remove(sphere);
             grow( sphere.r / 3 );
             delete spheres[key];
+
+            if( !Object.keys(spheres).length ) {
+                zoomTimer = 30;
+            }
+        }
+    }
+
+    if( zoomTimer ) {
+        zoomTimer--;
+        zoom( cameraData.zoom + 10 );
+
+        if( !zoomTimer ) {
+            sScale += 0.3;
+            makeSpheres(sScale);
         }
     }
     //for ( var i = 0, il = spheres.length; i < il; i ++ ) {

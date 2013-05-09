@@ -84,7 +84,6 @@ var bg = new THREE.Mesh(
     bgShader
 );
 scene.add(bg);
-//bg.rotation.x += 90;
 
 var pointLight1 = new THREE.PointLight(0x888888);
 var pointLight2 = new THREE.PointLight(0x8888FF);
@@ -232,12 +231,13 @@ var render = function() {
             grow( sphere.r / 3 );
             delete spheres[key];
 
-            uniforms.color1 = new THREE.Color( 0xFEFEFD );
             if( !Object.keys(spheres).length ) {
                 zoomTimer = 30;
             }
         }
     }
+    uniforms.color1.value.r += 0.001;
+    //bg.rotation.z += 0.001;
 
     if( zoomTimer ) {
         zoomTimer--;

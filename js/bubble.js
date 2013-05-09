@@ -57,9 +57,34 @@ zoom( cameraData.zoom );
 var scene = new THREE.Scene();
 var geometry = new THREE.SphereGeometry( bubble.radius, bubble.segments, bubble.segments );
 
-var material = new THREE.MeshLambertMaterial({
+var material = new THREE.MeshPhongMaterial({
     color: 0xddddff
 });
+
+var uniforms = {
+    color1: { type: "c", value: new THREE.Color( 0x7ECEFD ) },
+    color2: { type: "c", value: new THREE.Color( 0x2185C5 ) }
+};
+
+var bgShader = new THREE.ShaderMaterial( {
+    uniforms: uniforms,
+
+    //uniforms:       uniforms,
+    //attributes:     attributes,
+    vertexShader:   $('#vshader').text(),
+    fragmentShader: $('#fshader').text()
+    //blending:       THREE.AdditiveBlending,
+    //depthTest:      false,
+    //transparent:    true
+
+});
+
+var bg = new THREE.Mesh(
+    new THREE.PlaneGeometry( cameraData.frustrum.x, cameraData.frustrum.y, 2, 2 ),
+    bgShader
+);
+scene.add(bg);
+//bg.rotation.x += 90;
 
 var pointLight1 = new THREE.PointLight(0x888888);
 var pointLight2 = new THREE.PointLight(0x8888FF);
@@ -121,6 +146,8 @@ var sign = function(num) {
 var render = function() {
 
     var timer = 0.0001 * Date.now();
+
+    //uniforms.amplitude.value = Math.sin(timer * 10);
 
     if( keysDown.right ) {
         inertia.x += movePhys.acceleration;
@@ -185,15 +212,14 @@ var render = function() {
         inertia.x = 0;
     }
 
-    pointLight1.position.x = mesh.position.x + 100;
+    pointLight1.position.x = mesh.position.x + 1000;
     pointLight1.position.y = mesh.position.y;
 
-    pointLight2.position.x = mesh.position.x - 100;
+    pointLight2.position.x = mesh.position.x - 1000;
     pointLight2.position.y = mesh.position.y;
 
-    pointLight3.position.x = mesh.position.x + 100;
-    pointLight3.position.y = mesh.position.y + 100;
-
+    pointLight3.position.x = mesh.position.x + 1000;
+    pointLight3.position.y = mesh.position.y + 1000;
 
     //camera.lookAt( mesh.position );
 
@@ -206,6 +232,7 @@ var render = function() {
             grow( sphere.r / 3 );
             delete spheres[key];
 
+            uniforms.color1 = new THREE.Color( 0xFEFEFD );
             if( !Object.keys(spheres).length ) {
                 zoomTimer = 30;
             }

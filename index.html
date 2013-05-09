@@ -1,36 +1,71 @@
 <!DOCTYPE html>
 <html lang="en">
-	<head>
-		<title>three.js webgl - materials - shaders [Fresnel]</title>
-		<meta charset="utf-8">
-		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
-		<style>
-			body {
-				background:#000;
-				padding:0;
-				margin:0;
-				font-weight: bold;
-				overflow:hidden;
-			}
+    <head>
+        <title>three.js webgl - materials - shaders [Fresnel]</title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+        <style>
+            body {
+                background:#000;
+                padding:0;
+                margin:0;
+                font-weight: bold;
+                overflow:hidden;
+            }
 
             #game {
                 margin:20px auto 40px;
                 border:1px solid #fff;
             }
-			a {	color: #ffffff;	}
+            a {    color: #ffffff;    }
 
-			#oldie a { color:#0b0 }
-		</style>
-	</head>
+            #oldie a { color:#0b0 }
+        </style>
+    </head>
 
-	<body>
-        <div id="game"></div>
+    <body>
+<div id="game"></div>
+<div id="vshader">
 
-		<script src="js/three.min.js"></script>
-		<script src="js/jquery-2.0.0.min.js"></script>
-		<script src="js/mousetrap.min.js"></script>
-		<script src="js/FresnelShader.js"></script>
-		<script src="js/Detector.js"></script>
-		<script src="js/bubble.js"></script>
-	</body>
+          varying vec2 vUv;
+
+          void main() {
+              vUv = uv;
+              vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );
+              gl_Position = projectionMatrix * mvPosition;
+          }
+
+      </div>
+<div id="fshader">
+    uniform vec3 color1;
+    uniform vec3 color2;
+
+          uniform float time;
+          uniform vec2 resolution;
+
+          varying vec2 vUv;
+
+          void main( void ) {
+
+              vec2 position = vUv;
+
+              float red, green, blue;
+
+                vec3 prod = (color1 * position.y) + (color2 * (-position.y + 1.0)) * 0.5;
+                red = prod.r;
+                green = prod.g;
+                blue = prod.b;
+              gl_FragColor = vec4( red, green, blue, 1.0 );
+
+          }
+
+      </div>
+
+        <script src="js/three.min.js"></script>
+        <script src="js/jquery-2.0.0.min.js"></script>
+        <script src="js/mousetrap.min.js"></script>
+        <script src="js/FresnelShader.js"></script>
+        <script src="js/Detector.js"></script>
+        <script src="js/bubble.js"></script>
+    </body>
 </html>

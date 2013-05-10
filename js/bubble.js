@@ -18,8 +18,8 @@ var inertia = { x: 0, y: 0 },
     moving,
     keysDown = {},
     bubble = {
-        radius: 30,
-        origRadius: 30,
+        radius: 90,
+        origRadi3s: 90,
         scale: 1,
         segments: 32
     },
@@ -55,19 +55,19 @@ var camera = new THREE.PerspectiveCamera( cameraData.fov, stage.width / stage.he
 zoom( cameraData.zoom );
 
 var scene = new THREE.Scene();
-var geometry = new THREE.SphereGeometry( bubble.radius, bubble.segments, bubble.segments );
+var playerGeometry = new THREE.SphereGeometry( bubble.radius, bubble.segments, bubble.segments );
 
 var material = new THREE.MeshPhongMaterial({
     color: 0xddddff
 });
 
-var uniforms = {
+var gradientUniforms = {
     color1: { type: "c", value: new THREE.Color( 0x7ECEFD ) },
     color2: { type: "c", value: new THREE.Color( 0x2185C5 ) }
 };
 
 var bgShader = new THREE.ShaderMaterial( {
-    uniforms: uniforms,
+    uniforms: gradientUniforms,
 
     //uniforms:       uniforms,
     //attributes:     attributes,
@@ -84,6 +84,8 @@ var bg = new THREE.Mesh(
     bgShader
 );
 scene.add(bg);
+bg.position.z += 100;
+bg.rotation.y += 180 * ( Math.PI / 180 );
 
 var pointLight1 = new THREE.PointLight(0x888888);
 var pointLight2 = new THREE.PointLight(0x8888FF);
@@ -99,15 +101,6 @@ scene.add(pointLight1);
 scene.add(pointLight2);
 scene.add(pointLight3);
 
-var mesh = new THREE.Mesh( geometry, material );
-
-mesh.position.x = 0;
-mesh.position.y = 0;
-mesh.position.z = 0;
-mesh.scale.x = mesh.scale.y = mesh.scale.z = 1;
-
-scene.add( mesh );
-
 var spheres = {},
     tesh;
 
@@ -118,7 +111,7 @@ var baterial = new THREE.MeshLambertMaterial({
 var sScale = 0.5;
 var makeSpheres = function(scale) {
     for ( var i = 0; i < 5; i ++ ) {
-        tesh = new THREE.Mesh( geometry, baterial );
+        tesh = new THREE.Mesh( playerGeometry, baterial );
 
         tesh.position.x = ( Math.random() * cameraData.frustrum.x ) - ( cameraData.frustrum.x / 2 );
         tesh.position.y = ( Math.random() * cameraData.frustrum.y ) - ( cameraData.frustrum.y / 2 );
@@ -141,6 +134,69 @@ var animate = function() {
 var sign = function(num) {
     return num ? num < 0 ? -1 : 1 : 0;
 };
+
+
+
+
+
+
+var path = "js/Park2/";
+var format = '.jpg';
+var urls = [
+    path + 'posx' + format, path + 'negx' + format,
+    path + 'posy' + format, path + 'negy' + format,
+    path + 'posz' + format, path + 'negz' + format
+];
+var textureCube = THREE.ImageUtils.loadTextureCube( urls );
+textureCube.format = THREE.RGBFormat;
+
+var fshader = THREE.FresnelShader;
+var uniforms = THREE.UniformsUtils.clone( fshader.uniforms );
+
+uniforms.tCube.value = textureCube;
+
+var parameters = { fragmentShader: fshader.fragmentShader, vertexShader: fshader.vertexShader, uniforms: uniforms };
+var abcmaterial = new THREE.ShaderMaterial( parameters );
+
+scene.matrixAutoUpdate = false;
+
+// Skybox
+
+var cshader = THREE.ShaderLib.cube;
+cshader.uniforms.tCube.value = textureCube;
+
+var assmaterial = new THREE.ShaderMaterial( {
+
+    fragmentShader: cshader.fragmentShader,
+    vertexShader: cshader.vertexShader,
+    uniforms: cshader.uniforms,
+    side: THREE.BackSide
+
+} );
+
+var qesh = new THREE.Mesh( new THREE.CubeGeometry( 100000, 100000, 100000 ), assmaterial );
+
+
+
+var mirrorCubeCamera = new THREE.CubeCamera( 0.1, 5000, 512 );
+scene.add( mirrorCubeCamera );
+var mirrorCubeMaterial = new THREE.MeshBasicMaterial( { envMap: mirrorCubeCamera.renderTarget } );
+
+
+
+
+
+
+var playerMesh = new THREE.Mesh( playerGeometry, mirrorCubeMaterial );
+
+playerMesh.position.x = 0;
+playerMesh.position.y = 0;
+playerMesh.position.z = 0;
+playerMesh.scale.x = playerMesh.scale.y = playerMesh.scale.z = 1;
+
+scene.add( playerMesh );
+
+
 
 var render = function() {
 
@@ -188,37 +244,37 @@ var render = function() {
         }
     }
 
-    mesh.position.x += inertia.x;
-    mesh.position.y += inertia.y;
+    playerMesh.position.x += inertia.x;
+    playerMesh.position.y += inertia.y;
 
     var xLimit = cameraData.frustrum.x / 2,
         yLimit = cameraData.frustrum.y / 2;
 
-    if( mesh.position.y > yLimit - bubble.radius ) {
-        mesh.position.y = yLimit - bubble.radius;
+    if( playerMesh.position.y > yLimit - bubble.radius ) {
+        playerMesh.position.y = yLimit - bubble.radius;
         inertia.y = 0;
     }
-    if( mesh.position.y < -yLimit + bubble.radius ) {
-        mesh.position.y = -yLimit + bubble.radius;
+    if( playerMesh.position.y < -yLimit + bubble.radius ) {
+        playerMesh.position.y = -yLimit + bubble.radius;
         inertia.y = 0;
     }
-    if( mesh.position.x > xLimit - bubble.radius ) {
-        mesh.position.x = xLimit - bubble.radius;
+    if( playerMesh.position.x > xLimit - bubble.radius ) {
+        playerMesh.position.x = xLimit - bubble.radius;
         inertia.x = 0;
     }
-    if( mesh.position.x < -xLimit + bubble.radius ) {
-        mesh.position.x = -xLimit + bubble.radius;
+    if( playerMesh.position.x < -xLimit + bubble.radius ) {
+        playerMesh.position.x = -xLimit + bubble.radius;
         inertia.x = 0;
     }
 
-    pointLight1.position.x = mesh.position.x + 1000;
-    pointLight1.position.y = mesh.position.y;
+    pointLight1.position.x = playerMesh.position.x + 1000;
+    pointLight1.position.y = playerMesh.position.y;
 
-    pointLight2.position.x = mesh.position.x - 1000;
-    pointLight2.position.y = mesh.position.y;
+    pointLight2.position.x = playerMesh.position.x - 1000;
+    pointLight2.position.y = playerMesh.position.y;
 
-    pointLight3.position.x = mesh.position.x + 1000;
-    pointLight3.position.y = mesh.position.y + 1000;
+    pointLight3.position.x = playerMesh.position.x + 1000;
+    pointLight3.position.y = playerMesh.position.y + 1000;
 
     //camera.lookAt( mesh.position );
 
@@ -226,17 +282,17 @@ var render = function() {
     for( var key in spheres ) {
         sphere = spheres[key];
         // (x2-x1)^2 + (y1-y2)^2 <= (r1+r2)^2
-        if( collision( sphere.position, mesh.position, sphere.r, bubble.radius ) ) {
-            scene.remove(sphere);
-            grow( sphere.r / 3 );
-            delete spheres[key];
+        if( collision( sphere.position, playerMesh.position, sphere.r, bubble.radius ) ) {
+            //scene.remove(sphere);
+            //grow( sphere.r / 3 );
+            //delete spheres[key];
 
-            if( !Object.keys(spheres).length ) {
-                zoomTimer = 30;
-            }
+            //if( !Object.keys(spheres).length ) {
+                //zoomTimer = 30;
+            //}
         }
     }
-    uniforms.color1.value.r += 0.001;
+    gradientUniforms.color1.value.r += 0.001;
     //bg.rotation.z += 0.001;
 
     if( zoomTimer ) {
@@ -256,6 +312,11 @@ var render = function() {
 
     //}
 
+    playerMesh.visible = false;
+    mirrorCubeCamera.position = playerMesh.position;
+    mirrorCubeCamera.updateCubeMap( renderer, scene );
+    playerMesh.visible = true;
+
     renderer.clear();
     renderer.render( scene, camera );
 
@@ -267,7 +328,7 @@ var collision = function( position1, position2, radius1, radius2 ) {
 
 var grow = function( radius ) {
     bubble.radius += radius;
-    bubble.scale = mesh.scale.x = mesh.scale.y = mesh.scale.z = bubble.radius / bubble.origRadius;
+    bubble.scale = playerMesh.scale.x = playerMesh.scale.y = playerMesh.scale.z = bubble.radius / bubble.origRadius;
 };
 
 var udpateStageSize = function(x, y) {

@@ -61,9 +61,15 @@ var material = new THREE.MeshPhongMaterial({
     color: 0xddddff
 });
 
+var cubeSide = cameraData.frustrum.y;
+
+//see https://github.com/mrdoob/three.js/wiki/Uniforms-types
 var gradientUniforms = {
-    color1: { type: "c", value: new THREE.Color( 0x7ECEFD ) },
-    color2: { type: "c", value: new THREE.Color( 0x2185C5 ) }
+    //color1: { type: 'c', value: new THREE.Color( 0x2185C5 ) },
+    color1: { type: 'c', value: new THREE.Color( 0xFFFFFF ) },
+    //color2: { type: 'c', value: new THREE.Color( 0x7ECEFD ) },
+    color2: { type: 'c', value: new THREE.Color( 0xff0000 ) },
+    cHeight: { type: 'f' , value: cubeSide / 2 }
 };
 
 var bgShader = new THREE.ShaderMaterial( {
@@ -72,7 +78,8 @@ var bgShader = new THREE.ShaderMaterial( {
     //uniforms:       uniforms,
     //attributes:     attributes,
     vertexShader:   $('#vshader').text(),
-    fragmentShader: $('#fshader').text()
+    fragmentShader: $('#fshader').text(),
+    side: THREE.BackSide
     //blending:       THREE.AdditiveBlending,
     //depthTest:      false,
     //transparent:    true
@@ -80,12 +87,12 @@ var bgShader = new THREE.ShaderMaterial( {
 });
 
 var bg = new THREE.Mesh(
-    new THREE.PlaneGeometry( cameraData.frustrum.x, cameraData.frustrum.y, 2, 2 ),
+    new THREE.CubeGeometry( cubeSide, cubeSide, cubeSide ),
     bgShader
 );
 scene.add(bg);
-bg.position.z += 100;
-bg.rotation.y += 180 * ( Math.PI / 180 );
+//bg.position.z -= cubeSide / 2;
+bg.rotation.x += 90 * ( Math.PI / 180 );
 
 var pointLight1 = new THREE.PointLight(0x888888);
 var pointLight2 = new THREE.PointLight(0x8888FF);
@@ -110,7 +117,7 @@ var baterial = new THREE.MeshLambertMaterial({
 
 var sScale = 0.5;
 var makeSpheres = function(scale) {
-    for ( var i = 0; i < 5; i ++ ) {
+    for ( var i = 0; i < 10; i ++ ) {
         tesh = new THREE.Mesh( playerGeometry, baterial );
 
         tesh.position.x = ( Math.random() * cameraData.frustrum.x ) - ( cameraData.frustrum.x / 2 );
@@ -169,8 +176,8 @@ var assmaterial = new THREE.ShaderMaterial( {
 
     fragmentShader: cshader.fragmentShader,
     vertexShader: cshader.vertexShader,
-    uniforms: cshader.uniforms,
-    side: THREE.BackSide
+    uniforms: cshader.uniforms
+    //side: THREE.BackSide
 
 } );
 
@@ -178,11 +185,14 @@ var qesh = new THREE.Mesh( new THREE.CubeGeometry( 100000, 100000, 100000 ), ass
 
 
 
-var mirrorCubeCamera = new THREE.CubeCamera( 0.1, 5000, 512 );
+// PerspectiveCamera( fov, aspect, near, far )
+var mirrorCubeCamera = new THREE.CubeCamera( 0.001, 10000, 128 );
+mirrorCubeCamera.renderTarget.minFilter = THREE.LinearMipMapLinearFilter;
+//var mirrorCubeCamera = new THREE.CubeCamera( 0.1, 5000, 512 );
 scene.add( mirrorCubeCamera );
-var mirrorCubeMaterial = new THREE.MeshBasicMaterial( { envMap: mirrorCubeCamera.renderTarget } );
-
-
+var mirrorCubeMaterial = new THREE.MeshBasicMaterial({
+    envMap: mirrorCubeCamera.renderTarget
+});
 
 
 
@@ -292,8 +302,7 @@ var render = function() {
             //}
         }
     }
-    gradientUniforms.color1.value.r += 0.001;
-    //bg.rotation.z += 0.001;
+    //gradientUniforms.color1.value.r += 0.001;
 
     if( zoomTimer ) {
         zoomTimer--;
@@ -312,12 +321,20 @@ var render = function() {
 
     //}
 
+
+    //bg.rotation.x += Math.sin( 50 * ( timer % 1 ) ) / 100;
+    //console.log(Math.sin( 100 * ( timer % 1 ) ));
+    //bg.rotation.y += 0.01;
+
+    mirrorCubeCamera.position.x = playerMesh.position.x;
+    mirrorCubeCamera.position.y = playerMesh.position.y;
+    mirrorCubeCamera.position.z = playerMesh.position.z;
+
     playerMesh.visible = false;
-    mirrorCubeCamera.position = playerMesh.position;
     mirrorCubeCamera.updateCubeMap( renderer, scene );
     playerMesh.visible = true;
 
-    renderer.clear();
+    //renderer.clear();
     renderer.render( scene, camera );
 
 };

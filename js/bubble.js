@@ -38,7 +38,6 @@ var $container = $('#game')
 
 var renderer = new THREE.WebGLRenderer( { antialias: true } );
 renderer.setSize( stage.width, stage.height );
-renderer.autoClear = false;
 $container.append( renderer.domElement );
 
 var zoom = function( level ) {

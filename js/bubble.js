@@ -2,9 +2,55 @@ if ( !window.Detector.webgl ) {
     window.Detector.addGetWebGLMessage();
 }
 
+var Game, Utils, Level, Player, World, Factory, Camera, BubbleManager;
+
 //(function() {
 
-var Game = {
+Utils = {
+
+    sign: function( num ) {
+        return num ? num < 0 ? -1 : 1 : 0;
+    },
+
+    sphereCollision: function( position1, position2, radius1, radius2 ) {
+        return Math.pow( position2.x - position1.x, 2 ) +
+            Math.pow( position1.y - position2.y, 2 ) <= Math.pow( radius1 + radius2, 2);
+    },
+
+    lockTo: function( master, offset ) {
+        this.lockOffset = offset || {
+            x: this.mesh.position.x - master.mesh.position.x,
+            y: this.mesh.position.y - master.mesh.position.y,
+            z: this.mesh.position.z - master.mesh.position.z
+        };
+
+        master.locks = master.locks || [];
+        master.locks.push( this );
+
+        this.master = master;
+    },
+
+    extend: function( mixin, obj ) {
+        if( Game.initted ) {
+            return $.extend( obj, Game.mixins[ mixin ] );
+        } else {
+            Game.mixers.push({ mixin: mixin, obj: obj });
+            return obj;
+        }
+    },
+
+    keyListen: function(key) {
+        Mousetrap.bind(key, function() {
+            World.keysDown[key] = true;
+        });
+        Mousetrap.bind(key, function() {
+            delete World.keysDown[key];
+        }, 'keyup');
+    }
+
+};
+
+Game = {
     mixers: [],
 
     init: function() {
@@ -14,9 +60,59 @@ var Game = {
             entity: {
                 lockTo: Utils.lockTo,
                 isCollidingWith: function( sphere ) {
+                    var mesh = sphere.mesh;
                     return Utils.sphereCollision(
-                        sphere.position, this.mesh.position, sphere.r, this.build.radius
+                        mesh.position, this.mesh.position, sphere.r, this.build.radius
                     );
+                },
+                pos: function( xyz ) {
+                    xyz.x && ( this.mesh.position.x = xyz.x );
+                    xyz.y && ( this.mesh.position.y = xyz.y );
+                    xyz.z && ( this.mesh.position.z = xyz.z );
+
+                    this.updateLocks();
+                },
+                moveLockTowards: function( entity, dist ) {
+                    var vecA = new THREE.Vector3( this.mesh.position.x, this.mesh.position.y, 0 ),
+                        vecB = new THREE.Vector3( entity.mesh.position.x, entity.mesh.position.y, 0 ),
+                        computed = vecA.add( vecB.sub( vecA ).normalize().multiply(
+                            new THREE.Vector3( dist, dist, dist )
+                        )),
+                        me = this;
+
+                    this.lockOffset = {
+                        x: computed.x - me.master.mesh.position.x,
+                        y: computed.y - me.master.mesh.position.y
+                    };
+
+                },
+                moveTowards: function( entity, dist ) {
+                    var vecA = new THREE.Vector3( this.mesh.position.x, this.mesh.position.y, 0 ),
+                        vecB = new THREE.Vector3( entity.mesh.position.x, entity.mesh.position.y, 0 ),
+                        computed = vecA.add( vecB.sub( vecA ).normalize().multiply(
+                            new THREE.Vector3( dist, dist, dist )
+                        ));
+
+                    this.mesh.position.x = computed.x;
+                    this.mesh.position.y = computed.y;
+
+                },
+                updateLocks: function() {
+                    var me = this,
+                        locks = this.locks;
+
+                    if( locks ) {
+                        for( var x = 0; x < locks.length; x++ ) {
+                            locks[x].pos({
+                                x: me.mesh.position.x + locks[x].lockOffset.x,
+                                y: me.mesh.position.y + locks[x].lockOffset.y,
+                                z: me.mesh.position.z + locks[x].lockOffset.z
+                            });
+                        }
+                    }
+                },
+                scaleTo: function( scale ) {
+                    this.mesh.scale.x = this.mesh.scale.y = this.mesh.scale.z = scale;
                 }
             }
         };
@@ -39,6 +135,22 @@ var Game = {
         Player.init();
         Level.init();
 
+        var pointLight1 = new THREE.PointLight(0x888888);
+        var pointLight2 = new THREE.PointLight(0x8888FF);
+        var pointLight3 = new THREE.PointLight(0xAA00AA);
+
+        // set its position
+        pointLight1.position.z = 1030;
+        pointLight2.position.z = 1030;
+        pointLight3.position.z = 1030;
+
+        // add to the scene
+        World.scene.add(pointLight1);
+        World.scene.add(pointLight2);
+        World.scene.add(pointLight3);
+
+        World.scene.matrixAutoUpdate = false;
+
         this.reqFrame();
     },
 
@@ -53,40 +165,50 @@ var Game = {
         Player.update();
         Player.constrain();
 
-        pointLight1.position.x = Player.mesh.position.x + 1000;
-        pointLight1.position.y = Player.mesh.position.y;
+        //pointLight1.position.x = Player.mesh.position.x + 1000;
+        //pointLight1.position.y = Player.mesh.position.y;
 
-        pointLight2.position.x = Player.mesh.position.x - 1000;
-        pointLight2.position.y = Player.mesh.position.y;
+        //pointLight2.position.x = Player.mesh.position.x - 1000;
+        //pointLight2.position.y = Player.mesh.position.y;
 
-        pointLight3.position.x = Player.mesh.position.x + 1000;
-        pointLight3.position.y = Player.mesh.position.y + 1000;
+        //pointLight3.position.x = Player.mesh.position.x + 1000;
+        //pointLight3.position.y = Player.mesh.position.y + 1000;
 
         //camera.lookAt( mesh.position );
 
-        var floater;
-        for( var id in BubbleManager.floaters ) {
-            floater = BubbleManager.floaters[ id ];
-            floater.position.y -= 5;
+        var floater, id;
 
-            if ( floater.position.y + floater.r * 2 < -Camera.data.frustrum.y ) {
-                // TODO: fix this
-                BubbleManager.freeBubble( floater );
+        for( id in BubbleManager.forgotten ) {
+            floater = BubbleManager.forgotten[ id ];
+            floater.moveLockTowards( Player, 0.1 );
+        }
+
+        for( id in BubbleManager.floaters ) {
+            floater = BubbleManager.floaters[ id ];
+            floater.upate();
+
+            if ( floater.mesh.position.y + floater.r * 2 < -Camera.data.frustrum.y ) {
+                // TODO: fix this, bubbles should free sooner
+                BubbleManager.freeFloater( floater );
 
             } else if( Player.isCollidingWith( floater ) ) {
-                BubbleManager.freeBubble( floater );
-                Player.grow( floater.r / 10 );
 
-                if( Player.build.radius > Level.level.next ) {
-                    Level.advance();
+                BubbleManager.forgetFloater( floater );
+                floater.lockTo( Player );
 
-                    Camera.main.zoomTimer = 30;
-                }
+                //BubbleManager.freeFloater( floater );
+                //Player.grow( floater.r / 10 );
+
+                //if( Player.build.radius > Level.level.next ) {
+                    //Level.advance();
+
+                    //Camera.main.zoomTimer = 30;
+                //}
             }
         }
 
         if( Math.random() > 0.98 ) {
-            BubbleManager.makeBubble({
+            BubbleManager.makeFloater({
                 radius: 10 + Math.random() * 10
             });
         }
@@ -101,7 +223,6 @@ var Game = {
 
 
         //bg.rotation.x += Math.sin( 50 * ( timer % 1 ) ) / 100;
-        //console.log(Math.sin( 100 * ( timer % 1 ) ));
         //bg.rotation.y += 0.01;
 
         var face, numberOfSides;
@@ -120,43 +241,7 @@ var Game = {
     }
 };
 
-var Utils = {
-
-    sign: function( num ) {
-        return num ? num < 0 ? -1 : 1 : 0;
-    },
-
-    sphereCollision: function( position1, position2, radius1, radius2 ) {
-        return Math.pow( position2.x - position1.x, 2 ) +
-            Math.pow( position1.y - position2.y, 2 ) <= Math.pow( radius1 + radius2, 2);
-    },
-
-    lockTo: function( master ) {
-        master.locks = master.locks || [];
-        master.locks.push( this );
-    },
-
-    extend: function( mixin, obj ) {
-        if( Game.initted ) {
-            return $.extend( {}, obj, Game.mixins[ mixin ] );
-        } else {
-            Game.mixers.push({ mixin: mixin, obj: obj });
-            return obj;
-        }
-    },
-
-    keyListen: function(key) {
-        Mousetrap.bind(key, function() {
-            World.keysDown[key] = true;
-        });
-        Mousetrap.bind(key, function() {
-            delete World.keysDown[key];
-        }, 'keyup');
-    }
-
-};
-
-var Level = {
+Level = {
     levels: [{
         next: 100
     }, {
@@ -174,10 +259,10 @@ var Level = {
     }
 };
 
-var Player = Utils.extend('entity', {
+Player = Utils.extend('entity', {
     build: {
-        radius: 10,
-        origRadius: 10,
+        radius: 20,
+        origRadius: 20,
         scale: 1,
         segments: 32
     },
@@ -263,8 +348,11 @@ var Player = Utils.extend('entity', {
             }
         }
 
-        this.mesh.position.x += inertia.x;
-        this.mesh.position.y += inertia.y;
+        var me = this;
+        this.pos({
+            x: me.mesh.position.x + inertia.x,
+            y: me.mesh.position.y + inertia.y
+        });
     },
     
     constrain: function() {
@@ -298,7 +386,7 @@ var Player = Utils.extend('entity', {
     }
 });
 
-var World = {
+World = {
     keysDown: {},
 
     scene: new THREE.Scene(),
@@ -353,7 +441,7 @@ var World = {
     }
 };
 
-var Factory = {
+Factory = {
 
     // From vertex colors http://stemkoski.github.io/Three.js/Vertex-Colors.html
     makeGradientCube: function( size, hex ) {
@@ -403,7 +491,7 @@ var Factory = {
     }
 };
 
-var Camera = {
+Camera = {
 
     data: {
         zoom: 500,
@@ -468,9 +556,10 @@ var Camera = {
 
 var makeBubbleManager = function() {
     var floaters = {},
+        forgotten = {},
         stickers = {},
         id = -1,
-        freeBubbles = [];
+        freeFloaters = [];
 
     var floaterMaterial = new THREE.MeshPhongMaterial({
         color: new THREE.Color( 0x2185C5 ),
@@ -479,67 +568,64 @@ var makeBubbleManager = function() {
     });
     var floaterGeometry = new THREE.SphereGeometry( 1, 32, 32 );
 
-    this.makeBubble = function( options ) {
+    this.makeFloater = function( options ) {
         options = options || {};
 
-        var bubble,
+        var floater,
             radius = options.radius || 10 + 5 * Math.random();
 
-        if( freeBubbles.length ) {
-            bubble = freeBubbles.pop();
+        if( freeFloaters.length ) {
+            floater = freeFloaters.pop();
         } else {
-            bubble = new THREE.Mesh( floaterGeometry, floaterMaterial );
+            floater = Utils.extend('entity', {
+                mesh: new THREE.Mesh( floaterGeometry, floaterMaterial ),
+                upate: function() {
+                    this.mesh.position.y += this.inertia.y;
+                    this.updateLocks();
+                }
+            });
         }
         id++;
 
-        bubble.id = id;
+        floater.id = id;
 
-        bubble.position.x = options.x || -(Camera.data.frustrum.x / 2) + (( Math.random() * Camera.data.frustrum.x));
-        bubble.position.y = options.y || Camera.data.frustrum.y + ( radius * 2 );
-        bubble.position.z = 0;
-        bubble.inertia = options.inertia || {
+        floater.mesh.position.x =0;// options.x || -(Camera.data.frustrum.x / 2) + (( Math.random() * Camera.data.frustrum.x));
+        floater.mesh.position.y =0;// options.y || Camera.data.frustrum.y + ( radius * 2 );
+        floater.mesh.position.z = 0;
+        floater.inertia = options.inertia || {
             x: 0,
-            y: 1 - ( 2 * Math.random() )
+            y: -1 - ( Math.random() )
         };
 
-        bubble.scale.x = bubble.scale.y = bubble.scale.z = 1 + radius;
-        bubble.r = radius;
+        floater.scaleTo( 1 + radius );
+        floater.r = radius;
 
-        floaters[ id ] = bubble;
-
-        World.scene.add( bubble );
+        floaters[ id ] = floater;
+        World.scene.add( floater.mesh );
     };
 
-    this.freeBubble = function( bubble ) {
-        var free = floaters[ bubble.id ];
-        freeBubbles.push( free );
-        World.scene.remove( free );
+    this.forgetFloater = function( floater, free ) {
+        delete floaters[ floater.id ];
 
-        delete floaters[ bubble.id ];
+        if( free ) {
+            freeFloaters.push( floater );
+            World.scene.remove( floater.mesh );
+        } else {
+            forgotten[ floater.id ] = floater;
+        }
+    };
+
+    this.freeFloater = function( bubble ) {
+        this.forgetFloater( bubble, true );
     };
 
     this.floaters = floaters;
+    this.forgotten = forgotten;
     this.stickers = stickers;
 
     return this;
 };
-var BubbleManager = makeBubbleManager();
-
-var pointLight1 = new THREE.PointLight(0x888888);
-var pointLight2 = new THREE.PointLight(0x8888FF);
-var pointLight3 = new THREE.PointLight(0xAA00AA);
-
-// set its position
-pointLight1.position.z = 1030;
-pointLight2.position.z = 1030;
-pointLight3.position.z = 1030;
-
-// add to the scene
-World.scene.add(pointLight1);
-World.scene.add(pointLight2);
-World.scene.add(pointLight3);
-
-World.scene.matrixAutoUpdate = false;
+BubbleManager = makeBubbleManager();
 
 Game.init();
 

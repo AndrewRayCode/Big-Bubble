@@ -2,6 +2,10 @@ if ( !window.Detector.webgl ) {
     window.Detector.addGetWebGLMessage();
 }
 
+var pointLight1 = new THREE.PointLight(0x888888);
+var pointLight2 = new THREE.PointLight(0x8888FF);
+var pointLight3 = new THREE.PointLight(0xAA00AA);
+
 var Game, Utils, Level, Player, World, Factory, Camera, BubbleManager;
 
 //(function() {
@@ -149,10 +153,6 @@ Game = {
         Player.init();
         Level.init();
 
-        var pointLight1 = new THREE.PointLight(0x888888);
-        var pointLight2 = new THREE.PointLight(0x8888FF);
-        var pointLight3 = new THREE.PointLight(0xAA00AA);
-
         // set its position
         pointLight1.position.z = 1030;
         pointLight2.position.z = 1030;
@@ -164,6 +164,16 @@ Game = {
         World.scene.add(pointLight3);
 
         World.scene.matrixAutoUpdate = false;
+
+        var sharkMaterial = new THREE.MeshBasicMaterial({
+            map: THREE.ImageUtils.loadTexture( 'media/shark.png' ),
+            transparent: true
+        });
+        var sharkGeometry = new THREE.PlaneGeometry(300, 300, 1, 1);
+        var shark = new THREE.Mesh(sharkGeometry, sharkMaterial);
+        shark.position.set( 50, 50, -100 );
+        World.scene.add( shark );
+        World.shark = shark;
 
         this.reqFrame();
     },
@@ -179,16 +189,21 @@ Game = {
         Player.update();
         Player.constrain();
 
-        //pointLight1.position.x = Player.mesh.position.x + 1000;
-        //pointLight1.position.y = Player.mesh.position.y;
+        pointLight1.position.x = Player.mesh.position.x + 1000;
+        pointLight1.position.y = Player.mesh.position.y;
 
-        //pointLight2.position.x = Player.mesh.position.x - 1000;
-        //pointLight2.position.y = Player.mesh.position.y;
+        pointLight2.position.x = Player.mesh.position.x - 1000;
+        pointLight2.position.y = Player.mesh.position.y;
 
-        //pointLight3.position.x = Player.mesh.position.x + 1000;
-        //pointLight3.position.y = Player.mesh.position.y + 1000;
+        pointLight3.position.x = Player.mesh.position.x + 1000;
+        pointLight3.position.y = Player.mesh.position.y + 1000;
 
-        //camera.lookAt( mesh.position );
+        // This kind of makes me want to throw up
+        //Camera.main.lookAt({
+            //x: Player.mesh.position.x / 10,
+            //y: Player.mesh.position.y / 10,
+            //z: Player.mesh.position.z / 10
+        //});
 
         var floater, id;
 
@@ -231,16 +246,10 @@ Game = {
             });
         }
 
-        //for ( var i = 0, il = spheres.length; i < il; i ++ ) {
-            //var sphere = spheres[ i ];
 
-            //sphere.position.x = 5000 * Math.cos( timer + i );
-            //sphere.position.y = 5000 * Math.sin( timer + i * 1.1 );
+        World.shark.rotation.x += Math.sin( 50 * ( timer % 1 ) ) / 100;
+        World.shark.position.x += Math.sin( 50 * ( timer % 1 ) );
 
-        //}
-
-
-        //bg.rotation.x += Math.sin( 50 * ( timer % 1 ) ) / 100;
         //bg.rotation.y += 0.01;
 
         var face, numberOfSides;

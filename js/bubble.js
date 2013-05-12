@@ -14,6 +14,16 @@ stage.aspect = stage.width / stage.height;
 
 var zoomTimer = 0;
 
+var levels = [{
+    next: 100
+}, {
+    next: 120
+}, {
+    next: 140
+}],
+levelIndex = 0,
+level = levels[ levelIndex ];
+
 var inertia = { x: 0, y: 0 },
     moving,
     keysDown = {},
@@ -24,9 +34,9 @@ var inertia = { x: 0, y: 0 },
         segments: 32
     },
     movePhys = {
-        acceleration: 0.5,
-        deceleration: 1,
-        max: 15
+        acceleration: 0.6,
+        deceleration: 0.8,
+        max: 17
     };
 
 if ( !window.Detector.webgl ) {
@@ -47,6 +57,10 @@ var zoom = function( level ) {
         x: frustumHeight * stage.aspect,
         y: frustumHeight
     };
+
+    if( bgCube ) {
+        bgCube.scale.x = bgCube.scale.y = bgCube.scale.z = ( cameraData.frustrum.y * 2 ) / cubeSide;
+    }
 };
 
 // PerspectiveCamera( fov, aspect, near, far )
@@ -56,40 +70,7 @@ zoom( cameraData.zoom );
 var scene = new THREE.Scene();
 var playerGeometry = new THREE.SphereGeometry( bubble.radius, bubble.segments, bubble.segments );
 
-var material = new THREE.MeshPhongMaterial({
-    color: 0xddddff
-});
-
 var cubeSide = cameraData.frustrum.y * 2;
-
-//see https://github.com/mrdoob/three.js/wiki/Uniforms-types
-var gradientUniforms = {
-    color1: { type: 'c', value: new THREE.Color( 0xFFFFFF ) },
-    color2: { type: 'c', value: new THREE.Color( 0xff0000 ) },
-    //color1: { type: 'c', value: new THREE.Color( 0x2185C5 ) },
-    //color2: { type: 'c', value: new THREE.Color( 0x7ECEFD ) },
-    cHeight: { type: 'f' , value: cubeSide / 2 }
-};
-
-var bgShader = new THREE.ShaderMaterial( {
-    uniforms: gradientUniforms,
-
-    //uniforms:       uniforms,
-    //attributes:     attributes,
-    vertexShader:   $('#vshader').text(),
-    fragmentShader: $('#fshader').text(),
-    side: THREE.BackSide
-    //blending:       THREE.AdditiveBlending,
-    //depthTest:      false,
-    //transparent:    true
-
-});
-
-var bg = new THREE.Mesh(
-    new THREE.CubeGeometry( cubeSide, cubeSide, cubeSide ),
-    bgShader
-);
-//scene.add(bg);
 
 // RGB color cube
 var rgbPoint, face, numberOfSides, vertexIndex, sideColor;
@@ -126,9 +107,6 @@ bgCube.dynamic = true;
 bgCube.position.set( 100, 50, 0 );
 scene.add(bgCube);
 
-//bg.position.z -= cubeSide / 2;
-bg.rotation.x += 90 * ( Math.PI / 180 );
-
 var pointLight1 = new THREE.PointLight(0x888888);
 var pointLight2 = new THREE.PointLight(0x8888FF);
 var pointLight3 = new THREE.PointLight(0xAA00AA);
@@ -143,30 +121,58 @@ scene.add(pointLight1);
 scene.add(pointLight2);
 scene.add(pointLight3);
 
-var spheres = {},
-    tesh;
-
-var baterial = new THREE.MeshLambertMaterial({
-    color: 0x44aa44
+var floaterMaterial = new THREE.MeshPhongMaterial({
+    color: new THREE.Color( 0x2185C5 ),
+    transparent: true,
+    opacity: 0.5
 });
+var floaterGeometry = new THREE.SphereGeometry( 1, 32, 32 );
 
-var sScale = 0.5;
-var makeSpheres = function(scale) {
-    for ( var i = 0; i < 10; i ++ ) {
-        tesh = new THREE.Mesh( playerGeometry, baterial );
+var BubbleManager = function() {
+    var bubbles = {},
+        id = -1,
+        freeBubbles = [];
 
-        tesh.position.x = ( Math.random() * cameraData.frustrum.x ) - ( cameraData.frustrum.x / 2 );
-        tesh.position.y = ( Math.random() * cameraData.frustrum.y ) - ( cameraData.frustrum.y / 2 );
-        tesh.position.z = 0;
+    this.makeBubble = function( options ) {
+        options = options || {};
 
-        tesh.scale.x = tesh.scale.y = tesh.scale.z = sScale + Math.random() / 100;
-        tesh.r = tesh.scale.x * bubble.radius;
+        var bubble,
+            radius = options.radius || 10 + 5 * Math.random();
 
-        scene.add( tesh );
-        spheres[i] = tesh;
-    }
+        if( freeBubbles.length ) {
+            bubble = freeBubbles.pop();
+        } else {
+            bubble = new THREE.Mesh( floaterGeometry, floaterMaterial );
+        }
+        id++;
+
+        bubble.id = id;
+
+        bubble.position.x = options.x || -(cameraData.frustrum.x / 2) + (( Math.random() * cameraData.frustrum.x));
+        bubble.position.y = options.y || cameraData.frustrum.y + ( radius * 2 );
+        bubble.position.z = 0;
+
+        bubble.scale.x = bubble.scale.y = bubble.scale.z = 1 + radius;
+        bubble.r = radius;
+
+        bubbles[ id ] = bubble;
+
+        scene.add( bubble );
+    };
+
+    this.freeBubble = function( bubble ) {
+        var free = bubbles[ bubble.id ];
+        freeBubbles.push( free );
+        scene.remove( free );
+
+        delete bubbles[ bubble.id ];
+    };
+
+    this.bubbles = bubbles;
+
+    return this;
 };
-makeSpheres(sScale);
+var bubbleManager = new BubbleManager();
 
 var animate = function() {
     window.requestAnimationFrame( animate );
@@ -177,12 +183,8 @@ var sign = function(num) {
     return num ? num < 0 ? -1 : 1 : 0;
 };
 
-
-
-
-
 // PerspectiveCamera( fov, aspect, near, far )
-var mirrorCubeCamera = new THREE.CubeCamera( 0.001, 10000, 128 );
+var mirrorCubeCamera = new THREE.CubeCamera( 0.1, 10000, 128 );
 mirrorCubeCamera.renderTarget.minFilter = THREE.LinearMipMapLinearFilter;
 //var mirrorCubeCamera = new THREE.CubeCamera( 0.1, 5000, 512 );
 scene.add( mirrorCubeCamera );
@@ -193,17 +195,6 @@ var mirrorCubeMaterial = new THREE.MeshBasicMaterial({
 
 
 
-
-
-var path = "js/Park2/";
-var format = '.jpg';
-var urls = [
-    path + 'posx' + format, path + 'negx' + format,
-    path + 'posy' + format, path + 'negy' + format,
-    path + 'posz' + format, path + 'negz' + format
-];
-var textureCube = THREE.ImageUtils.loadTextureCube( urls );
-textureCube.format = THREE.RGBFormat;
 
 var fshader = THREE.FresnelShader;
 var uniforms = THREE.UniformsUtils.clone( fshader.uniforms );
@@ -225,26 +216,6 @@ var parameters = {
 var fresnelMaterial = new THREE.ShaderMaterial( parameters );
 
 scene.matrixAutoUpdate = false;
-
-// Skybox
-
-var cshader = THREE.ShaderLib.cube;
-cshader.uniforms.tCube.value = textureCube;
-
-var assmaterial = new THREE.ShaderMaterial( {
-
-    fragmentShader: cshader.fragmentShader,
-    vertexShader: cshader.vertexShader,
-    uniforms: cshader.uniforms
-    //side: THREE.BackSide
-
-} );
-
-var qesh = new THREE.Mesh( new THREE.CubeGeometry( 100000, 100000, 100000 ), assmaterial );
-
-
-
-
 
 
 //var playerMesh = new THREE.Mesh( playerGeometry, mirrorCubeMaterial );
@@ -339,31 +310,37 @@ var render = function() {
 
     //camera.lookAt( mesh.position );
 
-    var sphere;
-    for( var key in spheres ) {
-        sphere = spheres[key];
-        // (x2-x1)^2 + (y1-y2)^2 <= (r1+r2)^2
-        if( collision( sphere.position, playerMesh.position, sphere.r, bubble.radius ) ) {
-            scene.remove(sphere);
-            grow( sphere.r / 13 );
-            delete spheres[key];
+    var floater;
+    for( var id in bubbleManager.bubbles ) {
+        floater = bubbleManager.bubbles[ id ];
+        floater.position.y -= 5;
 
-            if( !Object.keys(spheres).length ) {
+        if ( floater.position.y + floater.r * 2 < -cameraData.frustrum.y ) {
+            // TODO: fix this
+            bubbleManager.freeBubble( floater );
+
+        } else if( collision( floater.position, playerMesh.position, floater.r, bubble.radius ) ) {
+            bubbleManager.freeBubble( floater );
+            grow( floater.r / 10 );
+
+            if( bubble.radius > level.next ) {
+                level = levels[ levelIndex++ ];
                 zoomTimer = 30;
             }
         }
     }
-    gradientUniforms.color1.value.r += 0.001;
+
+    if( Math.random() > 0.98 ) {
+        bubbleManager.makeBubble({
+            radius: 10 + Math.random() * 10
+        });
+    }
 
     if( zoomTimer ) {
         zoomTimer--;
         zoom( cameraData.zoom + 10 );
-
-        if( !zoomTimer ) {
-            sScale += 0.3;
-            makeSpheres(sScale);
-        }
     }
+
     //for ( var i = 0, il = spheres.length; i < il; i ++ ) {
         //var sphere = spheres[ i ];
 
@@ -390,7 +367,7 @@ var render = function() {
 
     mirrorCubeCamera.position.x = playerMesh.position.x;
     mirrorCubeCamera.position.y = playerMesh.position.y;
-    mirrorCubeCamera.position.z = playerMesh.position.z + 200;
+    mirrorCubeCamera.position.z = playerMesh.position.z;
 
     playerMesh.visible = false;
 
@@ -410,6 +387,7 @@ var collision = function( position1, position2, radius1, radius2 ) {
 
 var grow = function( radius ) {
     bubble.radius += radius;
+    console.log( bubble.radius );
     bubble.scale = playerMesh.scale.x = playerMesh.scale.y = playerMesh.scale.z = bubble.radius / bubble.origRadius;
 };
 

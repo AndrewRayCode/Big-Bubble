@@ -186,6 +186,8 @@ Game = {
     loop: function() {
         var timer = 0.0001 * Date.now();
 
+        World.pu.time.value = ((new Date().getTime() / 10000000) % 1) * 10000;
+
         Player.update();
         Player.constrain();
 
@@ -209,8 +211,8 @@ Game = {
 
         for( id in BubbleManager.forgotten ) {
             floater = BubbleManager.forgotten[ id ];
-            floater.moveLockTowards( Player, 0.05 );
-            if( new Date() - floater.lockTime > 600 ) {
+            floater.moveLockTowards( Player, 0.01 );
+            if( new Date() - floater.lockTime > 2600 ) {
                 floater.unlock();
                 BubbleManager.freeFloater( floater );
                 Player.grow( floater.r / 12 );
@@ -252,17 +254,17 @@ Game = {
 
         //bg.rotation.y += 0.01;
 
-        var face, numberOfSides;
-        for ( var i = 0; i < World.skyBox.geometry.faces.length; i++ ) {
-            face = World.skyBox.geometry.faces[ i ];
-            // determine if current face is a tri or a quad
-            numberOfSides = ( face instanceof THREE.Face3 ) ? 3 : 4;
-            // assign color to each vertex of current face
-            for( var j = 0; j < numberOfSides; j++ ) {
-                face.vertexColors[ j ].b += 0.0001;
-            }
-        }
-        World.skyBox.colorsNeedUpdate = true;
+        //var face, numberOfSides;
+        //for ( var i = 0; i < World.skyBox.geometry.faces.length; i++ ) {
+            //face = World.skyBox.geometry.faces[ i ];
+            //// determine if current face is a tri or a quad
+            //numberOfSides = ( face instanceof THREE.Face3 ) ? 3 : 4;
+            //// assign color to each vertex of current face
+            //for( var j = 0; j < numberOfSides; j++ ) {
+                //face.vertexColors[ j ].b += 0.0001;
+            //}
+        //}
+        //World.skyBox.colorsNeedUpdate = true;
 
         Camera.update();
     }
@@ -475,16 +477,13 @@ Factory = {
 
         var rgbPoint, face, numberOfSides, vertexIndex, color;
 
+        size = size / 2;
         var material = new THREE.MeshBasicMaterial({
             color: 0xffffff,
             shading: THREE.FlatShading,
             vertexColors: THREE.VertexColors,
             side: THREE.BackSide
         });
-
-        //var bgGeometry = new THREE.CubeGeometry( cubeSide, cubeSide, cubeSide, 1, 1, 1 );
-        //var faceIndices = [ 'a', 'b', 'c', 'd' ];
-        //for ( var i = 0; i < bgGeometry.faces.length; i++ ) {
 
         var geometry = new THREE.CubeGeometry( size, size, size, 1, 1, 1 ),
             faceIndices = [ 'a', 'b', 'c', 'd' ];
@@ -511,9 +510,26 @@ Factory = {
             }
         }
 
-        var cube = new THREE.Mesh( geometry, material );
-        cube.dynamic = true;
+        //var cube = new THREE.Mesh( geometry, material );
+        //cube.dynamic = true;
 
+        World.pu = {
+            time: {value: 0.0, type:'f' },
+            resolution: { value: new THREE.Vector2( World.stage.width , World.stage.height ), type:'v2' },
+            mouse: { value: new THREE.Vector2( 10, 10 ), type:'v2' }
+        };
+        var bgShader = new THREE.ShaderMaterial( {
+            uniforms: World.pu,
+            vertexShader:   $('#vshader').text(),
+            fragmentShader: $('#fshader').text()
+            ,side: THREE.BackSide
+        });
+
+        var cube = new THREE.Mesh(
+            geometry,
+            bgShader
+        );
+        //scene.add(bg);
         return cube;
     }
 };
@@ -585,7 +601,54 @@ Camera = {
             floater.scaleTo( floater.mesh.scale.x + 2 );
         }
 
+        //var cubeGeometry = World.skyBox.geometry,
+            //faceIndices = [ 'a', 'b', 'c', 'd' ],
+            //size = Camera.data.frustrum.y * 2,
+            //face, numberOfSides, vertexIndex, point, color, i, j, rgbPoint;
+
+        //for ( i = 0; i < cubeGeometry.faces.length; i++ ) {
+            //face = cubeGeometry.faces[ i ];
+            //// determine if current face is a tri or a quad
+            //numberOfSides = ( face instanceof THREE.Face3 ) ? 3 : 4;
+            //// assign color to each vertex of current face
+            //for( j = 0; j < numberOfSides; j++ ) {
+                //vertexIndex = face[ faceIndices[ j ] ];
+                //// store coordinates of vertex
+                //point = cubeGeometry.vertices[ vertexIndex ];
+                //// initialize color variable
+                ////color = new THREE.Color( 0xffffff );
+                ////color.setRGB( 0.5 + point.x / size, 0.5 + point.y / size, 0.5 + point.z / size );
+                ////face.vertexColors[ j ] = color;
+            //}
+        //}
+
+        //World.skyBox.colorsNeedUpdate = true;
         this.mirror.updateCubeMap( World.renderer, World.scene );
+
+        //for ( i = 0; i < cubeGeometry.faces.length; i++ ) {
+            //face = cubeGeometry.faces[ i ];
+
+            //// determine if current face is a tri or a quad
+            //numberOfSides = ( face instanceof THREE.Face3 ) ? 3 : 4;
+
+            //// assign color to each vertex of current face
+            //for( j = 0; j < numberOfSides; j++ ) {
+                //vertexIndex = face[ faceIndices[ j ] ];
+                //// store coordinates of vertex
+                //rgbPoint = cubeGeometry.vertices[ vertexIndex ];
+
+                //color = new THREE.Color( 0x2185C5 );
+
+                ////0.5 + rgbPoint.y / cubeSide, 0.5 + rgbPoint.z / cubeSide );
+                ////color.r -= 0.3 * ( 0.5 - rgbPoint.x / size );
+                ////color.g -= 0.3 * ( 0.5 - rgbPoint.y / size );
+                ////color.b -= 0.3 * ( 0.5 - rgbPoint.z / size );
+                //color.setRGB( 0.5 + rgbPoint.x / size, 0.5 + rgbPoint.y / size, 0.5 + rgbPoint.z / size );
+                //face.vertexColors[ j ] = color;
+            //}
+        //}
+        //World.skyBox.colorsNeedUpdate = true;
+
         for( id in BubbleManager.forgotten ) {
             floater = BubbleManager.forgotten[ id ];
             floater.scaleTo( floater.mesh.scale.x - 2 );

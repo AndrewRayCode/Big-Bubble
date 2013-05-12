@@ -19,7 +19,7 @@ var inertia = { x: 0, y: 0 },
     keysDown = {},
     bubble = {
         radius: 90,
-        origRadi3s: 90,
+        origRadius: 90,
         scale: 1,
         segments: 32
     },
@@ -60,14 +60,14 @@ var material = new THREE.MeshPhongMaterial({
     color: 0xddddff
 });
 
-var cubeSide = cameraData.frustrum.y;
+var cubeSide = cameraData.frustrum.y * 2;
 
 //see https://github.com/mrdoob/three.js/wiki/Uniforms-types
 var gradientUniforms = {
-    //color1: { type: 'c', value: new THREE.Color( 0x2185C5 ) },
     color1: { type: 'c', value: new THREE.Color( 0xFFFFFF ) },
-    //color2: { type: 'c', value: new THREE.Color( 0x7ECEFD ) },
     color2: { type: 'c', value: new THREE.Color( 0xff0000 ) },
+    //color1: { type: 'c', value: new THREE.Color( 0x2185C5 ) },
+    //color2: { type: 'c', value: new THREE.Color( 0x7ECEFD ) },
     cHeight: { type: 'f' , value: cubeSide / 2 }
 };
 
@@ -89,7 +89,43 @@ var bg = new THREE.Mesh(
     new THREE.CubeGeometry( cubeSide, cubeSide, cubeSide ),
     bgShader
 );
-scene.add(bg);
+//scene.add(bg);
+
+// RGB color cube
+var rgbPoint, face, numberOfSides, vertexIndex, sideColor;
+var bgMaterial = new THREE.MeshBasicMaterial({
+    color: 0xffffff,
+    shading: THREE.FlatShading,
+    vertexColors: THREE.VertexColors,
+    side: THREE.BackSide
+});
+var bgGeometry = new THREE.CubeGeometry( cubeSide, cubeSide, cubeSide, 1, 1, 1 );
+var faceIndices = [ 'a', 'b', 'c', 'd' ];
+for ( var i = 0; i < bgGeometry.faces.length; i++ ) {
+    face = bgGeometry.faces[ i ];
+    // determine if current face is a tri or a quad
+    numberOfSides = ( face instanceof THREE.Face3 ) ? 3 : 4;
+    // assign color to each vertex of current face
+    for( var j = 0; j < numberOfSides; j++ ) {
+        vertexIndex = face[ faceIndices[ j ] ];
+        // store coordinates of vertex
+        rgbPoint = bgGeometry.vertices[ vertexIndex ];
+        // initialize color variable
+        sideColor = new THREE.Color( 0x2185C5 );
+        //sideColor = new THREE.Color( 0x7ECEFD );
+        sideColor.r -= 0.3 * ( 0.5 - rgbPoint.x / cubeSide );
+        sideColor.g -= 0.3 * ( 0.5 - rgbPoint.y / cubeSide );
+        sideColor.b -= 0.3 * ( 0.5 - rgbPoint.z / cubeSide );
+        //0.5 + rgbPoint.y / cubeSide, 0.5 + rgbPoint.z / cubeSide );
+        //color2: { type: 'c', value: new THREE.Color( 0x7ECEFD ) },
+        face.vertexColors[ j ] = sideColor;
+    }
+}
+var bgCube = new THREE.Mesh( bgGeometry, bgMaterial );
+bgCube.dynamic = true;
+bgCube.position.set( 100, 50, 0 );
+scene.add(bgCube);
+
 //bg.position.z -= cubeSide / 2;
 bg.rotation.x += 90 * ( Math.PI / 180 );
 
@@ -145,6 +181,19 @@ var sign = function(num) {
 
 
 
+// PerspectiveCamera( fov, aspect, near, far )
+var mirrorCubeCamera = new THREE.CubeCamera( 0.001, 10000, 128 );
+mirrorCubeCamera.renderTarget.minFilter = THREE.LinearMipMapLinearFilter;
+//var mirrorCubeCamera = new THREE.CubeCamera( 0.1, 5000, 512 );
+scene.add( mirrorCubeCamera );
+var mirrorCubeMaterial = new THREE.MeshBasicMaterial({
+    envMap: mirrorCubeCamera.renderTarget
+});
+
+
+
+
+
 
 var path = "js/Park2/";
 var format = '.jpg';
@@ -159,10 +208,21 @@ textureCube.format = THREE.RGBFormat;
 var fshader = THREE.FresnelShader;
 var uniforms = THREE.UniformsUtils.clone( fshader.uniforms );
 
-uniforms.tCube.value = textureCube;
+var renderTarget = new THREE.WebGLRenderTarget( window.innerWidth, window.innerHeight, {
+    minFilter: THREE.LinearFilter,
+    magFilter: THREE.NearestFilter,
+    format: THREE.RGBFormat
+});
+//var rtUniforms u { tDiffuse: { type: "t", value: rtTexture } };
 
-var parameters = { fragmentShader: fshader.fragmentShader, vertexShader: fshader.vertexShader, uniforms: uniforms };
-var abcmaterial = new THREE.ShaderMaterial( parameters );
+uniforms.tCube.value = mirrorCubeCamera.renderTarget;
+
+var parameters = {
+    fragmentShader: fshader.fragmentShader,
+    vertexShader: fshader.vertexShader,
+    uniforms: uniforms
+};
+var fresnelMaterial = new THREE.ShaderMaterial( parameters );
 
 scene.matrixAutoUpdate = false;
 
@@ -184,19 +244,11 @@ var qesh = new THREE.Mesh( new THREE.CubeGeometry( 100000, 100000, 100000 ), ass
 
 
 
-// PerspectiveCamera( fov, aspect, near, far )
-var mirrorCubeCamera = new THREE.CubeCamera( 0.001, 10000, 128 );
-mirrorCubeCamera.renderTarget.minFilter = THREE.LinearMipMapLinearFilter;
-//var mirrorCubeCamera = new THREE.CubeCamera( 0.1, 5000, 512 );
-scene.add( mirrorCubeCamera );
-var mirrorCubeMaterial = new THREE.MeshBasicMaterial({
-    envMap: mirrorCubeCamera.renderTarget
-});
 
 
 
-
-var playerMesh = new THREE.Mesh( playerGeometry, mirrorCubeMaterial );
+//var playerMesh = new THREE.Mesh( playerGeometry, mirrorCubeMaterial );
+var playerMesh = new THREE.Mesh( playerGeometry, fresnelMaterial );
 
 playerMesh.position.x = 0;
 playerMesh.position.y = 0;
@@ -292,16 +344,16 @@ var render = function() {
         sphere = spheres[key];
         // (x2-x1)^2 + (y1-y2)^2 <= (r1+r2)^2
         if( collision( sphere.position, playerMesh.position, sphere.r, bubble.radius ) ) {
-            //scene.remove(sphere);
-            //grow( sphere.r / 3 );
-            //delete spheres[key];
+            scene.remove(sphere);
+            grow( sphere.r / 13 );
+            delete spheres[key];
 
-            //if( !Object.keys(spheres).length ) {
-                //zoomTimer = 30;
-            //}
+            if( !Object.keys(spheres).length ) {
+                zoomTimer = 30;
+            }
         }
     }
-    //gradientUniforms.color1.value.r += 0.001;
+    gradientUniforms.color1.value.r += 0.001;
 
     if( zoomTimer ) {
         zoomTimer--;
@@ -325,12 +377,26 @@ var render = function() {
     //console.log(Math.sin( 100 * ( timer % 1 ) ));
     //bg.rotation.y += 0.01;
 
+    for ( var i = 0; i < bgGeometry.faces.length; i++ ) {
+        face = bgGeometry.faces[ i ];
+        // determine if current face is a tri or a quad
+        numberOfSides = ( face instanceof THREE.Face3 ) ? 3 : 4;
+        // assign color to each vertex of current face
+        for( var j = 0; j < numberOfSides; j++ ) {
+            face.vertexColors[ j ].b += 0.0001;
+        }
+    }
+    bgGeometry.colorsNeedUpdate = true;
+
     mirrorCubeCamera.position.x = playerMesh.position.x;
     mirrorCubeCamera.position.y = playerMesh.position.y;
-    mirrorCubeCamera.position.z = playerMesh.position.z;
+    mirrorCubeCamera.position.z = playerMesh.position.z + 200;
 
     playerMesh.visible = false;
+
     mirrorCubeCamera.updateCubeMap( renderer, scene );
+    //renderer.render( scene, mirrorCubeCamera, renderTarget, true );
+
     playerMesh.visible = true;
 
     //renderer.clear();

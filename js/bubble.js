@@ -175,6 +175,8 @@ Game = {
         World.scene.add( shark );
         World.shark = shark;
 
+        this.startTime = new Date().getTime();
+
         this.reqFrame();
     },
 
@@ -186,7 +188,7 @@ Game = {
     loop: function() {
         var timer = 0.0001 * Date.now();
 
-        World.pu.time.value = ((new Date().getTime() / 10000000) % 1) * 10000;
+        World.pu.time.value = ( new Date().getTime() - this.startTime ) / 1000;
 
         Player.update();
         Player.constrain();
@@ -514,15 +516,18 @@ Factory = {
         //cube.dynamic = true;
 
         World.pu = {
-            time: {value: 0.0, type:'f' },
+            time: {value: 0, type:'f' },
             resolution: { value: new THREE.Vector2( World.stage.width , World.stage.height ), type:'v2' },
-            mouse: { value: new THREE.Vector2( 10, 10 ), type:'v2' }
+            mouse: { value: new THREE.Vector2( 10, 10 ), type:'v2' },
+            beamSpeed: {value: 0.1, type:'f' },
+            brightness: {value: 0.3, type:'f' },
+            numBeams: {value: 20, type:'i' }
         };
         var bgShader = new THREE.ShaderMaterial( {
             uniforms: World.pu,
             vertexShader:   $('#vshader').text(),
-            fragmentShader: $('#fshader').text()
-            ,side: THREE.BackSide
+            fragmentShader: $('#fshader').text(),
+            side: THREE.BackSide
         });
 
         var cube = new THREE.Mesh(

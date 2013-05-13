@@ -45,10 +45,13 @@
       <div id="fshader">
 
 uniform vec2 resolution;
+uniform vec3 beamColor;
+uniform vec3 bgColor;
 uniform float time;
 uniform float beamSpeed;
 uniform int numBeams;
 uniform float brightness;
+uniform float dModifier;
 
 #define PI 3.1416
 
@@ -56,68 +59,14 @@ vec3 dir(vec3 pos, float rotation) {
     return vec3(800,100,0);
 }
 
-//some ugly clouds
-//noise function lifted from that eye
-//added modification so I have 3d noise
-//needs more light scattering and god rays
-
 #ifdef GL_ES
 precision mediump float;
 #endif
 
-mat2 m = mat2( 0.90,  0.110, -0.70,  1.00 );
-
-float hash( float n )
-{
-    return fract(sin(n)*758.5453);
-}
-
-float noise( in vec3 x )
-{
-    vec3 p = floor(x);
-    vec3 f = fract(x);
-    //f = f*f*(3.0-2.0*f);
-    float n = p.x + p.y*57.0 + p.z*800.0;
-    float res = mix(mix(mix( hash(n+  0.0), hash(n+  1.0),f.x), mix( hash(n+ 57.0), hash(n+ 58.0),f.x),f.y),
-            mix(mix( hash(n+800.0), hash(n+801.0),f.x), mix( hash(n+857.0), hash(n+858.0),f.x),f.y),f.z);
-    return res;
-}
-
-float fbm( vec3 p )
-{
-    float f = 0.0;
-    f += 0.50000*noise( p ); p = p*2.02;
-    f += 0.25000*noise( p ); p = p*2.03;
-    f += 0.12500*noise( p ); p = p*2.01;
-    f += 0.06250*noise( p ); p = p*2.04;
-    f += 0.03125*noise( p );
-    return f/0.984375;
-}
-
-float cloud(vec3 p)
-{
-    float a =0.0;
-    a+=fbm(p*3.0)*2.2-0.9;
-    if (a<0.0) a=0.0;
-    //a=a*a;
-    return a;
-}
-
-vec3 f2(vec3 c)
-{
-    c+=hash(time+gl_FragCoord.x+gl_FragCoord.y*9.9)*0.01;
-    
-    
-    c*=0.7-length(gl_FragCoord.xy / resolution.xy -0.5)*0.3;
-    float w=length(c);
-    c=mix(c*vec3(1.0,1.2,1.6),vec3(w,w,w)*vec3(1.4,1.2,1.0),w*1.1-0.2);
-    return c;
-}
-
 
 bool leftToRight = false;
 float slopeSign = (leftToRight ? -1.0 : 1.0);
-float slope1 = 5.0 * slopeSign;
+float slope1 = 8.0 * slopeSign;
 float slope2 = 7.0 * slopeSign;
 
 void main(void) {
@@ -125,15 +74,15 @@ void main(void) {
     p.x += 0.0;
     p.y -= 0.6;
     vec2 center = vec2(0.5, 0.5);
-    float d = distance(p, center);
+    float d = distance(p, center) - dModifier;
         
     // bluish tint from top left
-    vec3 color = vec3(1.0 - d * 0.75) * vec3(0.03, 0.35, 1.0);
+    vec3 color = bgColor;//vec3(1.0 - d * 0.75) * vec3(0.03, 0.35, 1.0);
     
     // add some green near centre
     color += (1.0-distance(p, vec2(1.0, 1.0))*1.) * 0.5 * vec3(0.35, 0.65, 0.45);
     
-    vec3 lightColor = vec3(0.1, 0.35, 0.65);
+    vec3 lightColor = beamColor;
     
     // will be better as uniforms
     for (int i=0; i < numBeams; i++) {
@@ -160,17 +109,6 @@ void main(void) {
         color += smoothstep(cosInnerCone, cosOuterCone, cosDirection) * shadow * lightColor;
     }
     color += sin(time * 0.5) * 0.05;
-    gl_FragColor = vec4(vec3(color), 1.0);
-
-
-//    vec2 distanceVector = gl_FragCoord.xy - (vec2(0.5, 1.0) * resolution);
-//    float angle = atan(distanceVector.x, distanceVector.y) + time * .5 * (1. - 0.0001 * length(distanceVector));
-//    float isSolid = clamp(cos(angle*16.0 + 2. * sin(time * 5. - length(distanceVector) * 0.05)) * 100.0, 0.95, 1.0);
-//    gl_FragColor = vec4(144.0/255.0, 8.0/255.0, 78.0/255.0, 1.0) * isSolid * vec4(vec3(color), 1.0);
-
-
-
-
 
 
 
@@ -178,19 +116,20 @@ void main(void) {
 
     
     
+    // https://www.shadertoy.com/view/4sX3Wr
     vec2 uv = gl_FragCoord.xy / resolution.xy;
     float bright =
-        - sin(uv.y * slope1 + uv.x * 30.0+ time *2.10) *.2
-        - sin(uv.y * slope2 + uv.x * 37.0 + time *2.10) *.1
-        - cos(              + uv.x * 2.0 * slopeSign + time * 1.10) *.1
-        - sin(              - uv.x * 5.0 * slopeSign + time * 1.0) * .3;
+        - sin(uv.y * slope1 + uv.x * 30.0+ time *3.10) *.2
+        - sin(uv.y * slope2 + uv.x * 37.0 + time *3.10) *.1
+        - cos(              + uv.x * 2.0 * slopeSign + time *2.10) *.1
+        - sin(              - uv.x * 5.0 * slopeSign + time * 2.0) * .3;
     
-    float modulate = abs(cos(time * .1) * 0.1 + sin(time * .7)) * 1.5;
+    float modulate = abs(cos(time * .1) * 0.1 + sin(time * .7)) * 0.5;
     bright *= modulate;
-    vec4 pix = vec4(0.5, 0.5, 0.5, 1.0);
-    pix += clamp(bright / 1.0,0.0,1.0);
+    vec4 pix = vec4(beamColor.r, beamColor.g, beamColor.b, 1.0);
+    pix += clamp(bright / 1.0, 0.0, 1.0);
 
-    gl_FragColor = vec4(vec3(color), 1.0) + ( 0.1 * pix ) ;
+    gl_FragColor = vec4(vec3(color), 1.0) + ( 0.09 * pix );
 
 
 }

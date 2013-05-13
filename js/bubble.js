@@ -167,7 +167,8 @@ Game = {
 
         var sharkMaterial = new THREE.MeshBasicMaterial({
             map: THREE.ImageUtils.loadTexture( 'media/shark.png' ),
-            transparent: true
+            transparent: true,
+            opacity:0.2
         });
         var sharkGeometry = new THREE.PlaneGeometry(300, 300, 1, 1);
         var shark = new THREE.Mesh(sharkGeometry, sharkMaterial);
@@ -189,6 +190,11 @@ Game = {
         var timer = 0.0001 * Date.now();
 
         World.pu.time.value = ( new Date().getTime() - this.startTime ) / 1000;
+        World.pu.bgColor.value.addScalar( 0.0001 );
+        World.pu.bgColor.value.b += 0.0001;
+
+        //World.pu.dModifier.value += 0.001;
+        //World.pu.brightness.value += 0.001;
 
         Player.update();
         Player.constrain();
@@ -213,7 +219,7 @@ Game = {
 
         for( id in BubbleManager.forgotten ) {
             floater = BubbleManager.forgotten[ id ];
-            floater.moveLockTowards( Player, 0.01 );
+            floater.moveLockTowards( Player, 0.02 );
             if( new Date() - floater.lockTime > 2600 ) {
                 floater.unlock();
                 BubbleManager.freeFloater( floater );
@@ -253,6 +259,7 @@ Game = {
 
         World.shark.rotation.x += Math.sin( 50 * ( timer % 1 ) ) / 100;
         World.shark.position.x += Math.sin( 50 * ( timer % 1 ) );
+        World.shark.position.y -= 0.4;
 
         //bg.rotation.y += 0.01;
 
@@ -287,6 +294,11 @@ Level = {
     advance: function() {
         this.index++;
         this.level = this.levels[ this.index ];
+
+        if( !this.level ) {
+            this.levels[ this.index ] = $.extend({}, this.levels[ this.index - 1]);
+            this.levels[ this.index ].next *= 2;
+        }
     }
 };
 
@@ -465,10 +477,12 @@ World = {
         //bgCube.position.set( 100, 50, 0 );
         //scene.add(bgCube);
 
-        var skyBox = this.skyBox = Factory.makeGradientCube(
-            Camera.data.frustrum.y * 2, 0x2185C5
-        );
-        World.scene.add( skyBox );
+        var skyBox = this.skyBox = Utils.extend('entity', {
+            mesh: Factory.makeGradientCube(
+                Camera.data.frustrum.y * 3, 0x2185C5
+            )
+        });
+        World.scene.add( skyBox.mesh );
     }
 };
 
@@ -519,22 +533,34 @@ Factory = {
             time: {value: 0, type:'f' },
             resolution: { value: new THREE.Vector2( World.stage.width , World.stage.height ), type:'v2' },
             mouse: { value: new THREE.Vector2( 10, 10 ), type:'v2' },
-            beamSpeed: {value: 0.1, type:'f' },
-            brightness: {value: 0.3, type:'f' },
+            beamSpeed: {value: 0.06, type:'f' },
+            beamColor: {value: new THREE.Vector3( 0.1, 0.2, 0.8 ), type:'v3' },
+            bgColor: {value: new THREE.Vector3( 0.1, 0.2, 0.3 ), type:'v3' },
+            dModifier: {value: 0, type:'f' },
+            brightness: {value: 0.1, type:'f' },
             numBeams: {value: 20, type:'i' }
         };
         var bgShader = new THREE.ShaderMaterial( {
             uniforms: World.pu,
             vertexShader:   $('#vshader').text(),
-            fragmentShader: $('#fshader').text(),
-            side: THREE.BackSide
+            fragmentShader: $('#fshader').text()
         });
 
         var cube = new THREE.Mesh(
             geometry,
-            bgShader
+            material
         );
-        //scene.add(bg);
+
+        var plane = Utils.extend('entity', {
+            mesh: new THREE.Mesh(
+                new THREE.PlaneGeometry( Camera.data.frustrum.x * 1.5, Camera.data.frustrum.y * 1.5, 1, 1),
+                bgShader
+            )
+        });
+        plane.mesh.position.set( 0, 0, -200 );
+        World.plane = plane;
+        World.scene.add( plane.mesh );
+
         return cube;
     }
 };
@@ -579,8 +605,12 @@ Camera = {
         };
 
         if( World.skyBox ) {
-            World.skyBox.scale.x = World.skyBox.scale.y = World.skyBox.scale.z =
-                ( data.frustrum.y * 2 ) / ( Camera.data.frustrum.y * 2 );
+            World.skyBox.scaleTo(
+                ( data.frustrum.y * 2 ) / ( Camera.data.frustrum.y * 2 ) * 2
+            );
+            World.plane.scaleTo(
+                ( data.frustrum.y * 2 ) / ( Camera.data.frustrum.y * 2 ) * 2
+            );
         }
     },
 
@@ -595,16 +625,17 @@ Camera = {
         this.mirror.position.z = Player.mesh.position.z - 10;
 
         Player.mesh.visible = false;
+        World.plane.mesh.visible = false;
 
-        var floater, id;
-        for( id in BubbleManager.forgotten ) {
-            floater = BubbleManager.forgotten[ id ];
-            floater.scaleTo( floater.mesh.scale.x + 2 );
-        }
-        for( id in BubbleManager.floaters ) {
-            floater = BubbleManager.floaters[ id ];
-            floater.scaleTo( floater.mesh.scale.x + 2 );
-        }
+        //var floater, id;
+        //for( id in BubbleManager.forgotten ) {
+            //floater = BubbleManager.forgotten[ id ];
+            //floater.scaleTo( floater.mesh.scale.x + 2 );
+        //}
+        //for( id in BubbleManager.floaters ) {
+            //floater = BubbleManager.floaters[ id ];
+            //floater.scaleTo( floater.mesh.scale.x + 2 );
+        //}
 
         //var cubeGeometry = World.skyBox.geometry,
             //faceIndices = [ 'a', 'b', 'c', 'd' ],
@@ -654,15 +685,16 @@ Camera = {
         //}
         //World.skyBox.colorsNeedUpdate = true;
 
-        for( id in BubbleManager.forgotten ) {
-            floater = BubbleManager.forgotten[ id ];
-            floater.scaleTo( floater.mesh.scale.x - 2 );
-        }
-        for( id in BubbleManager.floaters ) {
-            floater = BubbleManager.floaters[ id ];
-            floater.scaleTo( floater.mesh.scale.x - 2 );
-        }
+        //for( id in BubbleManager.forgotten ) {
+            //floater = BubbleManager.forgotten[ id ];
+            //floater.scaleTo( floater.mesh.scale.x - 2 );
+        //}
+        //for( id in BubbleManager.floaters ) {
+            //floater = BubbleManager.floaters[ id ];
+            //floater.scaleTo( floater.mesh.scale.x - 2 );
+        //}
         Player.mesh.visible = true;
+        World.plane.mesh.visible = true;
 
         World.renderer.render( World.scene, Camera.main );
     }
@@ -676,7 +708,7 @@ var makeBubbleManager = function() {
         freeFloaters = [];
 
     var floaterMaterial = new THREE.MeshPhongMaterial({
-        color: new THREE.Color( 0x2185C5 ),
+        color: new THREE.Color( 0x51d5f5 ),
         transparent: true,
         opacity: 0.5
     });

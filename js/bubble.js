@@ -363,6 +363,7 @@ Level = {
             this.levels[ this.index ] = $.extend({}, this.levels[ this.index - 1]);
             this.levels[ this.index ].next *= 1.5;
             this.levels[ this.index ].zoom += 100;
+            this.level = this.levels[ this.index ];
         }
     }
 };

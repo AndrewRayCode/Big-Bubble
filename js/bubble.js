@@ -304,9 +304,13 @@ Game = {
             //}
         //}
 
-        if( Math.random() > 0.98 ) {
+        if( Math.random() > 0.97 ) {
             Thing.create('floater', {
                 radius: 10 + Math.random() * 10
+            });
+        } else if( Math.random() > 0.993 ) {
+            Thing.create('mine', {
+                radius: 0.5 + Math.random() * 0.1
             });
         }
 
@@ -372,9 +376,9 @@ Player = Utils.extend('entity', {
     },
     phys: {
         inertia: { x: 0, y: 0 },
-        acceleration: 0.6,
-        deceleration: 0.8,
-        max: 17
+        acceleration: 0.5,
+        deceleration: 0.3,
+        max: 7
     },
 
     init: function() {
@@ -784,25 +788,32 @@ Thing = {
     },
     
     create: function( thingId, options ) {
+        var me = this;
+
+        var complete = function() {
+            thing.id = me.id;
+            thing.init( options );
+            cache.active[ thing.id ] = thing;
+
+            World.scene.add( thing.mesh );
+
+            me.id++;
+        };
+
         var thing,
             cache = this.things[ thingId ],
             freeCache = cache.free;
 
         if( freeCache.length ) {
             thing = freeCache.pop();
+            complete();
         } else {
             thing = Object.create( cache.thing );
-            thing.loadGeometry( options );
+            var p = thing.loadGeometry( options );
             thing.type = thingId;
+
+            p.then ? p.then( complete ) : complete();
         }
-
-        thing.id = this.id;
-        thing.init( options );
-        cache.active[ thing.id ] = thing;
-
-        World.scene.add( thing.mesh );
-
-        this.id++;
     },
 
     free: function( thing ) {
@@ -850,7 +861,7 @@ var Mine = Thing.register('mine', Utils.extend('entity', {
     init: function( options ) {
         options = options || {};
 
-        var radius = options.radius || 10 + 5 * Math.random();
+        var radius = options.radius || 1 + Math.random();
 
         this.mesh.position.x = options.x || -(Camera.data.frustrum.x / 2) + (( Math.random() * Camera.data.frustrum.x));
         this.mesh.position.y = options.y || Camera.data.frustrum.y + ( radius * 2 );
@@ -860,7 +871,7 @@ var Mine = Thing.register('mine', Utils.extend('entity', {
             y: -1 - ( Math.random() )
         };
 
-        this.scaleTo( 1 + radius );
+        this.scaleTo( radius );
         this.r = radius;
     },
 

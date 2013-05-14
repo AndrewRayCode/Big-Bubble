@@ -6,7 +6,11 @@ var pointLight1 = new THREE.PointLight(0x888888);
 var pointLight2 = new THREE.PointLight(0x8888FF);
 var pointLight3 = new THREE.PointLight(0xAA00AA);
 
-var Game, Utils, Level, Player, World, Factory, Camera, BubbleManager;
+            
+//var bgColor = new THREE.Color( 0x0094f2 );
+var bgColor = new THREE.Color( 0x002462 );
+
+var Game, Utils, Level, Player, World, Factory, Camera, Thing;
 
 //(function() {
 
@@ -48,12 +52,53 @@ Utils = {
         Mousetrap.bind(key, function() {
             delete World.keysDown[key];
         }, 'keyup');
-    }
+    },
 
+    loader: new THREE.JSONLoader(),
+
+    loadModel: function( data ) {
+        var deferred = Q.defer();
+        this.loader.load( data, deferred.resolve );
+        return deferred.promise;
+    }
 };
 
 Game = {
     mixers: [],
+
+    binder: $( {} ),
+    bounds: {},
+
+    trigger: function() {
+        this.binder.trigger.apply( this.binder, arguments );
+    },
+
+    bind: function( evt, fn ) {
+        var me = this;
+
+        var newFn = function() {
+            fn.apply(me.binder, Array.prototype.slice.call(arguments, 1) );
+        };
+        var evts = this.bounds[ evt ];
+        if( !evts ) {
+            evts = this.bounds[ evt ] = [];
+        }
+        evts.push( {orig: fn, bound: newFn } );
+        this.binder.bind( evt, newFn );
+    },
+
+    unbind: function( evt, fn ) {
+        if( !fn ) {
+            this.binder.unbind( evt );
+        } else {
+            for( var x = 0; x < this.bounds[ evt ].length; x++ ) {
+                if( this.bounds[ evt ][ x ].orig === fn ) {
+                    this.binder.unbind( evt, this.bounds[ evt ][ x ].bound );
+                    break;
+                }
+            }
+        }
+    },
 
     init: function() {
         this.initted = true;
@@ -61,6 +106,8 @@ Game = {
         this.mixins = {
             entity: {
                 lockTo: function( master, offset ) {
+                    this.locking = true;
+
                     this.lockOffset = offset || {
                         x: this.mesh.position.x - master.mesh.position.x,
                         y: this.mesh.position.y - master.mesh.position.y,
@@ -74,6 +121,8 @@ Game = {
                 },
 
                 unlock: function() {
+                    this.locking = false;
+
                     var mLocks = this.master.locks;
 
                     for( var x = 0; x < mLocks.length; x++ ) {
@@ -152,6 +201,7 @@ Game = {
         World.populate();
         Player.init();
         Level.init();
+        Thing.init();
 
         // set its position
         pointLight1.position.z = 1030;
@@ -190,8 +240,10 @@ Game = {
         var timer = 0.0001 * Date.now();
 
         World.pu.time.value = ( new Date().getTime() - this.startTime ) / 1000;
-        World.pu.bgColor.value.addScalar( 0.0001 );
-        World.pu.bgColor.value.b += 0.0001;
+
+        bgColor.addScalar( 0.0001 );
+        World.pu.bgColor.value = new THREE.Vector3( bgColor.r, bgColor.g, bgColor.b );
+        //World.pu.bgColor.value.b += 0.0001;
 
         //World.pu.dModifier.value += 0.001;
         //World.pu.brightness.value += 0.001;
@@ -217,41 +269,43 @@ Game = {
 
         var floater, id;
 
-        for( id in BubbleManager.forgotten ) {
-            floater = BubbleManager.forgotten[ id ];
-            floater.moveLockTowards( Player, 0.02 );
-            if( new Date() - floater.lockTime > 2600 ) {
-                floater.unlock();
-                BubbleManager.freeFloater( floater );
-                Player.grow( floater.r / 12 );
+        //for( id in Thing.things.floater.active ) {
+            //floater = Thing.forgotten[ id ];
+            //floater.moveLockTowards( Player, 0.02 );
+            //if( new Date() - floater.lockTime > 1600 ) {
+                //floater.unlock();
+                //Thing.freeFloater( floater );
+                //Player.grow( floater.r / 12 );
 
-                if( Player.build.radius > Level.level.next ) {
-                    Level.advance();
+                //if( Player.build.radius > Level.level.next ) {
+                    //Level.advance();
 
-                    Camera.main.zoomTimer = 30;
-                }
-            }
-        }
+                    //Camera.main.zoomTimer = 30;
+                //}
+            //}
+        //}
 
-        for( id in BubbleManager.floaters ) {
-            floater = BubbleManager.floaters[ id ];
-            floater.upate();
+        Thing.updateThings();
 
-            if ( floater.mesh.position.y + floater.r * 2 < -Camera.data.frustrum.y ) {
-                // TODO: fix this, bubbles should free sooner
-                BubbleManager.freeFloater( floater );
+        //for( id in Thing.things.floater.active ) {
+            //floater = Thing.floaters[ id ];
+            //floater.upate();
 
-            } else if( Player.isCollidingWith( floater ) ) {
+            //if ( floater.mesh.position.y + floater.r * 2 < -Camera.data.frustrum.y ) {
+                //// TODO: fix this, bubbles should free sooner
+                //Thing.freeFloater( floater );
 
-                BubbleManager.forgetFloater( floater );
-                floater.lockTo( Player );
-                floater.moveLockTowards( Player, floater.r );
-                floater.lockTime = new Date();
-            }
-        }
+            //} else if( Player.isCollidingWith( floater ) ) {
+
+                //Thing.forgetFloater( floater );
+                //floater.lockTo( Player );
+                //floater.moveLockTowards( Player, floater.r );
+                //floater.lockTime = new Date();
+            //}
+        //}
 
         if( Math.random() > 0.98 ) {
-            BubbleManager.makeFloater({
+            Thing.create('floater', {
                 radius: 10 + Math.random() * 10
             });
         }
@@ -281,11 +335,17 @@ Game = {
 
 Level = {
     levels: [{
-        next: 100
+        next: 10,
+        zoom: 500
     }, {
-        next: 120
+        next: 120,
+        zoom: 600
     }, {
-        next: 140
+        next: 140,
+        zoom: 700
+    }, {
+        next: 140,
+        zoom: 700
     }],
     init: function() {
         this.index = -1;
@@ -297,7 +357,8 @@ Level = {
 
         if( !this.level ) {
             this.levels[ this.index ] = $.extend({}, this.levels[ this.index - 1]);
-            this.levels[ this.index ].next *= 2;
+            this.levels[ this.index ].next *= 1.5;
+            this.levels[ this.index ].zoom += 100;
         }
     }
 };
@@ -533,12 +594,13 @@ Factory = {
             time: {value: 0, type:'f' },
             resolution: { value: new THREE.Vector2( World.stage.width , World.stage.height ), type:'v2' },
             mouse: { value: new THREE.Vector2( 10, 10 ), type:'v2' },
-            beamSpeed: {value: 0.06, type:'f' },
+            beamSpeed: {value: 0.26, type:'f' },
             beamColor: {value: new THREE.Vector3( 0.1, 0.2, 0.8 ), type:'v3' },
-            bgColor: {value: new THREE.Vector3( 0.1, 0.2, 0.3 ), type:'v3' },
+            bgColor: {value: new THREE.Vector3( bgColor.r, bgColor.g, bgColor.b ), type:'v3' },
             dModifier: {value: 0, type:'f' },
-            brightness: {value: 0.1, type:'f' },
-            numBeams: {value: 20, type:'i' }
+            brightness: {value: 0.8, type:'f' },
+            slantBrightness: {value: 0.1, type:'f' },
+            numBeams: {value: 13, type:'i' }
         };
         var bgShader = new THREE.ShaderMaterial( {
             uniforms: World.pu,
@@ -578,7 +640,6 @@ Camera = {
         this.main = new THREE.PerspectiveCamera(
             this.data.fov, World.stage.width / World.stage.height, 1, 100000
         );
-        this.main.zoomTimer = 0;
 
         var mirror = this.mirror = new THREE.CubeCamera( 0.1, 10000, 128 );
         mirror.renderTarget.minFilter = THREE.LinearMipMapLinearFilter;
@@ -595,6 +656,7 @@ Camera = {
         var camera = this.main,
             data = this.data;
 
+        this.data.zoom = level;
         data.zoom = camera.position.z = level;
 
         var frustumHeight = 2.0 * data.zoom * Math.tan(data.fov * 0.5 * ( Math.PI / 180 ) );
@@ -615,8 +677,7 @@ Camera = {
     },
 
     update: function() {
-        if( this.main.zoomTimer ) {
-            this.main.zoomTimer--;
+        if( Camera.data.zoom < Level.level.zoom ) {
             this.zoom( Camera.data.zoom + 10 );
         }
 
@@ -700,79 +761,173 @@ Camera = {
     }
 };
 
-var makeBubbleManager = function() {
-    var floaters = {},
-        forgotten = {},
-        stickers = {},
-        id = -1,
-        freeFloaters = [];
+Thing = {
+    things: {},
 
-    var floaterMaterial = new THREE.MeshPhongMaterial({
-        color: new THREE.Color( 0x51d5f5 ),
-        transparent: true,
-        opacity: 0.5
-    });
-    var floaterGeometry = new THREE.SphereGeometry( 1, 32, 32 );
+    id: 0,
 
-    this.makeFloater = function( options ) {
+    init: function() {
+        var me = this;
+        Game.bind( 'free', function( thing ) {
+            me.free( thing );
+        });
+    },
+
+    register: function( id, thing ) {
+        thing.type = id;
+
+        this.things[ id ] = {
+            thing: thing,
+            active: {},
+            free: []
+        };
+    },
+    
+    create: function( thingId, options ) {
+        var thing,
+            cache = this.things[ thingId ],
+            freeCache = cache.free;
+
+        if( freeCache.length ) {
+            thing = freeCache.pop();
+        } else {
+            thing = Object.create( cache.thing );
+            thing.loadGeometry( options );
+            thing.type = thingId;
+        }
+
+        thing.id = this.id;
+        thing.init( options );
+        cache.active[ thing.id ] = thing;
+
+        World.scene.add( thing.mesh );
+
+        this.id++;
+    },
+
+    free: function( thing ) {
+
+        if( thing.locking ) {
+            thing.unlock();
+        }
+        var cache = this.things[ thing.type ];
+        delete cache.active[ thing.id ];
+        cache.free.push( thing );
+
+        World.scene.remove( thing.mesh );
+    },
+
+    updateThings: function() {
+        var cache = this.things;
+        for( var id in this.things ) {
+            cache = this.things[ id ].active;
+            for( var thingId in cache ) {
+                cache[ thingId ].update();
+            }
+        }
+    }
+};
+
+var Mine = Thing.register('mine', Utils.extend('entity', {
+    collision: [ Player ],
+
+    loadGeometry: function() {
+        var me = this;
+
+        return Utils.loadModel( 'media/mine.js' ).then( function( geometry ) {
+            var modelTex = THREE.ImageUtils.loadTexture( 'media/metal.jpg' );
+            var material = new THREE.MeshLambertMaterial({
+                shading: THREE.FlatShading
+            });
+            material = new THREE.MeshLambertMaterial({
+                shading: THREE.FlatShading,
+                map: modelTex
+            });
+            return me.mesh = new THREE.Mesh( geometry, material );
+        });
+    },
+
+    init: function( options ) {
         options = options || {};
 
-        var floater,
-            radius = options.radius || 10 + 5 * Math.random();
+        var radius = options.radius || 10 + 5 * Math.random();
 
-        if( freeFloaters.length ) {
-            floater = freeFloaters.pop();
-        } else {
-            floater = Utils.extend('entity', {
-                mesh: new THREE.Mesh( floaterGeometry, floaterMaterial ),
-                upate: function() {
-                    this.mesh.position.y += this.inertia.y;
-                    this.updateLocks();
-                }
-            });
-        }
-        id++;
-
-        floater.id = id;
-
-        floater.mesh.position.x = options.x || -(Camera.data.frustrum.x / 2) + (( Math.random() * Camera.data.frustrum.x));
-        floater.mesh.position.y = options.y || Camera.data.frustrum.y + ( radius * 2 );
-        floater.mesh.position.z = 0;
-        floater.inertia = options.inertia || {
+        this.mesh.position.x = options.x || -(Camera.data.frustrum.x / 2) + (( Math.random() * Camera.data.frustrum.x));
+        this.mesh.position.y = options.y || Camera.data.frustrum.y + ( radius * 2 );
+        this.mesh.position.z = 0;
+        this.inertia = options.inertia || {
             x: 0,
             y: -1 - ( Math.random() )
         };
 
-        floater.scaleTo( 1 + radius );
-        floater.r = radius;
+        this.scaleTo( 1 + radius );
+        this.r = radius;
+    },
 
-        floaters[ id ] = floater;
-        World.scene.add( floater.mesh );
-    };
+    update: function() {
+        this.mesh.position.y += this.inertia.y;
+        this.updateLocks();
+    }
+}));
 
-    this.forgetFloater = function( floater, free ) {
-        delete floaters[ floater.id ];
+var Floater = Thing.register('floater', Utils.extend('entity', {
 
-        if( free ) {
-            delete forgotten[ floater.id ];
-            freeFloaters.push( floater );
-            World.scene.remove( floater.mesh );
+    material: new THREE.MeshPhongMaterial({
+        color: new THREE.Color( 0x51d5f5 ),
+        transparent: true,
+        opacity: 0.5
+    }),
+
+    geometry: new THREE.SphereGeometry( 1, 32, 32 ),
+
+    loadGeometry: function() {
+        return this.mesh = new THREE.Mesh( this.geometry, this.material );
+    },
+
+    init: function( options ) {
+        options = options || {};
+
+        var radius = options.radius || 10 + 5 * Math.random();
+
+        this.mesh.position.x = options.x || -(Camera.data.frustrum.x / 2) + (( Math.random() * Camera.data.frustrum.x));
+        this.mesh.position.y = options.y || Camera.data.frustrum.y + ( radius * 2 );
+        this.mesh.position.z = 0;
+        this.inertia = options.inertia || {
+            x: 0,
+            y: -1 - ( Math.random() )
+        };
+
+        this.scaleTo( 1 + radius );
+        this.r = radius;
+    },
+
+    update: function() {
+        if( this.locking ) {
+            this.moveLockTowards( Player, 0.02 );
+            if( new Date() - this.lockTime > 1600 ) {
+                Game.trigger( 'free', this );
+
+                Player.grow( this.r / 12 );
+
+                if( Player.build.radius > Level.level.next ) {
+                    Level.advance();
+                }
+            }
         } else {
-            forgotten[ floater.id ] = floater;
+            this.mesh.position.y += this.inertia.y;
+            this.updateLocks();
+
+            if( Player.isCollidingWith( this ) ) {
+                this.lockTo( Player );
+                this.moveLockTowards( Player, this.r );
+                this.lockTime = new Date();
+
+            } else if ( this.mesh.position.y + this.r * 2 < -Camera.data.frustrum.y ) {
+                Game.trigger( 'free', this );
+            }
         }
-    };
-
-    this.freeFloater = function( bubble ) {
-        this.forgetFloater( bubble, true );
-    };
-
-    this.floaters = floaters;
-    this.forgotten = forgotten;
-    this.stickers = stickers;
-
-    return this;
-};
-BubbleManager = makeBubbleManager();
+    }
+}));
 
 Game.init();
 

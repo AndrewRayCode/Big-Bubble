@@ -5,10 +5,8 @@ if ( !window.Detector.webgl ) {
 var pointLight1 = new THREE.PointLight(0x888888);
 var pointLight2 = new THREE.PointLight(0x8888FF);
 var pointLight3 = new THREE.PointLight(0xAA00AA);
-
             
 //var bgColor = new THREE.Color( 0x0094f2 );
-var bgColor = new THREE.Color( 0x002462 );
 
 var Game, Utils, Level, Player, World, Factory, Camera, Thing;
 
@@ -38,11 +36,21 @@ Utils = {
 
     extend: function( mixin, obj ) {
         if( Game.initted ) {
-            return $.extend( obj, Game.mixins[ mixin ] );
+            return this._extend( mixin, obj );
         } else {
             Game.mixers.push({ mixin: mixin, obj: obj });
             return obj;
         }
+    },
+
+    _extend: function( mixin, obj ) {
+        var extended = $.extend( obj, Game.mixins[ mixin ] );
+
+        if( extended.resetDefaults ) {
+            extended.resetDefaults.call( extended );
+        }
+
+        return extended;
     },
 
     keyListen: function(key) {
@@ -103,8 +111,17 @@ Game = {
     init: function() {
         this.initted = true;
 
+        var resetDefaults = function() {
+            for( var key in this.defaults ) {
+                this[ key ] = $.extend({}, this.defaults[ key ]);
+            }
+        };
+
         this.mixins = {
             entity: {
+
+                resetDefaults: resetDefaults,
+
                 lockTo: function( master, offset ) {
                     this.locking = true;
 
@@ -181,11 +198,15 @@ Game = {
                 scaleTo: function( scale ) {
                     this.mesh.scale.x = this.mesh.scale.y = this.mesh.scale.z = scale;
                 }
+            },
+
+            doodad: {
+                resetDefaults: resetDefaults
             }
         };
 
         for( var x = 0; x < this.mixers.length; x++ ) {
-            $.extend( this.mixers[x].obj, this.mixins[ this.mixers[x].mixin ]);
+            Utils._extend( this.mixers[x].mixin, this.mixers[x].obj );
         }
 
         ['right', 'left', 'up', 'down'].forEach(function(key) {
@@ -222,22 +243,38 @@ Game = {
         });
         var sharkGeometry = new THREE.PlaneGeometry(300, 300, 1, 1);
         var shark = new THREE.Mesh(sharkGeometry, sharkMaterial);
-        shark.position.set( 50, 50, -100 );
         World.scene.add( shark );
         World.shark = shark;
 
-        this.startTime = new Date().getTime();
-
+        this.restart();
         this.reqFrame();
+    },
+
+    restart: function() {
+        this.running = true;
+
+        World.reset();
+        Level.reset();
+        Player.reset();
+        Camera.reset();
+        Thing.reset();
+
+        World.shark.position.set( 50, 50, -100 );
+
+        this.startTime = new Date().getTime();
     },
 
     reqFrame: function() {
         window.requestAnimationFrame( Game.reqFrame );
-        Game.loop();
+
+        if( Game.running ) {
+            Game.loop();
+        }
     },
 
     loop: function() {
-        var timer = 0.0001 * Date.now();
+        var timer = 0.0001 * Date.now(),
+            bgColor = World.bgColor;
 
         World.pu.time.value = ( new Date().getTime() - this.startTime ) / 1000;
 
@@ -351,6 +388,9 @@ Level = {
         next: 140,
         zoom: 700
     }],
+    reset: function() {
+        this.init();
+    },
     init: function() {
         this.index = -1;
         this.advance();
@@ -369,17 +409,20 @@ Level = {
 };
 
 Player = Utils.extend('entity', {
-    build: {
-        radius: 20,
-        origRadius: 20,
-        scale: 1,
-        segments: 32
-    },
-    phys: {
-        inertia: { x: 0, y: 0 },
-        acceleration: 0.5,
-        deceleration: 0.3,
-        max: 7
+
+    defaults: {
+        build: {
+            radius: 20,
+            origRadius: 20,
+            scale: 1,
+            segments: 32
+        },
+        phys: {
+            inertia: { x: 0, y: 0 },
+            acceleration: 0.5,
+            deceleration: 0.3,
+            max: 7
+        }
     },
 
     init: function() {
@@ -405,12 +448,16 @@ Player = Utils.extend('entity', {
 
         var mesh = this.mesh = new THREE.Mesh( geometry, fresnelMaterial );
 
-        mesh.position.x = 0;
-        mesh.position.y = 0;
-        mesh.position.z = 0;
-        mesh.scale.x = mesh.scale.y = mesh.scale.z = 1;
-
         World.scene.add( mesh );
+    },
+
+    reset: function() {
+        this.resetDefaults();
+
+        this.mesh.position.x = 0;
+        this.mesh.position.y = 0;
+        this.mesh.position.z = 0;
+        this.scaleTo( 1 );
     },
 
     update: function() {
@@ -533,6 +580,11 @@ World = {
         });
         $container.append( this.renderer.domElement );
 
+        this.reset();
+    },
+
+    reset: function() {
+        this.bgColor = new THREE.Color( 0x002462 );
         this.stage.setSize(this.stage.width, this.stage.height);
     },
 
@@ -601,7 +653,7 @@ Factory = {
             mouse: { value: new THREE.Vector2( 10, 10 ), type:'v2' },
             beamSpeed: {value: 0.26, type:'f' },
             beamColor: {value: new THREE.Vector3( 0.1, 0.2, 0.8 ), type:'v3' },
-            bgColor: {value: new THREE.Vector3( bgColor.r, bgColor.g, bgColor.b ), type:'v3' },
+            bgColor: {value: new THREE.Vector3( World.bgColor.r, World.bgColor.g, World.bgColor.b ), type:'v3' },
             dModifier: {value: 0, type:'f' },
             brightness: {value: 0.8, type:'f' },
             slantBrightness: {value: 0.1, type:'f' },
@@ -632,12 +684,14 @@ Factory = {
     }
 };
 
-Camera = {
+Camera = Utils.extend('doodad', {
 
-    data: {
-        zoom: 500,
-        fov: 60,
-        frustrum: {}
+    defaults: {
+        data: {
+            zoom: 500,
+            fov: 60,
+            frustrum: {}
+        }
     },
 
     init: function() {
@@ -654,6 +708,11 @@ Camera = {
             envMap: mirror.renderTarget
         });
 
+        this.reset();
+    },
+
+    reset: function() {
+        this.resetDefaults();
         Camera.zoom( this.data.zoom );
     },
 
@@ -764,7 +823,7 @@ Camera = {
 
         World.renderer.render( World.scene, Camera.main );
     }
-};
+});
 
 Thing = {
     things: {},
@@ -776,6 +835,20 @@ Thing = {
         Game.bind( 'free', function( thing ) {
             me.free( thing );
         });
+
+        Game.bind( 'mineCollision', function( thing ) {
+            Game.restart();
+        });
+    },
+
+    reset: function() {
+        var cache = this.things;
+        for( var id in this.things ) {
+            cache = this.things[ id ].active;
+            for( var thingId in cache ) {
+                this.free( cache[ thingId ] );
+            }
+        }
     },
 
     register: function( id, thing ) {
@@ -873,12 +946,19 @@ var Mine = Thing.register('mine', Utils.extend('entity', {
         };
 
         this.scaleTo( radius );
-        this.r = radius;
+
+        this.mesh.geometry.computeBoundingSphere();
+        var bounding = this.mesh.geometry.boundingSphere;
+        this.r = bounding.radius / 3;
     },
 
     update: function() {
         this.mesh.position.y += this.inertia.y;
         this.updateLocks();
+
+        if( Player.isCollidingWith( this ) ) {
+            Game.trigger( 'mineCollision' );
+        }
     }
 }));
 

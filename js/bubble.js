@@ -2,9 +2,9 @@ if ( !window.Detector.webgl ) {
     window.Detector.addGetWebGLMessage();
 }
 
-var pointLight1 = new THREE.PointLight(0x888888);
-var pointLight2 = new THREE.PointLight(0x8888FF);
-var pointLight3 = new THREE.PointLight(0xAA00AA);
+var pointLight1 = new THREE.PointLight(0xffffff);
+//var pointLight2 = new THREE.PointLight(0xffffff);
+//var pointLight3 = new THREE.PointLight(0xffffff);
             
 //var bgColor = new THREE.Color( 0x0094f2 );
 
@@ -226,13 +226,13 @@ Game = {
 
         // set its position
         pointLight1.position.z = 1030;
-        pointLight2.position.z = 1030;
-        pointLight3.position.z = 1030;
+        //pointLight2.position.z = 2030;
+        //pointLight3.position.z = 2030;
 
         // add to the scene
         World.scene.add(pointLight1);
-        World.scene.add(pointLight2);
-        World.scene.add(pointLight3);
+        //World.scene.add(pointLight2);
+        //World.scene.add(pointLight3);
 
         World.scene.matrixAutoUpdate = false;
 
@@ -288,14 +288,14 @@ Game = {
         Player.update();
         Player.constrain();
 
-        pointLight1.position.x = Player.mesh.position.x + 1000;
+        pointLight1.position.x = Player.mesh.position.x;
         pointLight1.position.y = Player.mesh.position.y;
 
-        pointLight2.position.x = Player.mesh.position.x - 1000;
-        pointLight2.position.y = Player.mesh.position.y;
+        //pointLight2.position.x = Player.mesh.position.x - 1000;
+        //pointLight2.position.y = Player.mesh.position.y;
 
-        pointLight3.position.x = Player.mesh.position.x + 1000;
-        pointLight3.position.y = Player.mesh.position.y + 1000;
+        //pointLight3.position.x = Player.mesh.position.x + 1000;
+        //pointLight3.position.y = Player.mesh.position.y + 1000;
 
         // This kind of makes me want to throw up
         //Camera.main.lookAt({
@@ -964,19 +964,25 @@ var Mine = Thing.register('mine', Utils.extend('entity', {
 
 var Floater = Thing.register('floater', Utils.extend('entity', {
 
-    material: new THREE.MeshPhongMaterial({
-        color: new THREE.Color( 0x51d5f5 ),
-        transparent: true,
-        opacity: 0.5
-    }),
+    material: function() {
+        var bgColor = World.bgColor;
+
+        return new THREE.MeshPhongMaterial({
+            color: new THREE.Color().copy( World.bgColor ),
+            transparent: true,
+            opacity: 0.5
+        });
+    },
 
     geometry: new THREE.SphereGeometry( 1, 32, 32 ),
 
     loadGeometry: function() {
-        return this.mesh = new THREE.Mesh( this.geometry, this.material );
+        return this.mesh = new THREE.Mesh( this.geometry, this.material() );
     },
 
     init: function( options ) {
+        this.mesh.material = this.material();
+
         options = options || {};
 
         var radius = options.radius || 10 + 5 * Math.random();
@@ -995,6 +1001,9 @@ var Floater = Thing.register('floater', Utils.extend('entity', {
 
     update: function() {
         if( this.locking ) {
+            this.mesh.material.color.r += 0.01;
+            this.mesh.material.color.b += 0.01;
+
             this.moveLockTowards( Player, 0.02 );
             if( new Date() - this.lockTime > 1600 ) {
                 Game.trigger( 'free', this );

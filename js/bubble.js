@@ -40,9 +40,12 @@ Utils = {
         return num ? num < 0 ? -1 : 1 : 0;
     },
 
+    distance3d: function( a, b ) {
+        return a.clone().sub( b ).length();
+    },
+
     sphereCollision: function( position1, position2, radius1, radius2 ) {
-        return Math.pow( position2.x - position1.x, 2 ) +
-            Math.pow( position1.y - position2.y, 2 ) <= Math.pow( radius1 + radius2, 2);
+        return Utils.distance3d( position1, position2 ) < radius1 + radius2;
     },
 
     extend: function( mixin, obj ) {
@@ -635,7 +638,7 @@ World = {
 
         var skyBox = this.skyBox = Utils.extend('entity', {
             mesh: Factory.makeGradientCube(
-                Camera.data.frustrum.y * 3, 0x2185C5
+                Camera.data.frustrum.y * 5, 0x2185C5
             )
         });
         World.scene.add( skyBox.mesh );
@@ -676,10 +679,11 @@ World = {
                             if( thing.type === 'floater' ) {
                                 halfX = Camera.data.frustrum.x / 2;
                                 halfY = Camera.data.frustrum.y / 2;
+                                thing.fadeSpeed = 0.05;
 
                                 thing.mesh.position.x = Utils.randFloat( -halfX, halfX );
                                 thing.mesh.position.y = Utils.randFloat( -halfY, halfY );
-                                thing.mesh.position.z = -100;
+                                thing.mesh.position.z = -2000;
                                 thing.inertia = {
                                     x: 0,
                                     y: 0,
@@ -689,9 +693,10 @@ World = {
                                 halfX = Camera.data.frustrum.x / 2;
                                 halfY = Camera.data.frustrum.y / 2;
 
+                                thing.fadeSpeed = 0.05;
                                 thing.mesh.position.x = Utils.randFloat( -halfX, halfX );
                                 thing.mesh.position.y = Utils.randFloat( -halfY, halfY );
-                                thing.mesh.position.z = -100;
+                                thing.mesh.position.z = -2000;
                                 thing.inertia = {
                                     x: 0,
                                     y: 0,
@@ -1043,17 +1048,24 @@ Thing = {
 var Mine = Thing.register('mine', Utils.extend('entity', {
     collision: [ Player ],
 
+    defaults: {
+        fadeSpeed: 0.3,
+        opacity: 0.5
+    },
+
     loadGeometry: function() {
         var me = this;
 
         return Utils.loadModel( 'media/mine.js' ).then( function( geometry ) {
             var modelTex = THREE.ImageUtils.loadTexture( 'media/metal.jpg' );
             var material = new THREE.MeshLambertMaterial({
-                shading: THREE.FlatShading
+                shading: THREE.FlatShading,
+                transparent: true
             });
             material = new THREE.MeshLambertMaterial({
                 shading: THREE.FlatShading,
-                map: modelTex
+                map: modelTex,
+                transparent: true
             });
             return me.mesh = new THREE.Mesh( geometry, material );
         });
@@ -1064,6 +1076,7 @@ var Mine = Thing.register('mine', Utils.extend('entity', {
 
         var radius = options.radius || 1 + Math.random();
 
+        this.mesh.material.opacity = 0;
         this.mesh.position.x = options.x || -(Camera.data.frustrum.x / 2) + (( Math.random() * Camera.data.frustrum.x));
         this.mesh.position.y = options.y || Camera.data.frustrum.y + ( radius * 2 );
         this.mesh.position.z = 0;
@@ -1085,6 +1098,10 @@ var Mine = Thing.register('mine', Utils.extend('entity', {
     update: function() {
         this.move( this.inertia );
         this.updateLocks();
+
+        if( this.mesh.material.opacity < 1 ) {
+            this.mesh.material.opacity += this.fadeSpeed * Game.time.delta;
+        }
 
         if( Player.isCollidingWith( this ) ) {
             Game.trigger( 'mineCollision' );

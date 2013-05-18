@@ -14,14 +14,25 @@ var Game, Utils, Level, Player, World, Factory, Camera, Thing;
 
 Utils = {
 
-    // Thank you SO
-    //http://stackoverflow.com/questions/2353268/java-2d-moving-a-point-p-a-certain-distance-closer-to-another-point
-    vecMoveOffset: function( vec1, vec2, dist ) {
-        var vecA = new THREE.Vector3( vec1.x, vec1.y, 0 ),
-            vecB = new THREE.Vector3( vec2.x, vec2.y, 0 );
+    randFloat: function( min, max ) {
+        return Math.random() * ( max - min ) + min;
+    },
+
+    randInt: function( min, max ) {
+        return Math.floor( Math.random() * ( max - min + 1 ) + min );
+    },
+
+    // Thank you SO // http://stackoverflow.com/questions/2353268/java-2d-moving-a-point-p-a-certain-distance-closer-to-another-point
+    // Given two positions A and B, figure out where to put B so that is has
+    // moved dist closer to A
+    vecMoveOffset: function( vec1, vec2, speed ) {
+        var vecA = new THREE.Vector3( vec1.x, vec1.y, vec1.z ),
+            vecB = new THREE.Vector3( vec2.x, vec2.y, vec1.z );
+
+        speed = speed * Game.time.delta;
 
         return vecA.add( vecB.sub( vecA ).normalize().multiply(
-            new THREE.Vector3( dist, dist, dist )
+            new THREE.Vector3( speed, speed, speed )
         ));
     },
 
@@ -113,7 +124,9 @@ Game = {
 
         var resetDefaults = function() {
             for( var key in this.defaults ) {
-                this[ key ] = $.extend({}, this.defaults[ key ]);
+                this[ key ] = $.isPlainObject ?
+                    this.defaults[ key ]:
+                    $.extend({}, this.defaults[ key ]);
             }
         };
 
@@ -164,8 +177,15 @@ Game = {
 
                     this.updateLocks();
                 },
-                moveLockTowards: function( entity, dist ) {
-                    var computed = Utils.vecMoveOffset( this.mesh.position, entity.mesh.position, dist ),
+                move: function( xyz ) {
+                    this.mesh.position.add(
+                        new THREE.Vector3( xyz.x, xyz.y, xyz.z ).multiplyScalar( Game.time.delta )
+                    );
+
+                    this.updateLocks();
+                },
+                moveLockTowards: function( entity, speed ) {
+                    var computed = Utils.vecMoveOffset( this.mesh.position, entity.mesh.position, speed ),
                         me = this;
 
                     this.lockOffset = {
@@ -174,8 +194,18 @@ Game = {
                     };
 
                 },
-                moveTowards: function( entity, dist ) {
-                    var computed = Utils.vecMoveOffset( this.mesh.position, entity.mesh.position, dist );
+                setLockDistance: function( entity, speed ) {
+                    var computed = Utils.vecMoveOffset( this.mesh.position, entity.mesh.position, speed / Game.time.delta ),
+                        me = this;
+
+                    this.lockOffset = {
+                        x: computed.x - me.master.mesh.position.x,
+                        y: computed.y - me.master.mesh.position.y
+                    };
+
+                },
+                moveTowards: function( entity, speed ) {
+                    var computed = Utils.vecMoveOffset( this.mesh.position, entity.mesh.position, speed );
 
                     this.mesh.position.x = computed.x;
                     this.mesh.position.y = computed.y;
@@ -187,11 +217,7 @@ Game = {
 
                     if( locks ) {
                         for( var x = 0; x < locks.length; x++ ) {
-                            locks[x].pos({
-                                x: me.mesh.position.x + locks[x].lockOffset.x,
-                                y: me.mesh.position.y + locks[x].lockOffset.y,
-                                z: me.mesh.position.z + locks[x].lockOffset.z
-                            });
+                            locks[x].pos( new THREE.Vector3().addVectors( me.mesh.position, locks[x].lockOffset ) );
                         }
                     }
                 },
@@ -261,7 +287,10 @@ Game = {
 
         World.shark.position.set( 50, 50, -100 );
 
-        this.startTime = new Date().getTime();
+        this.time = {
+            start: Date.now(),
+            then: Date.now()
+        };
     },
 
     reqFrame: function() {
@@ -276,14 +305,23 @@ Game = {
         var timer = 0.0001 * Date.now(),
             bgColor = World.bgColor;
 
-        World.pu.time.value = ( new Date().getTime() - this.startTime ) / 1000;
+        this.time.now = Date.now();
+        this.time.delta = (this.time.now - this.time.then) / 1000;
+        this.time.then = this.time.now;
+        this.time.total = ( Date.now() - this.time.start ) / 1000;
+
+        if( World.transition ) {
+            World.transition();
+        }
+
+        World.pu.time.value = this.time.total;
 
         bgColor.addScalar( 0.0001 );
         World.pu.bgColor.value = new THREE.Vector3( bgColor.r, bgColor.g, bgColor.b );
-        //World.pu.bgColor.value.b += 0.0001;
 
+        //World.pu.bgColor.value.b += 0.0001;
         //World.pu.dModifier.value += 0.001;
-        //World.pu.brightness.value += 0.001;
+        //World.pu.brightness.value += 0.1;
 
         Player.update();
         Player.constrain();
@@ -419,9 +457,9 @@ Player = Utils.extend('entity', {
         },
         phys: {
             inertia: { x: 0, y: 0 },
-            acceleration: 0.5,
-            deceleration: 0.3,
-            max: 7
+            acceleration: 25,
+            deceleration: 10,
+            max: 400
         }
     },
 
@@ -505,9 +543,9 @@ Player = Utils.extend('entity', {
         }
 
         var me = this;
-        this.pos({
-            x: me.mesh.position.x + inertia.x,
-            y: me.mesh.position.y + inertia.y
+        this.move({
+            x: inertia.x,
+            y: inertia.y
         });
     },
     
@@ -601,7 +639,90 @@ World = {
             )
         });
         World.scene.add( skyBox.mesh );
-    }
+    },
+
+    Transition: {
+        run: function( id ) {
+            var trans =  World.Transition.transitions[ id ];
+
+            World.transition = function() {
+                trans.start();
+            };
+
+            trans.init();
+
+            var started = function() {
+                World.transition = function() {
+                    trans.loop();
+                };
+                Game.unbind( 'started', started );
+            };
+
+            World.Transition.time = {
+                start: Date.now()
+            };
+
+            Game.bind( 'started', started );
+        },
+
+        transitions: {
+            forward: {
+                init: function() {
+                    var me = this;
+                    Game.bind( 'initted', function( thing ) {
+                        var halfX, halfY;
+
+                        if( me.started ) {
+                            if( thing.type === 'floater' ) {
+                                halfX = Camera.data.frustrum.x / 2;
+                                halfY = Camera.data.frustrum.y / 2;
+
+                                thing.mesh.position.x = Utils.randFloat( -halfX, halfX );
+                                thing.mesh.position.y = Utils.randFloat( -halfY, halfY );
+                                thing.mesh.position.z = -100;
+                                thing.inertia = {
+                                    x: 0,
+                                    y: 0,
+                                    z: 100 - ( Math.random() )
+                                };
+                            } else if( thing.type === 'mine' ) {
+                                halfX = Camera.data.frustrum.x / 2;
+                                halfY = Camera.data.frustrum.y / 2;
+
+                                thing.mesh.position.x = Utils.randFloat( -halfX, halfX );
+                                thing.mesh.position.y = Utils.randFloat( -halfY, halfY );
+                                thing.mesh.position.z = -100;
+                                thing.inertia = {
+                                    x: 0,
+                                    y: 0,
+                                    z: 100 - ( Math.random() )
+                                };
+                            }
+                        }
+                    });
+                },
+                loop: function() {
+                },
+                start: function() {
+                    Thing.eachThing(function( thing ) {
+                        if( thing.inertia.y !== 0 ) {
+                            thing.inertia.y += 0.03;
+                            thing.inertia.z += 1;
+                        }
+                        if( thing.inertia.y > -0.03 ) {
+                            thing.inertia.y = 0;
+                        }
+                    });
+
+                    if( Date.now() - World.Transition.time.start > 2000 ) {
+                        this.started = true;
+                        Game.trigger( 'started' );
+                    }
+                }
+            }
+        }
+    },
+
 };
 
 Factory = {
@@ -903,11 +1024,17 @@ Thing = {
     },
 
     updateThings: function() {
+        this.eachThing( function( thing ) {
+            thing.update();
+        });
+    },
+
+    eachThing: function( fn ) {
         var cache = this.things;
         for( var id in this.things ) {
             cache = this.things[ id ].active;
             for( var thingId in cache ) {
-                cache[ thingId ].update();
+                fn( cache[ thingId ] );
             }
         }
     }
@@ -942,7 +1069,8 @@ var Mine = Thing.register('mine', Utils.extend('entity', {
         this.mesh.position.z = 0;
         this.inertia = options.inertia || {
             x: 0,
-            y: -1 - ( Math.random() )
+            y: -100 - ( Math.random() ),
+            z: 0
         };
 
         this.scaleTo( radius );
@@ -950,10 +1078,12 @@ var Mine = Thing.register('mine', Utils.extend('entity', {
         this.mesh.geometry.computeBoundingSphere();
         var bounding = this.mesh.geometry.boundingSphere;
         this.r = bounding.radius / 3;
+
+        Game.trigger( 'initted', this );
     },
 
     update: function() {
-        this.mesh.position.y += this.inertia.y;
+        this.move( this.inertia );
         this.updateLocks();
 
         if( Player.isCollidingWith( this ) ) {
@@ -965,13 +1095,19 @@ var Mine = Thing.register('mine', Utils.extend('entity', {
 var Floater = Thing.register('floater', Utils.extend('entity', {
 
     material: function() {
-        var bgColor = World.bgColor;
+        var bgColor = World.bgColor,
+            me = this;
 
         return new THREE.MeshPhongMaterial({
             color: new THREE.Color().copy( World.bgColor ),
             transparent: true,
-            opacity: 0.5
+            opacity: this.opacity
         });
+    },
+
+    defaults: {
+        fadeSpeed: 0.3,
+        opacity: 0.5
     },
 
     geometry: new THREE.SphereGeometry( 1, 32, 32 ),
@@ -982,6 +1118,7 @@ var Floater = Thing.register('floater', Utils.extend('entity', {
 
     init: function( options ) {
         this.mesh.material = this.material();
+        this.mesh.material.opacity = 0;
 
         options = options || {};
 
@@ -992,11 +1129,14 @@ var Floater = Thing.register('floater', Utils.extend('entity', {
         this.mesh.position.z = 0;
         this.inertia = options.inertia || {
             x: 0,
-            y: -1 - ( Math.random() )
+            y: -100 - ( Math.random() ),
+            z: 0
         };
 
         this.scaleTo( 1 + radius );
         this.r = radius;
+
+        Game.trigger( 'initted', this );
     },
 
     update: function() {
@@ -1004,7 +1144,7 @@ var Floater = Thing.register('floater', Utils.extend('entity', {
             this.mesh.material.color.r += 0.01;
             this.mesh.material.color.b += 0.01;
 
-            this.moveLockTowards( Player, 0.02 );
+            this.moveLockTowards( Player, 4 );
             if( new Date() - this.lockTime > 1600 ) {
                 Game.trigger( 'free', this );
 
@@ -1015,12 +1155,17 @@ var Floater = Thing.register('floater', Utils.extend('entity', {
                 }
             }
         } else {
-            this.mesh.position.y += this.inertia.y;
+
+            if( this.mesh.material.opacity < this.opacity ) {
+                this.mesh.material.opacity += this.fadeSpeed * Game.time.delta;
+            }
+
+            this.move( this.inertia );
             this.updateLocks();
 
             if( Player.isCollidingWith( this ) ) {
                 this.lockTo( Player );
-                this.moveLockTowards( Player, this.r );
+                this.setLockDistance( Player, this.r );
                 this.lockTime = new Date();
 
             } else if ( this.mesh.position.y + this.r * 2 < -Camera.data.frustrum.y ) {

@@ -138,9 +138,9 @@ Game = {
 
         var resetDefaults = function() {
             for( var key in this.defaults ) {
-                this[ key ] = $.isPlainObject ?
-                    this.defaults[ key ]:
-                    $.extend({}, this.defaults[ key ]);
+                this[ key ] = $.isPlainObject( this.defaults[ key ] ) ?
+                    $.extend({}, this.defaults[ key ]) :
+                    this.defaults[ key ];
             }
         };
 
@@ -348,7 +348,6 @@ Game = {
     },
 
     loop: function() {
-        console.log( ' -------- loop start ');
         var timer = 0.0001 * Date.now(),
             bgColor = World.bgColor;
 
@@ -465,14 +464,20 @@ Level = {
         next: 10,
         zoom: 500
     }, {
-        next: 120,
+        next: 50,
         zoom: 600
     }, {
-        next: 140,
-        zoom: 700
+        next: 80,
+        zoom: 700,
+        init: function() {
+            World.Transition.run('forward');
+        }
     }, {
-        next: 140,
-        zoom: 700
+        next: 90,
+        zoom: 800,
+        init: function() {
+            World.Transition.end('forward');
+        }
     }],
     reset: function() {
         this.init();
@@ -490,6 +495,10 @@ Level = {
             this.levels[ this.index ].next *= 1.5;
             this.levels[ this.index ].zoom += 100;
             this.level = this.levels[ this.index ];
+        }
+
+        if( this.level.init ) {
+            this.level.init();
         }
     }
 };
@@ -699,41 +708,88 @@ World = {
             trans.init();
         },
 
+        end: function( id ) {
+            var trans =  World.Transition.transitions[ id ];
+            delete World.transition;
+            trans.end();
+        },
+
         transitions: {
             forward: {
+                initBind: function( thing ) {
+                    var halfX, halfY;
+
+                    if( thing.type === 'floater' ) {
+                        halfX = Camera.data.frustrum.x / 2;
+                        halfY = Camera.data.frustrum.y / 2;
+                        thing.fadeSpeed = 0.05;
+
+                        thing.mesh.position.x = Utils.randFloat( -halfX, halfX );
+                        thing.mesh.position.y = Utils.randFloat( -halfY, halfY );
+                        thing.mesh.position.z = -1000;
+                        thing.inertia = {
+                            x: 0,
+                            y: 0,
+                            z: 100 - ( Math.random() )
+                        };
+
+                        thing.replaceUpdater( 'fade', function() {
+                            var zPos = thing.mesh.position.z;
+
+                            if( zPos > 0 ) {
+                                thing.mesh.material.opacity -= 0.5 * Game.time.delta;
+
+                                if( thing.mesh.material.opacity <= 0 ) {
+                                    Game.trigger('free', thing);
+                                }
+                            } else {
+                                thing.mesh.material.opacity = 0.5 - ((-1 * zPos) / 1000) * 0.5;
+
+                                if( zPos > -300 ) {
+                                    this.mesh.material.color.g += 0.1 * Game.time.delta;
+                                }
+                            }
+                            
+                        });
+                    } else if( thing.type === 'mine' ) {
+                        halfX = Camera.data.frustrum.x / 2;
+                        halfY = Camera.data.frustrum.y / 2;
+
+                        thing.fadeSpeed = 0.05;
+                        thing.mesh.position.x = Utils.randFloat( -halfX, halfX );
+                        thing.mesh.position.y = Utils.randFloat( -halfY, halfY );
+                        thing.mesh.position.z = -1000;
+                        thing.inertia = {
+                            x: 0,
+                            y: 0,
+                            z: 100 - ( Math.random() )
+                        };
+
+                        thing.replaceUpdater( 'fade', function() {
+                            var zPos = thing.mesh.position.z;
+
+                            if( zPos > 0 ) {
+                                thing.mesh.material.opacity -= 0.5 * Game.time.delta;
+
+                                if( thing.mesh.material.opacity <= 0 ) {
+                                    Game.trigger('free', thing);
+                                }
+                            } else {
+                                thing.mesh.material.opacity = 0.5 - ((-1 * zPos) / 1000) * 0.5;
+
+                                if( zPos > -200 ) {
+                                    this.mesh.material.color.r += 0.01 * Game.time.delta;
+                                }
+                            }
+                            
+                        });
+                    }
+                },
                 init: function() {
-                    var me = this;
-                    Game.bind( 'initted', function( thing ) {
-                        var halfX, halfY;
-
-                        if( thing.type === 'floater' ) {
-                            halfX = Camera.data.frustrum.x / 2;
-                            halfY = Camera.data.frustrum.y / 2;
-                            thing.fadeSpeed = 0.05;
-
-                            thing.mesh.position.x = Utils.randFloat( -halfX, halfX );
-                            thing.mesh.position.y = Utils.randFloat( -halfY, halfY );
-                            thing.mesh.position.z = -1000;
-                            thing.inertia = {
-                                x: 0,
-                                y: 0,
-                                z: 100 - ( Math.random() )
-                            };
-                        } else if( thing.type === 'mine' ) {
-                            halfX = Camera.data.frustrum.x / 2;
-                            halfY = Camera.data.frustrum.y / 2;
-
-                            thing.fadeSpeed = 0.05;
-                            thing.mesh.position.x = Utils.randFloat( -halfX, halfX );
-                            thing.mesh.position.y = Utils.randFloat( -halfY, halfY );
-                            thing.mesh.position.z = -1000;
-                            thing.inertia = {
-                                x: 0,
-                                y: 0,
-                                z: 100 - ( Math.random() )
-                            };
-                        }
-                    });
+                    Game.bind( 'initted', this.initBind );
+                },
+                end: function() {
+                    Game.unbind( 'initted', this.initBind );
                 },
                 loop: function() {
                     Thing.eachThing(function( thing ) {
@@ -745,12 +801,6 @@ World = {
                             thing.inertia.y = 0;
                         }
                     });
-                },
-                start: function() {
-                    if( Date.now() - World.Transition.time.start > 2000 ) {
-                        this.started = true;
-                        Game.trigger( 'started' );
-                    }
                 }
             }
         }

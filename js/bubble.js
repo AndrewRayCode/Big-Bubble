@@ -14,6 +14,16 @@ var Game, Utils, Level, Player, World, Factory, Camera, Thing;
 
 Utils = {
 
+    create: function( obj ) {
+        var made = {};
+
+        for( var key in obj ) {
+            made[ key ] = $.isPlainObject( obj[ key ] ) ? Utils.create( obj[ key ] ) : obj[ key ];
+        }
+
+        return made;
+    },
+
     randFloat: function( min, max ) {
         return Math.random() * ( max - min ) + min;
     },
@@ -41,6 +51,7 @@ Utils = {
     },
 
     distance3d: function( a, b ) {
+        // this uses sqrt internally, fyi
         return a.clone().sub( b ).length();
     },
 
@@ -60,8 +71,8 @@ Utils = {
     _extend: function( mixin, obj ) {
         var extended = $.extend( obj, Game.mixins[ mixin ] );
 
-        if( extended.resetDefaults ) {
-            extended.resetDefaults.call( extended );
+        if( extended._init ) {
+            extended._init.call( extended );
         }
 
         return extended;
@@ -136,10 +147,38 @@ Game = {
         this.mixins = {
             entity: {
 
+                _init: function() {
+                    this.resetDefaults();
+
+                    if( this.updateFns ) {
+                        this.update = function() {
+                            for( var key in this.updateFns ) {
+                                if( 'id' in this ) {
+                                    this.updateFns[ key ].apply( this );
+                                }
+                            }
+                        };
+                    }
+                },
+
+                replaceUpdater: function( key, fn ) {
+                    this.replaced = this.replaced || {};
+                    this.replaced[ key ] = this.updateFns[ key ];
+                    this.updateFns[ key ] = fn;
+                },
+
+                undoUpdaters: function() {
+                    for( var key in this.replaced ) {
+                        this.updateFns[ key ] = this.replaced[ key ];
+                    }
+                    delete this.replaced;
+                },
+
                 resetDefaults: resetDefaults,
 
                 lockTo: function( master, offset ) {
                     this.locking = true;
+                    this.lockTime = new Date();
 
                     this.lockOffset = offset || {
                         x: this.mesh.position.x - master.mesh.position.x,
@@ -230,6 +269,10 @@ Game = {
             },
 
             doodad: {
+                _init: function() {
+                    this.resetDefaults();
+                },
+
                 resetDefaults: resetDefaults
             }
         };
@@ -305,6 +348,7 @@ Game = {
     },
 
     loop: function() {
+        console.log( ' -------- loop start ');
         var timer = 0.0001 * Date.now(),
             bgColor = World.bgColor;
 
@@ -363,6 +407,7 @@ Game = {
             //}
         //}
 
+            //console.log(' --- up things ');
         Thing.updateThings();
 
         //for( id in Thing.things.floater.active ) {
@@ -649,23 +694,9 @@ World = {
             var trans =  World.Transition.transitions[ id ];
 
             World.transition = function() {
-                trans.start();
+                trans.loop();
             };
-
             trans.init();
-
-            var started = function() {
-                World.transition = function() {
-                    trans.loop();
-                };
-                Game.unbind( 'started', started );
-            };
-
-            World.Transition.time = {
-                start: Date.now()
-            };
-
-            Game.bind( 'started', started );
         },
 
         transitions: {
@@ -675,40 +706,36 @@ World = {
                     Game.bind( 'initted', function( thing ) {
                         var halfX, halfY;
 
-                        if( me.started ) {
-                            if( thing.type === 'floater' ) {
-                                halfX = Camera.data.frustrum.x / 2;
-                                halfY = Camera.data.frustrum.y / 2;
-                                thing.fadeSpeed = 0.05;
+                        if( thing.type === 'floater' ) {
+                            halfX = Camera.data.frustrum.x / 2;
+                            halfY = Camera.data.frustrum.y / 2;
+                            thing.fadeSpeed = 0.05;
 
-                                thing.mesh.position.x = Utils.randFloat( -halfX, halfX );
-                                thing.mesh.position.y = Utils.randFloat( -halfY, halfY );
-                                thing.mesh.position.z = -2000;
-                                thing.inertia = {
-                                    x: 0,
-                                    y: 0,
-                                    z: 100 - ( Math.random() )
-                                };
-                            } else if( thing.type === 'mine' ) {
-                                halfX = Camera.data.frustrum.x / 2;
-                                halfY = Camera.data.frustrum.y / 2;
+                            thing.mesh.position.x = Utils.randFloat( -halfX, halfX );
+                            thing.mesh.position.y = Utils.randFloat( -halfY, halfY );
+                            thing.mesh.position.z = -1000;
+                            thing.inertia = {
+                                x: 0,
+                                y: 0,
+                                z: 100 - ( Math.random() )
+                            };
+                        } else if( thing.type === 'mine' ) {
+                            halfX = Camera.data.frustrum.x / 2;
+                            halfY = Camera.data.frustrum.y / 2;
 
-                                thing.fadeSpeed = 0.05;
-                                thing.mesh.position.x = Utils.randFloat( -halfX, halfX );
-                                thing.mesh.position.y = Utils.randFloat( -halfY, halfY );
-                                thing.mesh.position.z = -2000;
-                                thing.inertia = {
-                                    x: 0,
-                                    y: 0,
-                                    z: 100 - ( Math.random() )
-                                };
-                            }
+                            thing.fadeSpeed = 0.05;
+                            thing.mesh.position.x = Utils.randFloat( -halfX, halfX );
+                            thing.mesh.position.y = Utils.randFloat( -halfY, halfY );
+                            thing.mesh.position.z = -1000;
+                            thing.inertia = {
+                                x: 0,
+                                y: 0,
+                                z: 100 - ( Math.random() )
+                            };
                         }
                     });
                 },
                 loop: function() {
-                },
-                start: function() {
                     Thing.eachThing(function( thing ) {
                         if( thing.inertia.y !== 0 ) {
                             thing.inertia.y += 0.03;
@@ -718,7 +745,8 @@ World = {
                             thing.inertia.y = 0;
                         }
                     });
-
+                },
+                start: function() {
                     if( Date.now() - World.Transition.time.start > 2000 ) {
                         this.started = true;
                         Game.trigger( 'started' );
@@ -802,7 +830,7 @@ Factory = {
                 bgShader
             )
         });
-        plane.mesh.position.set( 0, 0, -200 );
+        plane.mesh.position.set( 0, 0, -1000 );
         World.plane = plane;
         World.scene.add( plane.mesh );
 
@@ -842,26 +870,31 @@ Camera = Utils.extend('doodad', {
         Camera.zoom( this.data.zoom );
     },
 
+    getFrustrumAt: function( distanceFromCamera ) {
+        var frustumHeight = 2.0 * distanceFromCamera * Math.tan(this.data.fov * 0.5 * ( Math.PI / 180 ) );
+
+        return {
+            x: frustumHeight * World.stage.aspect,
+            y: frustumHeight
+        };
+    },
+
     zoom: function( level ) {
         var camera = this.main,
             data = this.data;
 
         this.data.zoom = level;
         data.zoom = camera.position.z = level;
-
-        var frustumHeight = 2.0 * data.zoom * Math.tan(data.fov * 0.5 * ( Math.PI / 180 ) );
-
-        data.frustrum = {
-            x: frustumHeight * World.stage.aspect,
-            y: frustumHeight
-        };
+        data.frustrum = this.getFrustrumAt( data.zoom );
 
         if( World.skyBox ) {
             World.skyBox.scaleTo(
                 ( data.frustrum.y * 2 ) / ( Camera.data.frustrum.y * 2 ) * 2
             );
+
+            var planeScale = this.getFrustrumAt( data.zoom - World.plane.mesh.position.z );
             World.plane.scaleTo(
-                ( data.frustrum.y * 2 ) / ( Camera.data.frustrum.y * 2 ) * 2
+                ( planeScale.y * 2 ) / ( Camera.data.frustrum.y * 2 ) * 2
             );
         }
     },
@@ -1008,7 +1041,7 @@ Thing = {
             thing = freeCache.pop();
             complete();
         } else {
-            thing = Object.create( cache.thing );
+            thing = Utils.create( cache.thing );
             var p = thing.loadGeometry( options );
             thing.type = thingId;
 
@@ -1021,8 +1054,13 @@ Thing = {
         if( thing.locking ) {
             thing.unlock();
         }
+        if( thing.undoUpdaters ) {
+            thing.undoUpdaters();
+        }
+
         var cache = this.things[ thing.type ];
         delete cache.active[ thing.id ];
+        delete thing.id;
         cache.free.push( thing );
 
         World.scene.remove( thing.mesh );
@@ -1095,16 +1133,20 @@ var Mine = Thing.register('mine', Utils.extend('entity', {
         Game.trigger( 'initted', this );
     },
 
-    update: function() {
-        this.move( this.inertia );
-        this.updateLocks();
-
-        if( this.mesh.material.opacity < 1 ) {
-            this.mesh.material.opacity += this.fadeSpeed * Game.time.delta;
-        }
-
-        if( Player.isCollidingWith( this ) ) {
-            Game.trigger( 'mineCollision' );
+    updateFns: {
+        main: function() {
+            this.move( this.inertia );
+            this.updateLocks();
+        },
+        fade: function() {
+            if( this.mesh.material.opacity < 1 ) {
+                this.mesh.material.opacity += this.fadeSpeed * Game.time.delta;
+            }
+        },
+        collision: function() {
+            if( Player.isCollidingWith( this ) ) {
+                Game.trigger( 'mineCollision' );
+            }
         }
     }
 }));
@@ -1156,37 +1198,44 @@ var Floater = Thing.register('floater', Utils.extend('entity', {
         Game.trigger( 'initted', this );
     },
 
-    update: function() {
-        if( this.locking ) {
-            this.mesh.material.color.r += 0.01;
-            this.mesh.material.color.b += 0.01;
-
-            this.moveLockTowards( Player, 4 );
-            if( new Date() - this.lockTime > 1600 ) {
-                Game.trigger( 'free', this );
-
-                Player.grow( this.r / 12 );
-
-                if( Player.build.radius > Level.level.next ) {
-                    Level.advance();
-                }
-            }
-        } else {
-
-            if( this.mesh.material.opacity < this.opacity ) {
-                this.mesh.material.opacity += this.fadeSpeed * Game.time.delta;
-            }
-
+    updateFns: {
+        move: function() {
             this.move( this.inertia );
             this.updateLocks();
 
-            if( Player.isCollidingWith( this ) ) {
-                this.lockTo( Player );
-                this.setLockDistance( Player, this.r );
-                this.lockTime = new Date();
-
-            } else if ( this.mesh.position.y + this.r * 2 < -Camera.data.frustrum.y ) {
+            if ( this.mesh.position.y + this.r * 2 < -Camera.data.frustrum.y ) {
                 Game.trigger( 'free', this );
+            }
+        },
+        fade: function() {
+            if( this.mesh.material.opacity < this.opacity ) {
+                this.mesh.material.opacity += this.fadeSpeed * Game.time.delta;
+            }
+        },
+        collision: function() {
+            if( Player.isCollidingWith( this ) ) {
+                this.mesh.position.z = 0;
+                this.lockTo( Player );
+
+                this.setLockDistance( Player, this.r );
+
+                this.replaceUpdater( 'move', function() {
+
+                    this.mesh.material.color.r += 0.01;
+                    this.mesh.material.color.b += 0.01;
+                    this.moveLockTowards( Player, 4 );
+
+                    if( new Date() - this.lockTime > 1600 ) {
+                        Game.trigger( 'free', this );
+
+                        Player.grow( this.r / 12 );
+
+                        if( Player.build.radius > Level.level.next ) {
+                            Level.advance();
+                        }
+                    }
+                });
+                this.replaceUpdater( 'collision', function() {});
             }
         }
     }

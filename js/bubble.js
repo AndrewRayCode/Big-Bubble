@@ -348,6 +348,40 @@ Game = {
     },
 
     loop: function() {
+        if( World.dicks ) {
+            //World.dicks.rotation.x += 0.01; World.dicks.rotation.z += 0.02;
+
+            // collision detection:
+            //   determines if any of the rays from the cube's origin to each vertex
+            //      intersects any face of a mesh in the array of target meshes
+            //   for increased collision accuracy, add more vertices to the cube;
+            //      for example, new THREE.CubeGeometry( 64, 64, 64, 8, 8, 8, wireMaterial )
+            //   HOWEVER: when the origin of the ray is within the target mesh, collisions do not occur
+            var originPoint = Player.mesh.position.clone(),
+                hit;
+
+            
+            for (var vertexIndex = 0; vertexIndex < Player.mesh.geometry.vertices.length; vertexIndex++) {
+                var localVertex = Player.mesh.geometry.vertices[vertexIndex].clone();
+                var globalVertex = localVertex.applyMatrix4( Player.mesh.matrix );
+                var directionVector = globalVertex.sub( Player.mesh.position );
+                
+                var ray = new THREE.Raycaster( originPoint, directionVector.clone().normalize() );
+                var collisionResults = ray.intersectObjects( World.dicks.tops );
+                if ( collisionResults.length > 0 && collisionResults[0].distance < directionVector.length() ) {
+                    hit = true;
+                    break;
+                }
+            }
+
+            if( !hit ) {
+                World.inertia = World.inertia || 0;
+                World.inertia += 0.2;
+                World.dicks.group.position.z += World.inertia;
+            }
+            World.dicks.group.position.y -= 2;
+            World.dicks.group.rotation.z += 0.001;
+        }
         var timer = 0.0001 * Date.now(),
             bgColor = World.bgColor;
 
@@ -426,11 +460,13 @@ Game = {
             //}
         //}
 
-        if( Math.random() > 0.97 ) {
+        var rand = Math.random() - 1;
+
+        if( rand > 0.97 ) {
             Thing.create('floater', {
                 radius: 10 + Math.random() * 10
             });
-        } else if( Math.random() > 0.993 ) {
+        } else if( rand > 0.993 ) {
             Thing.create('mine', {
                 radius: 0.5 + Math.random() * 0.1
             });
@@ -809,6 +845,54 @@ World = {
 };
 
 Factory = {
+
+    stairs: function( steps ) {
+        var stairs = {
+                meshes: [],
+                tops: [],
+            },
+            height = 50,
+            top, side;
+
+        var group = new THREE.Object3D();
+
+        var material = new THREE.MeshBasicMaterial({
+            color: 0x888888,
+            shading: THREE.FlatShading,
+            side: THREE.DoubleSide
+        });
+        var tmaterial = new THREE.MeshBasicMaterial({
+            color: 0xdd1188,
+            shading: THREE.FlatShading,
+            side: THREE.DoubleSide
+        });
+
+        for(var x = 0; x < steps; x++ ) {
+            top = new THREE.Mesh( new THREE.PlaneGeometry( 200, height, 10, 1), tmaterial );
+            side = new THREE.Mesh( new THREE.PlaneGeometry( 200, height, 10, 1), material );
+
+            group.add( top );
+            group.add( side );
+
+            top.position.z -= height * x;
+            top.position.y += height * x;
+
+            side.position.y += (height * x) + (height / 2);
+            side.position.z -= (height * x) + (height / 2);
+            side.rotation.x += 90 * ( Math.PI / 180 );
+
+            stairs.meshes.push( top, side );
+            stairs.tops.push( top );
+        }
+
+        World.dicks = stairs;
+        World.scene.add( group );
+        stairs.group = group;
+
+        group.position.z -= height;
+
+        return stairs;
+    },
 
     // From vertex colors http://stemkoski.github.io/Three.js/Vertex-Colors.html
     makeGradientCube: function( size, hex ) {

@@ -348,6 +348,8 @@ Game = {
     },
 
     loop: function() {
+        Player.keyCheck();
+
         if( World.dicks ) {
             //World.dicks.rotation.x += 0.01; World.dicks.rotation.z += 0.02;
 
@@ -358,29 +360,40 @@ Game = {
             //      for example, new THREE.CubeGeometry( 64, 64, 64, 8, 8, 8, wireMaterial )
             //   HOWEVER: when the origin of the ray is within the target mesh, collisions do not occur
             var originPoint = Player.mesh.position.clone(),
-                hit;
+                bottomHit, backHit, i, vertex, directionVector, ray, collisionResults;
 
-            
-            for (var vertexIndex = 0; vertexIndex < Player.mesh.geometry.vertices.length; vertexIndex++) {
-                var localVertex = Player.mesh.geometry.vertices[vertexIndex].clone();
-                var globalVertex = localVertex.applyMatrix4( Player.mesh.matrix );
-                var directionVector = globalVertex.sub( Player.mesh.position );
+            for( i = 0; vertex = Player.vertices.bottom[ i++ ]; ) {
+                directionVector = vertex.clone().applyMatrix4( Player.mesh.matrix ).sub( Player.mesh.position );
                 
-                var ray = new THREE.Raycaster( originPoint, directionVector.clone().normalize() );
-                var collisionResults = ray.intersectObjects( World.dicks.tops );
+                ray = new THREE.Raycaster( originPoint, directionVector.clone().normalize() );
+                collisionResults = ray.intersectObjects( World.dicks.tops );
                 if ( collisionResults.length > 0 && collisionResults[0].distance < directionVector.length() ) {
-                    hit = true;
+                    bottomHit = true;
                     break;
                 }
             }
 
-            if( !hit ) {
+            for( i = 0; vertex = Player.vertices.back[ i++ ]; ) {
+                directionVector = vertex.clone().applyMatrix4( Player.mesh.matrix ).sub( Player.mesh.position );
+                
+                ray = new THREE.Raycaster( originPoint, directionVector.clone().normalize() );
+                collisionResults = ray.intersectObjects( World.dicks.sides );
+                if ( collisionResults.length > 0 && collisionResults[0].distance < directionVector.length() ) {
+                    backHit = true;
+                    break;
+                }
+            }
+            
+            if( !bottomHit ) {
                 World.inertia = World.inertia || 0;
-                World.inertia += 0.2;
+                World.inertia += 0.1;
                 World.dicks.group.position.z += World.inertia;
             }
-            World.dicks.group.position.y -= 2;
-            World.dicks.group.rotation.z += 0.001;
+            if( backHit && Player.phys.inertia.y < 0 ) {
+                Player.phys.inertia.y = 0;
+            }
+            World.dicks.group.position.y -= 0.1;
+            World.dicks.group.rotation.z += 0.0001;
         }
         var timer = 0.0001 * Date.now(),
             bgColor = World.bgColor;
@@ -462,13 +475,13 @@ Game = {
 
         var rand = Math.random() - 1;
 
-        if( rand > 0.97 ) {
-            Thing.create('floater', {
-                radius: 10 + Math.random() * 10
-            });
-        } else if( rand > 0.993 ) {
+        if( rand > 0.993 ) {
             Thing.create('mine', {
                 radius: 0.5 + Math.random() * 0.1
+            });
+        } else if( rand > 0.97 ) {
+            Thing.create('floater', {
+                radius: 10 + Math.random() * 10
             });
         }
 
@@ -546,7 +559,7 @@ Player = Utils.extend('entity', {
             radius: 20,
             origRadius: 20,
             scale: 1,
-            segments: 32
+            segments: 26
         },
         phys: {
             inertia: { x: 0, y: 0 },
@@ -554,6 +567,11 @@ Player = Utils.extend('entity', {
             deceleration: 10,
             max: 400
         }
+    },
+
+    vertices: {
+        back: [],
+        bottom: []
     },
 
     init: function() {
@@ -577,7 +595,16 @@ Player = Utils.extend('entity', {
             uniforms: uniforms
         });
 
-        var mesh = this.mesh = new THREE.Mesh( geometry, fresnelMaterial );
+        var mesh = this.mesh = new THREE.Mesh( geometry, fresnelMaterial ),
+            v;
+
+        for ( var vertexIndex = 0; v = mesh.geometry.vertices[ vertexIndex++ ]; ) {
+            if( v.z <= 0 && v.z > -8 && v.y < 0) {
+                this.vertices.back.push( v );
+            } else if( v.z < -8 && v.y <= 1) {
+                this.vertices.bottom.push( v );
+            }
+        }
 
         World.scene.add( mesh );
     },
@@ -591,7 +618,7 @@ Player = Utils.extend('entity', {
         this.scaleTo( 1 );
     },
 
-    update: function() {
+    keyCheck: function() {
         var phys = this.phys,
             inertia = this.phys.inertia;
 
@@ -634,11 +661,12 @@ Player = Utils.extend('entity', {
                 inertia.y = 0;
             }
         }
+    },
 
-        var me = this;
+    update: function() {
         this.move({
-            x: inertia.x,
-            y: inertia.y
+            x: this.phys.inertia.x,
+            y: this.phys.inertia.y
         });
     },
     
@@ -846,12 +874,18 @@ World = {
 
 Factory = {
 
-    stairs: function( steps ) {
+    stairs: function( options ) {
+        options = options || {};
+
         var stairs = {
                 meshes: [],
                 tops: [],
+                sides: []
             },
-            height = 50,
+            depth = options.depth || 100,
+            width = options.width || 100,
+            height = options.height || 50,
+            steps = options.steps || 10,
             top, side;
 
         var group = new THREE.Object3D();
@@ -868,21 +902,22 @@ Factory = {
         });
 
         for(var x = 0; x < steps; x++ ) {
-            top = new THREE.Mesh( new THREE.PlaneGeometry( 200, height, 10, 1), tmaterial );
-            side = new THREE.Mesh( new THREE.PlaneGeometry( 200, height, 10, 1), material );
+            top = new THREE.Mesh( new THREE.PlaneGeometry( width, depth, 10, 1), tmaterial );
+            side = new THREE.Mesh( new THREE.PlaneGeometry( width, height, 10, 1), material );
 
             group.add( top );
             group.add( side );
 
             top.position.z -= height * x;
-            top.position.y += height * x;
+            top.position.y += depth * x;
 
-            side.position.y += (height * x) + (height / 2);
+            side.position.y += (depth * x) + (depth / 2);
             side.position.z -= (height * x) + (height / 2);
             side.rotation.x += 90 * ( Math.PI / 180 );
 
             stairs.meshes.push( top, side );
             stairs.tops.push( top );
+            stairs.sides.push( side );
         }
 
         World.dicks = stairs;
@@ -976,7 +1011,7 @@ Camera = Utils.extend('doodad', {
 
     defaults: {
         data: {
-            zoom: 500,
+            zoom: Level.levels[0].zoom,
             fov: 60,
             frustrum: {}
         }

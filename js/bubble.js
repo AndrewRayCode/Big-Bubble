@@ -893,14 +893,15 @@ Factory = {
         var graph = {};
 
         var node = function( line ) {
-            var node = line;
-
-            node.add = function( node ) {
+            line.add = function( node ) {
                 node.parent = this;
                 this.child = node;
             };
 
-            return node;
+            var diff = new THREE.Vector3( line[0], line[1] );
+            line.angle = Math.atan2(diff.x, diff.y) * ( 180 / Math.PI );
+
+            return line;
         };
 
         var point = function( x, y ) {
@@ -920,27 +921,22 @@ Factory = {
 
         var bend = function( start ) {
             var end = start.clone().add( point(
-                Math.max( start.x - Utils.randInt(-10, 10), -limit.x + pathRadius ),
-                -Math.min( start.y - 50 - Utils.randInt(-10, 10), limit.y - pathRadius )
+                Utils.randInt(-200, 200),
+                100 - Utils.randInt(-10, 10)
             ) );
+            end.x = Math.min( Math.max( end.x, -limit.x + pathRadius ), limit.x - pathRadius );
 
-            end = start.clone().add( point(
-                Utils.randInt(-100, 100),
-                100 - Utils.randInt(-100, 100)
-            ) );
-            console.log('start is: ',start.clone(),'new end is ', end);
-
-            return line( start, end );
+            return node( line( start, end ) );
         };
 
-        graph.start = node( bend( point( 0, -limit.y ) ) );
+        graph.start = bend( point( 0, -limit.y ) );
         var currentNode = graph.start,
             newNode, rand;
 
         for( var x = 0; x < 5; x++ ) {
             rand = Math.random();
             //if( rand < 0.2 ) {
-                newNode = node( bend( currentNode[1] ) );
+                newNode = bend( currentNode[1] );
                 currentNode.add( newNode );
                 currentNode = newNode;
             //}
@@ -959,6 +955,25 @@ Factory = {
 
             var mesh = new THREE.Mesh( new THREE.PlaneGeometry( pathRadius, height, 1, 1), material ),
                 verts = mesh.geometry.vertices;
+
+            var mesh2 = new THREE.Mesh( new THREE.PlaneGeometry( pathRadius, height, 1, 1) ),
+                verts2 = mesh2.geometry.vertices;
+
+            var deltaStart = new THREE.Vector3( node[1].x - pathRadius, node[1].y, 0 );
+
+            verts2[0].set( node[1].x - pathRadius, node[1].y, 0 );
+            verts2[1].set( node[1].x + pathRadius, node[1].y, 0 );
+
+            verts2[2].set( node[0].x - pathRadius, node[0].y, 0 );
+            verts2[3].set( node[0].x + pathRadius, node[0].y, 0 );
+
+            mesh2.geometry.verticesNeedUpdate = true;
+
+            THREE.GeometryUtils.center( mesh2.geometry );
+            mesh2.position.add( deltaStart.sub( mesh2.geometry.vertices[0] ) );
+
+            mesh2.rotation.z += node.angle + 90 * (Math.PI / 180);
+            World.scene.add( mesh2 );
 
             // Build top
             verts[0].set( node[1].x - pathRadius, node[1].y, 0 );

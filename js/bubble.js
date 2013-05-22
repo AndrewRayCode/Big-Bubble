@@ -2,7 +2,12 @@ if ( !window.Detector.webgl ) {
     window.Detector.addGetWebGLMessage();
 }
 
-var pointLight1 = new THREE.PointLight(0xffffff);
+var pointLight1 = new THREE.SpotLight(0xffffff);
+pointLight1.shadowDarkness = 0.5;
+pointLight1.intensity = 1;
+pointLight1.castShadow = true;
+
+
 //var pointLight2 = new THREE.PointLight(0xffffff);
 //var pointLight3 = new THREE.PointLight(0xffffff);
             
@@ -297,7 +302,9 @@ Game = {
         Thing.init();
 
         // set its position
-        pointLight1.position.z = 1030;
+        pointLight1.position.z = 560;
+        pointLight1.target = Player.mesh;
+        Player.mesh.castShadow = true;
         //pointLight2.position.z = 2030;
         //pointLight3.position.z = 2030;
 
@@ -392,7 +399,7 @@ Game = {
             if( backHit && Player.phys.inertia.y < 0 ) {
                 Player.phys.inertia.y = 0;
             }
-            World.dicks.group.position.y -= 0.1;
+            World.dicks.group.position.y -= 0.5;
             World.dicks.group.rotation.z += 0.0001;
         }
         var timer = 0.0001 * Date.now(),
@@ -730,6 +737,7 @@ World = {
     init: function() {
         this.renderer = new THREE.WebGLRenderer( { antialias: true } );
         this.renderer.setSize( this.stage.width, this.stage.height );
+        this.renderer.shadowMapEnabled = true;
 
         this.stage.calculateAspect();
 
@@ -874,6 +882,102 @@ World = {
 
 Factory = {
 
+    // stairs
+    // post-stair fill
+    // left zig
+    // right zig
+    // split ( / join )
+    // straigthtener / bend
+
+    maze: function( ) {
+        var graph = {};
+
+        var node = function( line ) {
+            var node = line;
+
+            node.add = function( node ) {
+                node.parent = this;
+                this.child = node;
+            };
+
+            return node;
+        };
+
+        var point = function( x, y ) {
+            return new THREE.Vector3( x, y, 0 );
+        };
+        var line = function( point1, point2 ) {
+            return [ point1, point2 ];
+        };
+
+        var limit = {
+            x: Camera.data.frustrum.x / 2,
+            y: Camera.data.frustrum.y / 2
+        };
+
+        var pathWidth = 50,
+            pathRadius = pathWidth / 2;
+
+        var bend = function( start ) {
+            var end = start.clone().add( point(
+                Math.max( start.x - Utils.randInt(-10, 10), -limit.x + pathRadius ),
+                -Math.min( start.y - 50 - Utils.randInt(-10, 10), limit.y - pathRadius )
+            ) );
+
+            end = start.clone().add( point(
+                Utils.randInt(-100, 100),
+                100 - Utils.randInt(-100, 100)
+            ) );
+            console.log('start is: ',start.clone(),'new end is ', end);
+
+            return line( start, end );
+        };
+
+        graph.start = node( bend( point( 0, -limit.y ) ) );
+        var currentNode = graph.start,
+            newNode, rand;
+
+        for( var x = 0; x < 5; x++ ) {
+            rand = Math.random();
+            //if( rand < 0.2 ) {
+                newNode = node( bend( currentNode[1] ) );
+                currentNode.add( newNode );
+                currentNode = newNode;
+            //}
+        }
+
+        var build = function( node ) {
+
+            console.log(node[0], node[1]);
+
+            var material = new THREE.MeshLambertMaterial({
+                color: 0x888888
+            });
+            material.color.setRGB( Math.random(), Math.random(), Math.random() );
+
+            var height = Utils.distance3d( node[0], node[1] );
+
+            var mesh = new THREE.Mesh( new THREE.PlaneGeometry( pathRadius, height, 1, 1), material ),
+                verts = mesh.geometry.vertices;
+
+            // Build top
+            verts[0].set( node[1].x - pathRadius, node[1].y, 0 );
+            verts[1].set( node[1].x + pathRadius, node[1].y, 0 );
+
+            verts[2].set( node[0].x - pathRadius, node[0].y, 0 );
+            verts[3].set( node[0].x + pathRadius, node[0].y, 0 );
+
+            mesh.geometry.verticesNeedUpdate = true;
+
+            World.scene.add( mesh );
+
+            if( node.child ) {
+                build( node.child );
+            }
+        };
+        build( graph.start );
+    },
+
     stairs: function( options ) {
         options = options || {};
 
@@ -890,20 +994,21 @@ Factory = {
 
         var group = new THREE.Object3D();
 
-        var material = new THREE.MeshBasicMaterial({
+        var material = new THREE.MeshLambertMaterial({
             color: 0x888888,
             shading: THREE.FlatShading,
             side: THREE.DoubleSide
         });
-        var tmaterial = new THREE.MeshBasicMaterial({
-            color: 0xdd1188,
-            shading: THREE.FlatShading,
-            side: THREE.DoubleSide
+        var tmaterial = new THREE.MeshLambertMaterial({
+            color: 0x11ee55,
+            shading: THREE.FlatShading
         });
 
         for(var x = 0; x < steps; x++ ) {
             top = new THREE.Mesh( new THREE.PlaneGeometry( width, depth, 10, 1), tmaterial );
             side = new THREE.Mesh( new THREE.PlaneGeometry( width, height, 10, 1), material );
+
+            top.receiveShadow = true;
 
             group.add( top );
             group.add( side );

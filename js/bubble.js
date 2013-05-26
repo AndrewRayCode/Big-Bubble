@@ -8,6 +8,8 @@ pointLight1.intensity = 1;
 pointLight1.castShadow = true;
 
 
+// terrain blending? http://realitymeltdown.com/WebGL/Walkable%20Terrain.html
+
 //var pointLight2 = new THREE.PointLight(0xffffff);
 //var pointLight3 = new THREE.PointLight(0xffffff);
             
@@ -18,6 +20,25 @@ var Game, Utils, Level, Player, World, Factory, Camera, Thing;
 //(function() {
 
 Utils = {
+    dot: function( vec ) {
+
+        var material = new THREE.MeshLambertMaterial({
+            color: 0xff0000
+        });
+        var geometry = new THREE.SphereGeometry( 4, 4, 4 );
+        var mesh = this.mesh = new THREE.Mesh( geometry, material );
+
+        mesh.position.copy( vec );
+        World.scene.add( mesh );
+    },
+
+    relativeToWorld: function( pos, vec ) {
+        return new THREE.Vector3().addVectors( pos, vec );
+    },
+
+    worldToRelative: function( pos, vec ) {
+        return new THREE.Vector3().subVectors( vec, pos );
+    },
 
     create: function( obj ) {
         var made = {};
@@ -35,6 +56,10 @@ Utils = {
 
     randInt: function( min, max ) {
         return Math.floor( Math.random() * ( max - min + 1 ) + min );
+    },
+
+    midPoint: function( a, b ) {
+        return new THREE.Vector3().addVectors( a, b ).multiplyScalar( 0.5 );
     },
 
     // Thank you SO // http://stackoverflow.com/questions/2353268/java-2d-moving-a-point-p-a-certain-distance-closer-to-another-point
@@ -391,15 +416,17 @@ Game = {
                 }
             }
             
-            if( !bottomHit ) {
+            if( bottomHit ) {
+                World.inertia = 0;
+            } else {
                 World.inertia = World.inertia || 0;
-                World.inertia += 0.1;
+                World.inertia += 0.2;
                 World.dicks.group.position.z += World.inertia;
             }
             if( backHit && Player.phys.inertia.y < 0 ) {
                 Player.phys.inertia.y = 0;
             }
-            World.dicks.group.position.y -= 0.5;
+            World.dicks.group.position.y -= 0.8;
             World.dicks.group.rotation.z += 0.0001;
         }
         var timer = 0.0001 * Date.now(),
@@ -889,7 +916,7 @@ Factory = {
     // split ( / join )
     // straigthtener / bend
 
-    maze: function( ) {
+    maze: function() {
         var graph = {};
 
         var node = function( line ) {
@@ -898,14 +925,15 @@ Factory = {
                 this.child = node;
             };
 
-            var diff = new THREE.Vector3( line[0], line[1] );
-            line.angle = Math.atan2(diff.x, diff.y) * ( 180 / Math.PI );
+            var diff = new THREE.Vector3().subVectors( line[1], line[0] );
+            line.angle = THREE.Math.radToDeg( Math.atan2( diff.y, diff.x ) );
+            line.midpoint = Utils.midPoint( line[0], line[1] );
 
             return line;
         };
 
         var point = function( x, y ) {
-            return new THREE.Vector3( x, y, 0 );
+            return new THREE.Vector3( x, y, -Player.build.radius / 2 );
         };
         var line = function( point1, point2 ) {
             return [ point1, point2 ];
@@ -916,12 +944,12 @@ Factory = {
             y: Camera.data.frustrum.y / 2
         };
 
-        var pathWidth = 50,
+        var pathWidth = 100,
             pathRadius = pathWidth / 2;
 
         var bend = function( start ) {
             var end = start.clone().add( point(
-                Utils.randInt(-200, 200),
+                Utils.randInt(-100, 100),
                 100 - Utils.randInt(-10, 10)
             ) );
             end.x = Math.min( Math.max( end.x, -limit.x + pathRadius ), limit.x - pathRadius );
@@ -944,45 +972,92 @@ Factory = {
 
         var build = function( node ) {
 
-            console.log(node[0], node[1]);
+            //console.log(node[0], node[1]);
+
+            var geometry = new THREE.Geometry();
+            geometry.vertices.push( node[0] );
+            geometry.vertices.push( node[1] );
+            var line = new THREE.Line(geometry);
+            World.scene.add(line);
 
             var material = new THREE.MeshLambertMaterial({
                 color: 0x888888
             });
-            material.color.setRGB( Math.random(), Math.random(), Math.random() );
+            //material.color.setRGB( Math.random(), Math.random(), Math.random() );
 
             var height = Utils.distance3d( node[0], node[1] );
 
-            var mesh = new THREE.Mesh( new THREE.PlaneGeometry( pathRadius, height, 1, 1), material ),
+            var mesh = new THREE.Mesh( new THREE.PlaneGeometry( height, pathRadius, 1, 1), material ),
                 verts = mesh.geometry.vertices;
 
-            var mesh2 = new THREE.Mesh( new THREE.PlaneGeometry( pathRadius, height, 1, 1) ),
-                verts2 = mesh2.geometry.vertices;
+            //var mesh2 = new THREE.Mesh( new THREE.PlaneGeometry( pathRadius, height, 1, 1) ),
+                //verts2 = mesh2.geometry.vertices;
 
-            var deltaStart = new THREE.Vector3( node[1].x - pathRadius, node[1].y, 0 );
+            //var deltaStart = new THREE.Vector3( node[1].x - pathRadius, node[1].y, 0 );
 
-            verts2[0].set( node[1].x - pathRadius, node[1].y, 0 );
-            verts2[1].set( node[1].x + pathRadius, node[1].y, 0 );
+            //verts2[0].set( node[1].x - pathRadius, node[1].y, 0 );
+            //verts2[1].set( node[1].x + pathRadius, node[1].y, 0 );
 
-            verts2[2].set( node[0].x - pathRadius, node[0].y, 0 );
-            verts2[3].set( node[0].x + pathRadius, node[0].y, 0 );
+            //verts2[2].set( node[0].x - pathRadius, node[0].y, 0 );
+            //verts2[3].set( node[0].x + pathRadius, node[0].y, 0 );
 
-            mesh2.geometry.verticesNeedUpdate = true;
+            //mesh2.geometry.verticesNeedUpdate = true;
 
-            THREE.GeometryUtils.center( mesh2.geometry );
-            mesh2.position.add( deltaStart.sub( mesh2.geometry.vertices[0] ) );
+            //THREE.GeometryUtils.center( mesh2.geometry );
+            //mesh2.position.add( deltaStart.sub( mesh2.geometry.vertices[0] ) );
 
-            mesh2.rotation.z += node.angle + 90 * (Math.PI / 180);
-            World.scene.add( mesh2 );
+            //mesh2.rotation.z = THREE.Math.degToRad( node.angle );
+            //setInterval(function() {
+                ////mesh2.rotation.z += 0.01;
+            //}, 10);
+            //World.scene.add( mesh2 );
 
             // Build top
-            verts[0].set( node[1].x - pathRadius, node[1].y, 0 );
-            verts[1].set( node[1].x + pathRadius, node[1].y, 0 );
+            //if( node.child ) {
+                //build( node.child );
+            //}
+            //verts[0].set( node[1].x - pathRadius, node[1].y, 0 );
+            //verts[1].set( node[1].x + pathRadius, node[1].y, 0 );
 
-            verts[2].set( node[0].x - pathRadius, node[0].y, 0 );
-            verts[3].set( node[0].x + pathRadius, node[0].y, 0 );
-
+            mesh.position =  node.midpoint;
+            mesh.rotation.z = THREE.Math.degToRad( node.angle );
             mesh.geometry.verticesNeedUpdate = true;
+            mesh.geometry.computeCentroids();
+            mesh.updateMatrixWorld();
+
+            if( node.parent ) {
+                //var botLeftAvg = Utils.midPoint( verts[2], node.parent.verts[2] ),
+                    //botRightAvg = Utils.midPoint( verts[3], node.parent.verts[3] );
+                //verts[2].set( botLeftAvg.x, botRightAvg.y, 0 );
+                //verts[3].set( botLeftAvg.x, botRightAvg.y, 0 );
+
+                var botLeft = node.parent.mesh.localToWorld( node.parent.mesh.geometry.vertices[1].clone() );
+                //botLeft = Utils.midPoint( botLeft, mesh.localToWorld( verts[0].clone() ) );
+                verts[0].copy( mesh.worldToLocal( botLeft.clone() ) );
+                //node.parent.mesh.geometry.vertices[1].copy( node.parent.mesh.worldToLocal( botLeft ) );
+
+                var botRight = node.parent.mesh.localToWorld( node.parent.mesh.geometry.vertices[3].clone() );
+                //botRight = Utils.midPoint( botRight, mesh.localToWorld( verts[2].clone() ) );
+                verts[2].copy( mesh.worldToLocal( botRight.clone() ) );
+                //node.parent.mesh.geometry.vertices[3].copy( node.parent.mesh.worldToLocal( botRight ) );
+
+                //verts[2].set( node.parent.verts[3].x, node.parent.verts[3].y, 0 );
+
+                setInterval(function() {
+                    // 0: bottom left,
+                    // 1: top left,
+                    // 2: bottom right,
+                    // 3: top right
+                    //node.parent.verts[2].x += 0.1;
+                    //verts[0].x += 0.1;
+                    //mesh.geometry.verticesNeedUpdate = true;
+                }, 10);
+            }
+            mesh.receiveShadow = true;
+            mesh.geometry.verticesNeedUpdate = true;
+
+            node.verts = verts;
+            node.mesh = mesh;
 
             World.scene.add( mesh );
 

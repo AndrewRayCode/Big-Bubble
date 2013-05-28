@@ -65,15 +65,15 @@ Utils = {
     // Thank you SO // http://stackoverflow.com/questions/2353268/java-2d-moving-a-point-p-a-certain-distance-closer-to-another-point
     // Given two positions A and B, figure out where to put B so that is has
     // moved dist closer to A
-    vecMoveOffset: function( vec1, vec2, speed ) {
-        var vecA = new THREE.Vector3( vec1.x, vec1.y, vec1.z ),
-            vecB = new THREE.Vector3( vec2.x, vec2.y, vec1.z );
+    vecMoveOffset: function( vec1, vec2, distance ) {
+        var vecA = vec1.clone(),
+            vecB = vec2.clone();
 
-        speed = speed * Game.time.delta;
+        return vecA.add( vecB.sub( vecA ).normalize().multiplyScalar( distance ));
+    },
 
-        return vecA.add( vecB.sub( vecA ).normalize().multiply(
-            new THREE.Vector3( speed, speed, speed )
-        ));
+    vecSpeedOffset: function( vec1, vec2, speed ) {
+        return Utils.vecMoveOffset( vec1, vec2, speed * Game.time.delta );
     },
 
     sign: function( num ) {
@@ -352,6 +352,7 @@ Game = {
 
         this.restart();
         this.reqFrame();
+        Factory.maze();
     },
 
     restart: function() {
@@ -920,23 +921,85 @@ Factory = {
         var graph = {};
 
         var node = function( line ) {
-            line.add = function( node ) {
-                node.parent = this;
-                this.child = node;
+            var made = {
+                line: line,
+                add: function( childNode ) {
+                    console.log(' node.y starts as ',line[1].y );
+
+                    var newLines = chamfer( line, childNode.line, 20, 2 ),
+                        parent = made,
+                        newNode;
+
+                    console.log('  -- node.y is now ',line[1].y );
+
+                    for( var x = 0; x < newLines.length; x++ ) {
+                        newNode = node( newLines[ x ] );
+                        parent.child = newNode;
+                        newNode.chamfered = true;
+                        newNode.parent = parent;
+                        parent = newNode;
+                    }
+
+                    console.log('  -- node.y is finally ',line[1].y );
+                    //Utils.dot( this[1] );
+                    Utils.dot( childNode.line[0] );
+
+                    parent.child = childNode;
+                    //node.parent = this;
+                    //this.child = node;
+                }
             };
 
             var diff = new THREE.Vector3().subVectors( line[1], line[0] );
-            line.angle = THREE.Math.radToDeg( Math.atan2( diff.y, diff.x ) );
-            line.midpoint = Utils.midPoint( line[0], line[1] );
+            made.angle = THREE.Math.radToDeg( Math.atan2( diff.y, diff.x ) );
+            made.midpoint = Utils.midPoint( line[0], line[1] );
 
-            return line;
+            return made;
         };
 
         var point = function( x, y ) {
-            return new THREE.Vector3( x, y, -Player.build.radius / 2 );
+            return y !== undefined ? new THREE.Vector3( x, y, -20 ) : new THREE.Vector3( x.x, x.y, -20 );
         };
         var line = function( point1, point2 ) {
             return [ point1, point2 ];
+        };
+
+        var chamfer = function( line1, line2, distance, subDivisions ) {
+            var arr = arr || [],
+
+                newA = Utils.vecMoveOffset( line1[1], line1[0], distance ),
+                newB = Utils.vecMoveOffset( line2[0], line2[1], distance ),
+
+                curve = new THREE.QuadraticBezierCurve( newA, line1[1], newB ),
+
+                points = curve.getPoints( subDivisions ),
+                lines = [],
+                start, end, geom;
+
+            for( var x = 0; x < points.length - 1; x++ ) {
+                start = points[ x ];
+                end = points[ x + 1 ];
+
+                //console.log(point(start.x, start.y));
+
+                lines.push( line( point(start.x, start.y), point(end.x, end.y) ) );
+
+                //geom = new THREE.Geometry();
+                //geom.vertices.push(  );
+                //geom.vertices.push(  );
+                //line = new THREE.Line( geom );
+
+                //lines.push( line );
+            }
+
+            //console.log(line1[1]);
+            console.log(' -- ',line1[1].y, 'vs ',newA.y);
+            line1[1].copy( newA );
+            console.log(' -- after copy we are ',line1[1].y);
+            line1[1] = newA;
+            line2[0].copy( newB );
+
+            return lines;
         };
 
         var limit = {
@@ -948,9 +1011,11 @@ Factory = {
             pathRadius = pathWidth / 2;
 
         var bend = function( start ) {
-            var end = start.clone().add( point(
+
+            var end = start.clone().add( new THREE.Vector3(
                 Utils.randInt(-100, 100),
-                100 - Utils.randInt(-10, 10)
+                100 - Utils.randInt(-10, 10),
+                0
             ) );
             end.x = Math.min( Math.max( end.x, -limit.x + pathRadius ), limit.x - pathRadius );
 
@@ -964,7 +1029,7 @@ Factory = {
         for( var x = 0; x < 5; x++ ) {
             rand = Math.random();
             //if( rand < 0.2 ) {
-                newNode = bend( currentNode[1] );
+                newNode = bend( currentNode.line[1] );
                 currentNode.add( newNode );
                 currentNode = newNode;
             //}
@@ -975,10 +1040,17 @@ Factory = {
             //console.log(node[0], node[1]);
 
             var geometry = new THREE.Geometry();
-            geometry.vertices.push( node[0] );
-            geometry.vertices.push( node[1] );
-            var line = new THREE.Line(geometry);
+            if( !node.chamfered ) {
+                console.log(' building ', node.line[1].y );
+            }
+            geometry.vertices.push( node.line[0] );
+            geometry.vertices.push( node.line[1] );
+            var line = new THREE.Line( geometry );
             World.scene.add(line);
+            if( node.child ) {
+                build( node.child );
+            }
+            return;
 
             var material = new THREE.MeshLambertMaterial({
                 color: 0x888888
@@ -1033,12 +1105,13 @@ Factory = {
 
                 var botLeft = node.parent.mesh.localToWorld( node.parent.mesh.geometry.vertices[1].clone() );
                 //botLeft = Utils.midPoint( botLeft, mesh.localToWorld( verts[0].clone() ) );
-                verts[0].copy( mesh.worldToLocal( botLeft.clone() ) );
+                //verts[0].copy( mesh.worldToLocal( botLeft.clone() ) );
                 //node.parent.mesh.geometry.vertices[1].copy( node.parent.mesh.worldToLocal( botLeft ) );
 
                 var botRight = node.parent.mesh.localToWorld( node.parent.mesh.geometry.vertices[3].clone() );
                 //botRight = Utils.midPoint( botRight, mesh.localToWorld( verts[2].clone() ) );
-                verts[2].copy( mesh.worldToLocal( botRight.clone() ) );
+                //console.log( mesh.worldToLocal( botLeft ));
+                //verts[2].copy( mesh.worldToLocal( botRight.clone() ) );
                 //node.parent.mesh.geometry.vertices[3].copy( node.parent.mesh.worldToLocal( botRight ) );
 
                 //verts[2].set( node.parent.verts[3].x, node.parent.verts[3].y, 0 );
@@ -1065,6 +1138,7 @@ Factory = {
                 build( node.child );
             }
         };
+
         build( graph.start );
     },
 

@@ -20,16 +20,16 @@ var Game, Utils, Level, Player, World, Factory, Camera, Thing;
 //(function() {
 
 Utils = {
-    dot: function( vec ) {
+    dot: function( vec, parent ) {
 
         var material = new THREE.MeshLambertMaterial({
             color: 0xff0000
         });
-        var geometry = new THREE.SphereGeometry( 4, 4, 4 );
+        var geometry = new THREE.SphereGeometry( 1, 4, 4 );
         var mesh = this.mesh = new THREE.Mesh( geometry, material );
 
         mesh.position.copy( vec );
-        World.scene.add( mesh );
+        (parent || World.scene).add( mesh );
     },
 
     relativeToWorld: function( pos, vec ) {
@@ -352,7 +352,6 @@ Game = {
 
         this.restart();
         this.reqFrame();
-        Factory.maze();
     },
 
     restart: function() {
@@ -383,53 +382,6 @@ Game = {
     loop: function() {
         Player.keyCheck();
 
-        if( World.dicks ) {
-            //World.dicks.rotation.x += 0.01; World.dicks.rotation.z += 0.02;
-
-            // collision detection:
-            //   determines if any of the rays from the cube's origin to each vertex
-            //      intersects any face of a mesh in the array of target meshes
-            //   for increased collision accuracy, add more vertices to the cube;
-            //      for example, new THREE.CubeGeometry( 64, 64, 64, 8, 8, 8, wireMaterial )
-            //   HOWEVER: when the origin of the ray is within the target mesh, collisions do not occur
-            var originPoint = Player.mesh.position.clone(),
-                bottomHit, backHit, i, vertex, directionVector, ray, collisionResults;
-
-            for( i = 0; vertex = Player.vertices.bottom[ i++ ]; ) {
-                directionVector = vertex.clone().applyMatrix4( Player.mesh.matrix ).sub( Player.mesh.position );
-                
-                ray = new THREE.Raycaster( originPoint, directionVector.clone().normalize() );
-                collisionResults = ray.intersectObjects( World.dicks.tops );
-                if ( collisionResults.length > 0 && collisionResults[0].distance < directionVector.length() ) {
-                    bottomHit = true;
-                    break;
-                }
-            }
-
-            for( i = 0; vertex = Player.vertices.back[ i++ ]; ) {
-                directionVector = vertex.clone().applyMatrix4( Player.mesh.matrix ).sub( Player.mesh.position );
-                
-                ray = new THREE.Raycaster( originPoint, directionVector.clone().normalize() );
-                collisionResults = ray.intersectObjects( World.dicks.sides );
-                if ( collisionResults.length > 0 && collisionResults[0].distance < directionVector.length() ) {
-                    backHit = true;
-                    break;
-                }
-            }
-            
-            if( bottomHit ) {
-                World.inertia = 0;
-            } else {
-                World.inertia = World.inertia || 0;
-                World.inertia += 0.2;
-                World.dicks.group.position.z += World.inertia;
-            }
-            if( backHit && Player.phys.inertia.y < 0 ) {
-                Player.phys.inertia.y = 0;
-            }
-            World.dicks.group.position.y -= 0.8;
-            World.dicks.group.rotation.z += 0.0001;
-        }
         var timer = 0.0001 * Date.now(),
             bgColor = World.bgColor;
 
@@ -597,7 +549,7 @@ Player = Utils.extend('entity', {
             segments: 26
         },
         phys: {
-            inertia: { x: 0, y: 0 },
+            inertia: { x: 0, y: 0, z: 0 },
             acceleration: 25,
             deceleration: 10,
             max: 400
@@ -633,13 +585,21 @@ Player = Utils.extend('entity', {
         var mesh = this.mesh = new THREE.Mesh( geometry, fresnelMaterial ),
             v;
 
-        for ( var vertexIndex = 0; v = mesh.geometry.vertices[ vertexIndex++ ]; ) {
-            if( v.z <= 0 && v.z > -8 && v.y < 0) {
-                this.vertices.back.push( v );
-            } else if( v.z < -8 && v.y <= 1) {
+        var vertexIndex = mesh.geometry.vertices.length - 1;
+        while( v = mesh.geometry.vertices[ vertexIndex-- ] ) {
+            if( v.z <= 0 && v.z > -8) {
+                if( v.y < 0 ) {
+                    this.vertices.back.push( v );
+                }
+            } else if( v.z < -8 && v.y <= 4 ) {
+                Utils.dot( v, mesh );
                 this.vertices.bottom.push( v );
             }
         }
+
+        this.vertices.bottom.sort(function( a, b ) {
+            return a.z - b.z;
+        });
 
         World.scene.add( mesh );
     },
@@ -714,11 +674,15 @@ Player = Utils.extend('entity', {
 
         if( mesh.position.y > yLimit - radius ) {
             mesh.position.y = yLimit - radius;
-            inertia.y = 0;
+            if( inertia.y > 0 ) {
+                inertia.y = 0;
+            }
         }
         if( mesh.position.y < -yLimit + radius ) {
             mesh.position.y = -yLimit + radius;
-            inertia.y = 0;
+            if( inertia.y < 0 ) {
+                inertia.y = 0;
+            }
         }
         if( mesh.position.x > xLimit - radius ) {
             mesh.position.x = xLimit - radius;
@@ -902,6 +866,68 @@ World = {
                         }
                     });
                 }
+            },
+
+            maze: {
+                initBind: function( thing ) {
+                    var halfX, halfY;
+
+                    //if( thing.type === 'floater' ) {
+                    //} else if( thing.type === 'mine' ) {
+                    //}
+                },
+                init: function() {
+                    Game.bind( 'initted', this.initBind );
+
+                    World.penus = 0;
+                    this.maze = Factory.maze();
+                    this.maze.inertia.y = -1.8;
+                },
+                end: function() {
+                    Game.unbind( 'initted', this.initBind );
+                },
+                loop: function() {
+                    var originPoint = Player.mesh.position.clone(),
+                        bottomHit, bottomDist, backHit, i, vertex, directionVector, ray, collisionResults;
+
+                    for( i = 0; vertex = Player.vertices.bottom[ i++ ]; ) {
+                        directionVector = vertex.clone().applyMatrix4( Player.mesh.matrix ).sub( Player.mesh.position );
+                        
+                        ray = new THREE.Raycaster( originPoint, directionVector.clone().normalize() );
+                        collisionResults = ray.intersectObjects( this.maze.tops );
+
+                        if ( collisionResults.length && collisionResults[0].distance < directionVector.length() ) {
+                            bottomHit = true;
+                            bottomDist = collisionResults[0].distance;
+                            break;
+                        }
+                    }
+
+                    for( i = 0; vertex = Player.vertices.back[ i++ ]; ) {
+                        directionVector = vertex.clone().applyMatrix4( Player.mesh.matrix ).sub( Player.mesh.position );
+                        
+                        ray = new THREE.Raycaster( originPoint, directionVector.clone().normalize() );
+                        collisionResults = ray.intersectObjects( this.maze.sides );
+                        if ( collisionResults.length && collisionResults[0].distance < directionVector.length() ) {
+                            backHit = true;
+                            break;
+                        }
+                    }
+                    
+                    if( bottomHit ) {
+                        this.maze.inertia.z = 0;
+                        this.maze.group.position.z -= ( Player.build.radius - bottomDist );
+                    } else {
+                        this.maze.inertia.z += 0.05;
+                    }
+                    if( backHit && Player.phys.inertia.y < 0 ) {
+                        Player.phys.inertia.y = 0;
+                    }
+                    this.maze.group.position.y += this.maze.inertia.y;
+                    this.maze.group.position.z += this.maze.inertia.z;
+                    Player.mesh.position.y += this.maze.inertia.y;
+                    Player.constrain();
+                }
             }
         }
     },
@@ -924,27 +950,31 @@ Factory = {
             var made = {
                 line: line,
                 add: function( childNode ) {
-                    console.log(' node.y starts as ',line[1].y );
+                    //console.log(' node.y starts as ',line[1].y );
 
-                    var newLines = chamfer( line, childNode.line, 20, 2 ),
+                    var newLines = chamfer( line, childNode.line, 40, 4 ),
                         parent = made,
                         newNode;
 
-                    console.log('  -- node.y is now ',line[1].y );
+                    //console.log('  -- node.y is now ',line[1].y );
 
                     for( var x = 0; x < newLines.length; x++ ) {
                         newNode = node( newLines[ x ] );
-                        parent.child = newNode;
                         newNode.chamfered = true;
+
                         newNode.parent = parent;
+                        parent.child = newNode;
+
                         parent = newNode;
                     }
 
-                    console.log('  -- node.y is finally ',line[1].y );
+                    //console.log('  -- node.y is finally ',line[1].y );
                     //Utils.dot( this[1] );
-                    Utils.dot( childNode.line[0] );
+                    //Utils.dot( childNode.line[0] );
 
+                    childNode.parent = parent;
                     parent.child = childNode;
+
                     //node.parent = this;
                     //this.child = node;
                 }
@@ -958,7 +988,7 @@ Factory = {
         };
 
         var point = function( x, y ) {
-            return y !== undefined ? new THREE.Vector3( x, y, -20 ) : new THREE.Vector3( x.x, x.y, -20 );
+            return y !== undefined ? new THREE.Vector3( x, y, -30 ) : new THREE.Vector3( x.x, x.y, -30 );
         };
         var line = function( point1, point2 ) {
             return [ point1, point2 ];
@@ -993,9 +1023,9 @@ Factory = {
             }
 
             //console.log(line1[1]);
-            console.log(' -- ',line1[1].y, 'vs ',newA.y);
-            line1[1].copy( newA );
-            console.log(' -- after copy we are ',line1[1].y);
+            //console.log(' -- ',line1[1].y, 'vs ',newA.y);
+            //line1[1].copy( newA );
+            //console.log(' -- after copy we are ',line1[1].y);
             line1[1] = newA;
             line2[0].copy( newB );
 
@@ -1007,7 +1037,7 @@ Factory = {
             y: Camera.data.frustrum.y / 2
         };
 
-        var pathWidth = 100,
+        var pathWidth = 200,
             pathRadius = pathWidth / 2;
 
         var bend = function( start ) {
@@ -1022,11 +1052,11 @@ Factory = {
             return node( line( start, end ) );
         };
 
-        graph.start = bend( point( 0, -limit.y ) );
+        graph.start = bend( point( 0, -Player.build.radius ) );
         var currentNode = graph.start,
             newNode, rand;
 
-        for( var x = 0; x < 5; x++ ) {
+        for( var x = 0; x < 50; x++ ) {
             rand = Math.random();
             //if( rand < 0.2 ) {
                 newNode = bend( currentNode.line[1] );
@@ -1035,29 +1065,27 @@ Factory = {
             //}
         }
 
+        var maze = {
+            tops: [],
+            sides: [],
+            inertia: { x: 0, y: 0, z: 0 },
+            group: new THREE.Object3D()
+        };
+
         var build = function( node ) {
 
-            //console.log(node[0], node[1]);
-
-            var geometry = new THREE.Geometry();
-            if( !node.chamfered ) {
-                console.log(' building ', node.line[1].y );
-            }
-            geometry.vertices.push( node.line[0] );
-            geometry.vertices.push( node.line[1] );
-            var line = new THREE.Line( geometry );
-            World.scene.add(line);
-            if( node.child ) {
-                build( node.child );
-            }
-            return;
+            //var geometry = new THREE.Geometry();
+            //geometry.vertices.push( node.line[0] );
+            //geometry.vertices.push( node.line[1] );
+            //var line = new THREE.Line( geometry );
+            //World.scene.add(line);
 
             var material = new THREE.MeshLambertMaterial({
                 color: 0x888888
             });
             //material.color.setRGB( Math.random(), Math.random(), Math.random() );
 
-            var height = Utils.distance3d( node[0], node[1] );
+            var height = Utils.distance3d( node.line[0], node.line[1] );
 
             var mesh = new THREE.Mesh( new THREE.PlaneGeometry( height, pathRadius, 1, 1), material ),
                 verts = mesh.geometry.vertices;
@@ -1091,6 +1119,7 @@ Factory = {
             //verts[0].set( node[1].x - pathRadius, node[1].y, 0 );
             //verts[1].set( node[1].x + pathRadius, node[1].y, 0 );
 
+            World.ass = World.ass || 0;
             mesh.position =  node.midpoint;
             mesh.rotation.z = THREE.Math.degToRad( node.angle );
             mesh.geometry.verticesNeedUpdate = true;
@@ -1104,27 +1133,35 @@ Factory = {
                 //verts[3].set( botLeftAvg.x, botRightAvg.y, 0 );
 
                 var botLeft = node.parent.mesh.localToWorld( node.parent.mesh.geometry.vertices[1].clone() );
-                //botLeft = Utils.midPoint( botLeft, mesh.localToWorld( verts[0].clone() ) );
-                //verts[0].copy( mesh.worldToLocal( botLeft.clone() ) );
-                //node.parent.mesh.geometry.vertices[1].copy( node.parent.mesh.worldToLocal( botLeft ) );
+                botLeft = Utils.midPoint( botLeft, mesh.localToWorld( verts[0].clone() ) );
+                botLeft.z = World.ass;
+                verts[0].copy( mesh.worldToLocal( botLeft.clone() ) );
+                node.parent.mesh.geometry.vertices[1].copy( node.parent.mesh.worldToLocal( botLeft ) );
 
                 var botRight = node.parent.mesh.localToWorld( node.parent.mesh.geometry.vertices[3].clone() );
-                //botRight = Utils.midPoint( botRight, mesh.localToWorld( verts[2].clone() ) );
+                botRight = Utils.midPoint( botRight, mesh.localToWorld( verts[2].clone() ) );
+                botRight.z = World.ass;
                 //console.log( mesh.worldToLocal( botLeft ));
-                //verts[2].copy( mesh.worldToLocal( botRight.clone() ) );
-                //node.parent.mesh.geometry.vertices[3].copy( node.parent.mesh.worldToLocal( botRight ) );
+                verts[2].copy( mesh.worldToLocal( botRight.clone() ) );
+                node.parent.mesh.geometry.vertices[3].copy( node.parent.mesh.worldToLocal( botRight ) );
 
                 //verts[2].set( node.parent.verts[3].x, node.parent.verts[3].y, 0 );
+                node.parent.mesh.geometry.verticesNeedUpdate = true;
+                node.parent.mesh.geometry.computeCentroids();
+                node.parent.mesh.geometry.computeFaceNormals();
+                node.parent.mesh.geometry.computeVertexNormals();
+                node.parent.mesh.updateMatrixWorld();
 
-                setInterval(function() {
-                    // 0: bottom left,
-                    // 1: top left,
-                    // 2: bottom right,
-                    // 3: top right
-                    //node.parent.verts[2].x += 0.1;
-                    //verts[0].x += 0.1;
-                    //mesh.geometry.verticesNeedUpdate = true;
-                }, 10);
+                mesh.geometry.computeCentroids();
+                mesh.geometry.computeFaceNormals();
+                mesh.geometry.computeVertexNormals();
+                mesh.updateMatrixWorld();
+
+                //World.ass += 5;
+                // 0: bottom left,
+                // 1: top left,
+                // 2: bottom right,
+                // 3: top right
             }
             mesh.receiveShadow = true;
             mesh.geometry.verticesNeedUpdate = true;
@@ -1132,7 +1169,8 @@ Factory = {
             node.verts = verts;
             node.mesh = mesh;
 
-            World.scene.add( mesh );
+            maze.group.add( mesh );
+            maze.tops.push( mesh );
 
             if( node.child ) {
                 build( node.child );
@@ -1140,6 +1178,9 @@ Factory = {
         };
 
         build( graph.start );
+        World.scene.add( maze.group );
+
+        return maze;
     },
 
     stairs: function( options ) {
@@ -1189,10 +1230,8 @@ Factory = {
             stairs.sides.push( side );
         }
 
-        World.dicks = stairs;
         World.scene.add( group );
         stairs.group = group;
-
         group.position.z -= height;
 
         return stairs;

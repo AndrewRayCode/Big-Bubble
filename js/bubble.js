@@ -20,12 +20,12 @@ var Game, Utils, Level, Player, World, Factory, Camera, Thing;
 //(function() {
 
 Utils = {
-    dot: function( vec, parent ) {
+    dot: function( vec, color, parent ) {
 
         var material = new THREE.MeshLambertMaterial({
-            color: 0xff0000
+            color: color || 0xff0000
         });
-        var geometry = new THREE.SphereGeometry( 1, 4, 4 );
+        var geometry = new THREE.SphereGeometry( 4, 4, 4 );
         var mesh = this.mesh = new THREE.Mesh( geometry, material );
 
         mesh.position.copy( vec );
@@ -592,7 +592,6 @@ Player = Utils.extend('entity', {
                     this.vertices.back.push( v );
                 }
             } else if( v.z < -8 && v.y <= 4 ) {
-                Utils.dot( v, mesh );
                 this.vertices.bottom.push( v );
             }
         }
@@ -918,7 +917,7 @@ World = {
                         this.maze.inertia.z = 0;
                         this.maze.group.position.z -= ( Player.build.radius - bottomDist );
                     } else {
-                        this.maze.inertia.z += 0.05;
+                        this.maze.inertia.z += 0.10;
                     }
                     if( backHit && Player.phys.inertia.y < 0 ) {
                         Player.phys.inertia.y = 0;
@@ -946,11 +945,17 @@ Factory = {
     maze: function() {
         var graph = {};
 
-        var node = function( line ) {
+        var node = function( line, type ) {
             var made = {
                 line: line,
                 add: function( childNode ) {
                     //console.log(' node.y starts as ',line[1].y );
+                    //
+                    if( childNode.type === 'zig' ) {
+                        childNode.parent = made;
+                        made.child = childNode;
+                        return;
+                    }
 
                     var newLines = chamfer( line, childNode.line, 40, 4 ),
                         parent = made,
@@ -959,7 +964,8 @@ Factory = {
                     //console.log('  -- node.y is now ',line[1].y );
 
                     for( var x = 0; x < newLines.length; x++ ) {
-                        newNode = node( newLines[ x ] );
+                        newNode = node( newLines[ x ], 'chamfer' );
+                        newNode.type = 'chamfer';
                         newNode.chamfered = true;
 
                         newNode.parent = parent;
@@ -975,20 +981,26 @@ Factory = {
                     childNode.parent = parent;
                     parent.child = childNode;
 
+                    made.recalculate();
+                    childNode.recalculate();
+
                     //node.parent = this;
                     //this.child = node;
+                },
+                recalculate: function() {
+                    var diff = new THREE.Vector3().subVectors( line[1], line[0] );
+                    made.angle = THREE.Math.radToDeg( Math.atan2( diff.y, diff.x ) );
+                    made.midPoint = Utils.midPoint( line[0], line[1] );
                 }
             };
 
-            var diff = new THREE.Vector3().subVectors( line[1], line[0] );
-            made.angle = THREE.Math.radToDeg( Math.atan2( diff.y, diff.x ) );
-            made.midpoint = Utils.midPoint( line[0], line[1] );
+            made.recalculate();
 
             return made;
         };
 
         var point = function( x, y ) {
-            return y !== undefined ? new THREE.Vector3( x, y, -30 ) : new THREE.Vector3( x.x, x.y, -30 );
+            return y !== undefined ? new THREE.Vector3( x, y, -100 ) : new THREE.Vector3( x.x, x.y, -100 );
         };
         var line = function( point1, point2 ) {
             return [ point1, point2 ];
@@ -1010,22 +1022,9 @@ Factory = {
                 start = points[ x ];
                 end = points[ x + 1 ];
 
-                //console.log(point(start.x, start.y));
-
                 lines.push( line( point(start.x, start.y), point(end.x, end.y) ) );
-
-                //geom = new THREE.Geometry();
-                //geom.vertices.push(  );
-                //geom.vertices.push(  );
-                //line = new THREE.Line( geom );
-
-                //lines.push( line );
             }
 
-            //console.log(line1[1]);
-            //console.log(' -- ',line1[1].y, 'vs ',newA.y);
-            //line1[1].copy( newA );
-            //console.log(' -- after copy we are ',line1[1].y);
             line1[1] = newA;
             line2[0].copy( newB );
 
@@ -1037,14 +1036,16 @@ Factory = {
             y: Camera.data.frustrum.y / 2
         };
 
-        var pathWidth = 200,
+        var pathWidth = 100,
             pathRadius = pathWidth / 2;
 
-        var bend = function( start ) {
+        var bend = function( startNode ) {
+
+            var start = startNode.line[1].clone();
 
             var end = start.clone().add( new THREE.Vector3(
-                Utils.randInt(-100, 100),
-                100 - Utils.randInt(-10, 10),
+                Utils.randInt(-50, 50),
+                200 - Utils.randInt(-50, 50),
                 0
             ) );
             end.x = Math.min( Math.max( end.x, -limit.x + pathRadius ), limit.x - pathRadius );
@@ -1052,17 +1053,59 @@ Factory = {
             return node( line( start, end ) );
         };
 
-        graph.start = bend( point( 0, -Player.build.radius ) );
+        var zig = function( startNode ) {
+
+            var dist = 100 + Utils.randInt(-5, 5),
+                sign = startNode.angle > 90 ? -1 : 1,
+                angle = startNode.angle + ( sign * 90 );
+
+            //Utils.dot( startNode.line[1] );
+
+            // Hyptoenuse of icosolese right triangle is root2 * side
+            var hypot = pathRadius * Math.SQRT2;
+
+            var start = startNode.line[1].clone().add( new THREE.Vector3(
+                Math.cos( THREE.Math.degToRad( startNode.angle + (sign * 135) ) ) * hypot,
+                Math.sin( THREE.Math.degToRad( startNode.angle + (sign * 135) ) ) * hypot,
+                0
+            ));
+            //for(var x = 0; x < 360; x+= 45 ) {
+                //Utils.dot( startNode.line[1].clone().add(new THREE.Vector3(
+                    //Math.cos(THREE.Math.degToRad(x + startNode.angle)) * hypot,
+                    //Math.sin(THREE.Math.degToRad(x + startNode.angle)) * hypot,
+                    //0
+                //)));
+            //}
+
+            // SOH CAH TOA to get second point of line
+            var end = start.clone().add( new THREE.Vector3(
+                Math.cos( THREE.Math.degToRad( angle ) ) * dist,
+                Math.sin( THREE.Math.degToRad( angle ) ) * dist,
+                0
+            ));
+
+            var newNode = node( line( start, end ) );
+            newNode.type = 'zig';
+            return newNode;
+        };
+
+        graph.start = bend( node( line( point( 0, -Player.build.radius * 2 ), point( 0, -Player.build.radius ) ) ) );
+        graph.start = bend( node( line( point( 0, -Camera.data.frustrum.y / 2 ), point( 0, (-Camera.data.frustrum.y / 2) + 20 ) ) ) );
         var currentNode = graph.start,
             newNode, rand;
 
         for( var x = 0; x < 50; x++ ) {
             rand = Math.random();
-            //if( rand < 0.2 ) {
-                newNode = bend( currentNode.line[1] );
+            if( rand > 0.8 ) {
+                newNode = zig( currentNode );
                 currentNode.add( newNode );
                 currentNode = newNode;
-            //}
+                newNode = zig( currentNode );
+            } else {
+                newNode = bend( currentNode );
+            }
+            currentNode.add( newNode );
+            currentNode = newNode;
         }
 
         var maze = {
@@ -1073,89 +1116,80 @@ Factory = {
         };
 
         var build = function( node ) {
+            var mat;
+            var trans = false;
+            if( node.type === 'zig' ) {
+                mat = new THREE.MeshBasicMaterial({
+                    color: 0xffffff,
+                    wireframe: trans,
+                    transparent: trans
+                });
+            } else if( node.type === 'chamfer' ) {
+                mat = new THREE.MeshBasicMaterial({
+                    color: 0xe8dd00,
+                    wireframe: trans,
+                    transparent: trans
+                });
+            } else {
+                mat = new THREE.MeshBasicMaterial({
+                    color: 0x00ffff,
+                    wireframe: trans,
+                    transparent: trans
+                });
+            }
 
-            //var geometry = new THREE.Geometry();
+            //var geometry = new THREE.Geometry(), line;
             //geometry.vertices.push( node.line[0] );
             //geometry.vertices.push( node.line[1] );
-            //var line = new THREE.Line( geometry );
-            //World.scene.add(line);
 
-            var material = new THREE.MeshLambertMaterial({
-                color: 0x888888
-            });
+            //line = new THREE.Line( geometry );
+            //World.scene.add(line);
+            //if( node.child ) {
+                //build( node.child );
+            //}
+            //return
+
             //material.color.setRGB( Math.random(), Math.random(), Math.random() );
 
             var height = Utils.distance3d( node.line[0], node.line[1] );
 
-            var mesh = new THREE.Mesh( new THREE.PlaneGeometry( height, pathRadius, 1, 1), material ),
+            var mesh = new THREE.Mesh( new THREE.PlaneGeometry( height, pathWidth, 1, 1), mat ),
                 verts = mesh.geometry.vertices;
 
-            //var mesh2 = new THREE.Mesh( new THREE.PlaneGeometry( pathRadius, height, 1, 1) ),
-                //verts2 = mesh2.geometry.vertices;
-
-            //var deltaStart = new THREE.Vector3( node[1].x - pathRadius, node[1].y, 0 );
-
-            //verts2[0].set( node[1].x - pathRadius, node[1].y, 0 );
-            //verts2[1].set( node[1].x + pathRadius, node[1].y, 0 );
-
-            //verts2[2].set( node[0].x - pathRadius, node[0].y, 0 );
-            //verts2[3].set( node[0].x + pathRadius, node[0].y, 0 );
-
-            //mesh2.geometry.verticesNeedUpdate = true;
-
-            //THREE.GeometryUtils.center( mesh2.geometry );
-            //mesh2.position.add( deltaStart.sub( mesh2.geometry.vertices[0] ) );
-
-            //mesh2.rotation.z = THREE.Math.degToRad( node.angle );
-            //setInterval(function() {
-                ////mesh2.rotation.z += 0.01;
-            //}, 10);
-            //World.scene.add( mesh2 );
-
-            // Build top
-            //if( node.child ) {
-                //build( node.child );
-            //}
-            //verts[0].set( node[1].x - pathRadius, node[1].y, 0 );
-            //verts[1].set( node[1].x + pathRadius, node[1].y, 0 );
-
-            World.ass = World.ass || 0;
-            mesh.position =  node.midpoint;
+            //World.ass = World.ass || -100;
+            mesh.position = node.midPoint;
             mesh.rotation.z = THREE.Math.degToRad( node.angle );
             mesh.geometry.verticesNeedUpdate = true;
             mesh.geometry.computeCentroids();
             mesh.updateMatrixWorld();
 
             if( node.parent ) {
-                //var botLeftAvg = Utils.midPoint( verts[2], node.parent.verts[2] ),
-                    //botRightAvg = Utils.midPoint( verts[3], node.parent.verts[3] );
-                //verts[2].set( botLeftAvg.x, botRightAvg.y, 0 );
-                //verts[3].set( botLeftAvg.x, botRightAvg.y, 0 );
+                var botLeft = node.parent.mesh.localToWorld( node.parent.mesh.geometry.vertices[1].clone() ),
+                    botLeftMid = Utils.midPoint( botLeft, mesh.localToWorld( verts[0].clone() ) );
+                //botLeftMid.z = World.ass;
+                var botRight = node.parent.mesh.localToWorld( node.parent.mesh.geometry.vertices[3].clone() ),
+                    botRightMid = Utils.midPoint( botRight, mesh.localToWorld( verts[2].clone() ) );
+                //botRightMid.z = World.ass;
 
-                var botLeft = node.parent.mesh.localToWorld( node.parent.mesh.geometry.vertices[1].clone() );
-                botLeft = Utils.midPoint( botLeft, mesh.localToWorld( verts[0].clone() ) );
-                botLeft.z = World.ass;
-                verts[0].copy( mesh.worldToLocal( botLeft.clone() ) );
-                node.parent.mesh.geometry.vertices[1].copy( node.parent.mesh.worldToLocal( botLeft ) );
+                if( node.type !== 'zig' ) {
+                    verts[0].copy( mesh.worldToLocal( botLeftMid.clone() ) );
+                    verts[2].copy( mesh.worldToLocal( botRightMid.clone() ) );
+                    mesh.geometry.verticesNeedUpdate = true;
+                    mesh.geometry.computeCentroids();
+                    mesh.geometry.computeFaceNormals();
+                    mesh.geometry.computeVertexNormals();
+                    mesh.updateMatrixWorld();
+                }
 
-                var botRight = node.parent.mesh.localToWorld( node.parent.mesh.geometry.vertices[3].clone() );
-                botRight = Utils.midPoint( botRight, mesh.localToWorld( verts[2].clone() ) );
-                botRight.z = World.ass;
-                //console.log( mesh.worldToLocal( botLeft ));
-                verts[2].copy( mesh.worldToLocal( botRight.clone() ) );
-                node.parent.mesh.geometry.vertices[3].copy( node.parent.mesh.worldToLocal( botRight ) );
-
-                //verts[2].set( node.parent.verts[3].x, node.parent.verts[3].y, 0 );
-                node.parent.mesh.geometry.verticesNeedUpdate = true;
-                node.parent.mesh.geometry.computeCentroids();
-                node.parent.mesh.geometry.computeFaceNormals();
-                node.parent.mesh.geometry.computeVertexNormals();
-                node.parent.mesh.updateMatrixWorld();
-
-                mesh.geometry.computeCentroids();
-                mesh.geometry.computeFaceNormals();
-                mesh.geometry.computeVertexNormals();
-                mesh.updateMatrixWorld();
+                if( node.parent.type !== 'zig' && node.type !== 'zig' ) {
+                    node.parent.mesh.geometry.vertices[3].copy( node.parent.mesh.worldToLocal( botRightMid ) );
+                    node.parent.mesh.geometry.vertices[1].copy( node.parent.mesh.worldToLocal( botLeftMid ) );
+                    node.parent.mesh.geometry.verticesNeedUpdate = true;
+                    node.parent.mesh.geometry.computeCentroids();
+                    node.parent.mesh.geometry.computeFaceNormals();
+                    node.parent.mesh.geometry.computeVertexNormals();
+                    node.parent.mesh.updateMatrixWorld();
+                }
 
                 //World.ass += 5;
                 // 0: bottom left,

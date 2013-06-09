@@ -12,10 +12,11 @@ if ( !window.Detector.webgl ) {
 (function() {
 
 World.load();
-World.populate();
 Camera.activate();
 Player.load();
+World.populate();
 Level.reset();
+Camera.zoom( Camera.data.zoom );
 Game.activate();
 
 }());

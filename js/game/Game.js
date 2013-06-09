@@ -65,7 +65,7 @@ var Game = global.Game = Class.create({
         //pointLight3.position.z = 2030;
 
         // add to the scene
-        World.scene.add(pointLight1);
+        World.scene.add( pointLight1 );
         //World.scene.add(pointLight2);
         //World.scene.add(pointLight3);
 

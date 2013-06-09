@@ -422,7 +422,8 @@ var Factory = global.Factory = Class.create({
             slantBrightness: {value: 0.1, type:'f' },
             numBeams: {value: 13, type:'i' }
         };
-        var bgShader = new THREE.ShaderMaterial( {
+
+        var bgShader = new THREE.ShaderMaterial({
             uniforms: World.pu,
             vertexShader:   $('#vshader').text(),
             fragmentShader: $('#fshader').text()
@@ -439,7 +440,7 @@ var Factory = global.Factory = Class.create({
                 bgShader
             )
         });
-        plane.mesh.position.set( 0, 0, -1000 );
+        plane.mesh.position.set( 0, 0, -500 );
         World.plane = plane;
         World.scene.add( plane.mesh );
 

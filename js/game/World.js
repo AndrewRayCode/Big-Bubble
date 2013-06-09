@@ -53,7 +53,6 @@ var World = global.World = Class.create({
         //bgCube.dynamic = true;
         //bgCube.position.set( 100, 50, 0 );
         //scene.add(bgCube);
-
         var skyBox = this.skyBox = Mixin.Entity.create({
             mesh: Factory.makeGradientCube(
                 Camera.data.frustrum.y * 5, 0x2185C5

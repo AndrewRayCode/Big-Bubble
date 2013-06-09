@@ -10,13 +10,17 @@ var Factory = global.Factory = Class.create({
     // straigthtener / bend
 
     maze: function( opts ) {
-        var graph = {};
 
         var options = $.extend( {
             startHeight: -40,
             incline: 1,
-            nodes: 50
+            nodes: 50,
+            pathWidth: 100
         }, opts);
+
+        options.pathRadius = options.pathWidth / 2;
+
+        var graph = new Graph( options );
 
         var maze = {
             tops: [],
@@ -26,184 +30,47 @@ var Factory = global.Factory = Class.create({
             nodeHeight: 0
         };
 
-        var node = function( line, type ) {
-
-            var made = {
-                line: line,
-                add: function( childNode ) {
-
-                    if( childNode.type === 'zig' ) {
-                        childNode.parent = made;
-                        made.child = childNode;
-                        return;
-                    } else if( childNode.type === 'stairs' ) {
-                        childNode.parent = made;
-                        made.child = childNode;
-                        return;
-                    }
-
-                    var newLines = chamfer( line, childNode.line, 40, 4 ),
-                        parent = made,
-                        newNode;
-
-                    for( var x = 0; x < newLines.length; x++ ) {
-                        newNode = node( newLines[ x ], 'chamfer' );
-                        newNode.type = 'chamfer';
-                        newNode.chamfered = true;
-
-                        newNode.parent = parent;
-                        parent.child = newNode;
-
-                        parent = newNode;
-                    }
-
-                    childNode.parent = parent;
-                    parent.child = childNode;
-
-                    made.recalculate();
-                    childNode.recalculate();
-                },
-
-                recalculate: function() {
-                    var diff = new THREE.Vector3().subVectors( line[1], line[0] );
-                    made.angle = THREE.Math.radToDeg( Math.atan2( diff.y, diff.x ) );
-                    made.midPoint = Utils.midPoint( line[0], line[1] );
-                }
-            };
-
-            made.recalculate();
-
-            return made;
-        };
-
-        var point = function( x, y ) {
-            var z = options.startHeight + maze.nodeHeight;
-            return y !== undefined ?
-                new THREE.Vector3( x, y, z ) :
-                new THREE.Vector3( x.x, x.y, z );
-        };
-        var line = function( point1, point2 ) {
-            return [ point1, point2 ];
-        };
-
-        var chamfer = function( line1, line2, distance, subDivisions ) {
-            var arr = arr || [],
-
-                newA = Utils.vecMoveOffset( line1[1], line1[0], distance ),
-                newB = Utils.vecMoveOffset( line2[0], line2[1], distance ),
-
-                curve = new THREE.QuadraticBezierCurve( newA, line1[1], newB ),
-
-                points = curve.getPoints( subDivisions ),
-                lines = [],
-                start, end, geom;
-
-            for( var x = 0; x < points.length - 1; x++ ) {
-                start = points[ x ];
-                end = points[ x + 1 ];
-
-                lines.push( line( point(start.x, start.y), point(end.x, end.y) ) );
-            }
-
-            line1[1] = newA;
-            line2[0].copy( newB );
-
-            return lines;
-        };
-
         var limit = {
             x: Camera.data.frustrum.x / 2,
             y: Camera.data.frustrum.y / 2
         };
 
-        var pathWidth = 100,
-            pathRadius = pathWidth / 2;
+        //graph.start = bend( node( line( point( 0, -Player.build.radius * 2 ), point( 0, -Player.build.radius ) ) ) );
+        //graph.start = bend( node( line() ) );
 
-        var bend = function( startNode ) {
+        graph.start = new Bend(
+            GraphNode.point( 0, -Camera.data.frustrum.y / 2 ),
+            GraphNode.point( 0, (-Camera.data.frustrum.y / 2) + 20 )
+        );
 
-            var start = startNode.line[1].clone();
-
-            var end = start.clone().add( new THREE.Vector3(
-                Utils.randInt(-100, 100),
-                200 - Utils.randInt(-50, 50),
-                0
-            ) );
-            end.x = Math.min( Math.max( end.x, -limit.x + pathRadius ), limit.x - pathRadius );
-
-            return node( line( start, end ) );
-        };
-
-        var zig = function( startNode ) {
-
-            var dist = 100 + Utils.randInt(-5, 5),
-                sign = startNode.angle > 90 ? -1 : 1,
-                angle = startNode.angle + ( sign * 90 );
-
-            //Utils.dot( startNode.line[1] );
-
-            // Hyptoenuse of icosolese right triangle is root2 * side
-            var hypot = pathRadius * Math.SQRT2,
-                newAngle = THREE.Math.degToRad( startNode.angle + (sign * 135) );
-
-            var start = startNode.line[1].clone().add( new THREE.Vector3(
-                Math.cos( newAngle ) * hypot,
-                Math.sin( newAngle ) * hypot,
-                0
-            ));
-            //for(var x = 0; x < 360; x+= 45 ) {
-                //Utils.dot( startNode.line[1].clone().add(new THREE.Vector3(
-                    //Math.cos(THREE.Math.degToRad(x + startNode.angle)) * hypot,
-                    //Math.sin(THREE.Math.degToRad(x + startNode.angle)) * hypot,
-                    //0
-                //)));
-            //}
-
-            // SOH CAH TOA to get second point of line
-            var end = start.clone().add( new THREE.Vector3(
-                Math.cos( THREE.Math.degToRad( angle ) ) * dist,
-                Math.sin( THREE.Math.degToRad( angle ) ) * dist,
-                0
-            ));
-
-            var newNode = node( line( start, end ) );
-            newNode.type = 'zig';
-            return newNode;
-        };
-
-        graph.start = bend( node( line( point( 0, -Player.build.radius * 2 ), point( 0, -Player.build.radius ) ) ) );
-        graph.start = bend( node( line( point( 0, -Camera.data.frustrum.y / 2 ), point( 0, (-Camera.data.frustrum.y / 2) + 20 ) ) ) );
         var currentNode = graph.start,
             newNode, rand, stairs;
 
         for( var x = 0; x < options.nodes; x++ ) {
             rand = Math.random();
             if( rand > 0.8 ) {
-                newNode = zig( currentNode );
-                currentNode.add( newNode );
-                currentNode = newNode;
+                currentNode = graph.addZig( currentNode, 100 + Utils.randInt(-5, 5) );
 
-                if( Math.random() > 0.6 ) {
-                    newNode = zig( currentNode );
-                    currentNode.add( newNode );
-                    currentNode = newNode;
-                }
-                if( Math.random() > 0.6 ) {
-                    newNode = zig( currentNode );
-                    currentNode.add( newNode );
-                    currentNode = newNode;
-                }
+                //if( Math.random() > 0.6 ) {
+                    //currentNode = graph.addZig( currentNode, 100 + Utils.randInt(-5, 5) );
+                //}
+                //if( Math.random() > 0.6 ) {
+                    //currentNode = graph.addZig( currentNode, 100 + Utils.randInt(-5, 5) );
+                //}
             } else if( rand > -0.1 ) {
-                newNode = bend( currentNode );
-                currentNode.add( newNode );
-                currentNode = newNode;
+                currentNode = graph.addBend( currentNode, new THREE.Vector3(
+                    Utils.randInt(-100, 100),
+                    200 - Utils.randInt(-50, 50),
+                    0
+                ));
 
                 // removing incline for now because I have to figure out what
                 // goes where
                 //maze.nodeHeight += options.incline;
             } else {
-                stairs = node( Factory.stairs({ width: pathWidth }), 'stairs');
-                stairs.type = 'stairs';
-                stairs = node( stairs );
+                //stairs = node( Factory.stairs({ width: pathWidth }), 'stairs');
+                //stairs.type = 'stairs';
+                //stairs = node( stairs );
                 currentNode.add( stairs );
 
                 //depth = options.depth || 100,
@@ -216,13 +83,13 @@ var Factory = global.Factory = Class.create({
         var build = function( node ) {
             var mat;
             var trans = false;
-            if( node.type === 'zig' ) {
+            if( node instanceof Zig ) {
                 mat = new THREE.MeshBasicMaterial({
                     color: 0xffffff,
                     wireframe: trans,
                     transparent: trans
                 });
-            } else if( node.type === 'chamfer' ) {
+            } else if( node instanceof Chamfer ) {
                 mat = new THREE.MeshBasicMaterial({
                     color: 0xe8dd00,
                     wireframe: trans,
@@ -251,7 +118,7 @@ var Factory = global.Factory = Class.create({
 
             var height = Utils.distance3d( node.line[0], node.line[1] );
 
-            var mesh = new THREE.Mesh( new THREE.PlaneGeometry( height, pathWidth, 1, 1), mat ),
+            var mesh = new THREE.Mesh( new THREE.PlaneGeometry( height, options.pathWidth, 1, 1), mat ),
                 verts = mesh.geometry.vertices;
 
             //World.ass = World.ass || -100;
@@ -269,7 +136,7 @@ var Factory = global.Factory = Class.create({
                     botRightMid = Utils.midPoint( botRight, mesh.localToWorld( verts[2].clone() ) );
                 //botRightMid.z = World.ass;
 
-                if( node.type !== 'zig' ) {
+                if( !(node instanceof Zig) ) {
                     verts[0].copy( mesh.worldToLocal( botLeftMid.clone() ) );
                     verts[2].copy( mesh.worldToLocal( botRightMid.clone() ) );
                     mesh.geometry.verticesNeedUpdate = true;
@@ -279,7 +146,7 @@ var Factory = global.Factory = Class.create({
                     mesh.updateMatrixWorld();
                 }
 
-                if( node.parent.type !== 'zig' && node.type !== 'zig' ) {
+                if( !(node.parent instanceof Zig) && !(node instanceof Zig) ) {
                     node.parent.mesh.geometry.vertices[3].copy( node.parent.mesh.worldToLocal( botRightMid ) );
                     node.parent.mesh.geometry.vertices[1].copy( node.parent.mesh.worldToLocal( botLeftMid ) );
                     node.parent.mesh.geometry.verticesNeedUpdate = true;

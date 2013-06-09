@@ -148,43 +148,7 @@ var Game = global.Game = Class.create({
             //z: Player.mesh.position.z / 10
         //});
 
-        var floater, id;
-
-        //for( id in Thing.things.floater.active ) {
-            //floater = Thing.forgotten[ id ];
-            //floater.moveLockTowards( Player, 0.02 );
-            //if( new Date() - floater.lockTime > 1600 ) {
-                //floater.unlock();
-                //Thing.freeFloater( floater );
-                //Player.grow( floater.r / 12 );
-
-                //if( Player.build.radius > Level.level.next ) {
-                    //Level.advance();
-
-                    //Camera.main.zoomTimer = 30;
-                //}
-            //}
-        //}
-
-            //console.log(' --- up things ');
         Thing.updateThings();
-
-        //for( id in Thing.things.floater.active ) {
-            //floater = Thing.floaters[ id ];
-            //floater.upate();
-
-            //if ( floater.mesh.position.y + floater.r * 2 < -Camera.data.frustrum.y ) {
-                //// TODO: fix this, bubbles should free sooner
-                //Thing.freeFloater( floater );
-
-            //} else if( Player.isCollidingWith( floater ) ) {
-
-                //Thing.forgetFloater( floater );
-                //floater.lockTo( Player );
-                //floater.moveLockTowards( Player, floater.r );
-                //floater.lockTime = new Date();
-            //}
-        //}
 
         var rand = Math.random() - 1;
 
@@ -197,7 +161,6 @@ var Game = global.Game = Class.create({
                 radius: 10 + Math.random() * 10
             });
         }
-
 
         World.shark.rotation.x += Math.sin( 50 * ( timer % 1 ) ) / 100;
         World.shark.position.x += Math.sin( 50 * ( timer % 1 ) );

@@ -55,6 +55,7 @@ var Camera = global.Camera = Mixin.Doodad.create({
     },
 
     pan: function( vecOffset ) {
+        vecOffset.z = vecOffset.z || 0;
 
         Camera.main.position.add( vecOffset );
         Camera.data.target.add( vecOffset );

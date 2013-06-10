@@ -61,6 +61,8 @@ var Camera = global.Camera = Mixin.Doodad.create({
         Camera.data.target.add( vecOffset );
         Camera.main.lookAt( Camera.data.target );
 
+        World.plane.mesh.position.add( vecOffset );
+
         this.calculateFrustrum();
     },
 
@@ -76,9 +78,7 @@ var Camera = global.Camera = Mixin.Doodad.create({
 
             var planeScale = this.getFrustrumAt( data.zoom - World.plane.mesh.position.z );
 
-            World.plane.scaleTo(
-                planeScale.y / (Camera.data.frustrum.y * 2 )
-            );
+            World.plane.scaleTo( planeScale.height );
         }
     },
 

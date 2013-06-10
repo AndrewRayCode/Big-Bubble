@@ -6,7 +6,6 @@ var Graph = global.Graph = Class.extend({
     },
 
     addBend: function( parentNode, endOffset ) {
-        //end.x = Math.min( Math.max( end.x, -limit.x + pathRadius ), limit.x - pathRadius );
         var start = parentNode.line[1].clone(),
             end = start.clone().add( endOffset ),
             bend = new Bend( start, end ),
@@ -17,7 +16,6 @@ var Graph = global.Graph = Class.extend({
 
         for( var x = 0; x < newLines.length; x++ ) {
             newNode = newLines[ x ];
-            console.log(newNode);
 
             newNode.parent = parent;
             parent.child = newNode;

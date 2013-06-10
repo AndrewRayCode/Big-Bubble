@@ -32,8 +32,8 @@ var Mine = global.Mine = Thing.register('mine', Mixin.Entity.create({
         var radius = options.radius || 1 + Math.random();
 
         this.mesh.material.opacity = 0;
-        this.mesh.position.x = options.x || -(Camera.data.frustrum.x / 2) + (( Math.random() * Camera.data.frustrum.x));
-        this.mesh.position.y = options.y || Camera.data.frustrum.y + ( radius * 2 );
+        this.mesh.position.x = options.x || Utils.randFloat( Camera.data.frustrum.min.x, Camera.data.frustrum.max.x );
+        this.mesh.position.y = options.y || Camera.data.frustrum.max.y + ( radius * 2 );
         this.mesh.position.z = 0;
         this.inertia = options.inertia || {
             x: 0,

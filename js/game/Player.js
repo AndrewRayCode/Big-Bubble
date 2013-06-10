@@ -130,30 +130,30 @@ var Player = global.Player = Mixin.Entity.create({
     },
     
     constrain: function() {
-        var xLimit = Camera.data.frustrum.x / 2,
-            yLimit = Camera.data.frustrum.y / 2,
+        var min = Camera.data.frustrum.min,
+            max = Camera.data.frustrum.max,
             inertia = this.phys.inertia,
             mesh = this.mesh,
             radius = this.build.radius;
 
-        if( mesh.position.y > yLimit - radius ) {
-            mesh.position.y = yLimit - radius;
+        if( mesh.position.y > max.y - radius ) {
+            mesh.position.y = max.y - radius;
             if( inertia.y > 0 ) {
                 inertia.y = 0;
             }
         }
-        if( mesh.position.y < -yLimit + radius ) {
-            mesh.position.y = -yLimit + radius;
+        if( mesh.position.y < min.y + radius ) {
+            mesh.position.y = min.y + radius;
             if( inertia.y < 0 ) {
                 inertia.y = 0;
             }
         }
-        if( mesh.position.x > xLimit - radius ) {
-            mesh.position.x = xLimit - radius;
+        if( mesh.position.x > max.x - radius ) {
+            mesh.position.x = max.x - radius;
             inertia.x = 0;
         }
-        if( mesh.position.x < -xLimit + radius ) {
-            mesh.position.x = -xLimit + radius;
+        if( mesh.position.x < min.x + radius ) {
+            mesh.position.x = min.x + radius;
             inertia.x = 0;
         }
     },

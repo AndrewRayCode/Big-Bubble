@@ -4,6 +4,7 @@ var Camera = global.Camera = Mixin.Doodad.create({
 
     defaults: {
         data: {
+            target: new THREE.Vector3( 0, 0, 0 ),
             fov: 60,
             frustrum: {}
         }
@@ -33,12 +34,33 @@ var Camera = global.Camera = Mixin.Doodad.create({
     },
 
     getFrustrumAt: function( distanceFromCamera ) {
-        var frustumHeight = 2.0 * distanceFromCamera * Math.tan(this.data.fov * 0.5 * ( Math.PI / 180 ) );
+        var frustumHeight = 2.0 * distanceFromCamera * Math.tan(this.data.fov * 0.5 * ( Math.PI / 180 ) ),
+            box = new THREE.Box2(),
+            size = new THREE.Vector2(
+                frustumHeight * World.stage.aspect,
+                frustumHeight
+            );
 
-        return {
-            x: frustumHeight * World.stage.aspect,
-            y: frustumHeight
-        };
+        box.width = size.x;
+        box.height = size.y;
+        
+        return box.setFromCenterAndSize( this.main.position, new THREE.Vector2(
+            frustumHeight * World.stage.aspect,
+            frustumHeight
+        ));
+    },
+
+    calculateFrustrum: function( ) {
+        this.data.frustrum = this.getFrustrumAt( this.data.zoom );
+    },
+
+    pan: function( vecOffset ) {
+
+        Camera.main.position.add( vecOffset );
+        Camera.data.target.add( vecOffset );
+        Camera.main.lookAt( Camera.data.target );
+
+        this.calculateFrustrum();
     },
 
     zoom: function( level ) {
@@ -46,16 +68,15 @@ var Camera = global.Camera = Mixin.Doodad.create({
             data = this.data;
 
         data.zoom = camera.position.z = level;
-        data.frustrum = this.getFrustrumAt( data.zoom );
+        this.calculateFrustrum();
 
         if( World.skyBox ) {
-            World.skyBox.scaleTo(
-                ( data.frustrum.y * 2 ) / ( Camera.data.frustrum.y * 2 ) * 2
-            );
+            World.skyBox.scaleTo( 2 ); // this needs to be updated
 
             var planeScale = this.getFrustrumAt( data.zoom - World.plane.mesh.position.z );
+
             World.plane.scaleTo(
-                ( planeScale.y * 2 ) / ( Camera.data.frustrum.y * 2 ) * 2
+                planeScale.y / (Camera.data.frustrum.y * 2 )
             );
         }
     },

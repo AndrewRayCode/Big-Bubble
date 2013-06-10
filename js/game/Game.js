@@ -83,7 +83,7 @@ var Game = global.Game = Class.create({
 
         this.restart();
         this.reqFrame();
-        World.Transition.run('maze');
+        Transition.run('maze');
     },
 
     restart: function() {

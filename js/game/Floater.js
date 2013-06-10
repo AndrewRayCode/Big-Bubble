@@ -32,8 +32,8 @@ var Floater = Thing.register('floater', Mixin.Entity.create({
 
         var radius = options.radius || 10 + 5 * Math.random();
 
-        this.mesh.position.x = options.x || -(Camera.data.frustrum.x / 2) + (( Math.random() * Camera.data.frustrum.x));
-        this.mesh.position.y = options.y || Camera.data.frustrum.y + ( radius * 2 );
+        this.mesh.position.x = options.x || Utils.randFloat( Camera.data.frustrum.min.x, Camera.data.frustrum.max.x );
+        this.mesh.position.y = options.y || Camera.data.frustrum.max.y + ( radius * 2 );
         this.mesh.position.z = 0;
         this.inertia = options.inertia || {
             x: 0,
@@ -52,7 +52,7 @@ var Floater = Thing.register('floater', Mixin.Entity.create({
             this.move( this.inertia );
             this.updateLocks();
 
-            if ( this.mesh.position.y + this.r * 2 < -Camera.data.frustrum.y ) {
+            if ( this.mesh.position.y + this.r * 2 < Camera.data.frustrum.min.y ) {
                 Game.trigger( 'free', this );
             }
         },

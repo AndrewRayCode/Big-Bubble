@@ -30,17 +30,9 @@ var Factory = global.Factory = Class.create({
             nodeHeight: 0
         };
 
-        var limit = {
-            x: Camera.data.frustrum.x / 2,
-            y: Camera.data.frustrum.y / 2
-        };
-
-        //graph.start = bend( node( line( point( 0, -Player.build.radius * 2 ), point( 0, -Player.build.radius ) ) ) );
-        //graph.start = bend( node( line() ) );
-
         graph.start = new Bend(
-            GraphNode.point( 0, -Camera.data.frustrum.y / 2 ),
-            GraphNode.point( 0, (-Camera.data.frustrum.y / 2) + 20 )
+            GraphNode.point( 0, Camera.data.frustrum.min.y ),
+            GraphNode.point( 0, Camera.data.frustrum.min.y + 20 )
         );
 
         var currentNode = graph.start,
@@ -303,7 +295,7 @@ var Factory = global.Factory = Class.create({
 
         var plane = Mixin.Entity.create({
             mesh: new THREE.Mesh(
-                new THREE.PlaneGeometry( Camera.data.frustrum.x * 1.5, Camera.data.frustrum.y * 1.5, 1, 1),
+                new THREE.PlaneGeometry( Camera.data.frustrum.width * 1.5, Camera.data.frustrum.height * 1.5, 1, 1),
                 bgShader
             )
         });

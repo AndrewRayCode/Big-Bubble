@@ -72,6 +72,10 @@ var Chamfer = global.Chamfer = GraphNode.extend({
     }
 });
 
-var Stairs = global.Stairs = GraphNode.extend({ });
+var Stairs = global.Stairs = GraphNode.extend({
+    init: function( start, end ) {
+        this._super( line( start, end ) );
+    }
+});
 
 }(this));

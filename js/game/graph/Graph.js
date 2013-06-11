@@ -69,6 +69,37 @@ var Graph = global.Graph = Class.extend({
         parentNode.child = zig;
 
         return zig;
+    },
+
+    addStairs: function( parentNode, dist ) {
+        var sign = parentNode.angle > 90 ? -1 : 1,
+            angle = parentNode.angle + ( sign * 90 );
+
+        //Utils.dot( startNode.line[1] );
+
+        // Hyptoenuse of icosolese right triangle is root2 * side
+        var hypot = this.options.pathRadius * Math.SQRT2,
+            newAngle = THREE.Math.degToRad( parentNode.angle + (sign * 135) );
+
+        var start = parentNode.line[1].clone().add( new THREE.Vector3(
+            Math.cos( newAngle ) * hypot,
+            Math.sin( newAngle ) * hypot,
+            0
+        ));
+
+        // SOH CAH TOA to get second point of line
+        var end = start.clone().add( new THREE.Vector3(
+            Math.cos( THREE.Math.degToRad( angle ) ) * dist,
+            Math.sin( THREE.Math.degToRad( angle ) ) * dist,
+            0
+        ));
+
+        var stair = new Stairs( start, end );
+
+        stair.parent = parentNode;
+        parentNode.child = stair;
+
+        return stair;
     }
 
 });

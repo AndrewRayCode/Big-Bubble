@@ -48,13 +48,6 @@ var Graph = global.Graph = Class.extend({
             Math.sin( newAngle ) * hypot,
             0
         ));
-        //for(var x = 0; x < 360; x+= 45 ) {
-            //Utils.dot( startNode.line[1].clone().add(new THREE.Vector3(
-                //Math.cos(THREE.Math.degToRad(x + startNode.angle)) * hypot,
-                //Math.sin(THREE.Math.degToRad(x + startNode.angle)) * hypot,
-                //0
-            //)));
-        //}
 
         // SOH CAH TOA to get second point of line
         var end = start.clone().add( new THREE.Vector3(
@@ -71,30 +64,41 @@ var Graph = global.Graph = Class.extend({
         return zig;
     },
 
-    addStairs: function( parentNode, dist ) {
-        var sign = parentNode.angle > 90 ? -1 : 1,
-            angle = parentNode.angle + ( sign * 90 );
+    addStairs: function( parentNode, zigged, options ) {
+        var start, end;
 
-        //Utils.dot( startNode.line[1] );
+        if( zigged ) {
+            var sign = parentNode.angle > 90 ? -1 : 1,
+                angle = parentNode.angle + ( sign * 90 );
 
-        // Hyptoenuse of icosolese right triangle is root2 * side
-        var hypot = this.options.pathRadius * Math.SQRT2,
-            newAngle = THREE.Math.degToRad( parentNode.angle + (sign * 135) );
+            // Hyptoenuse of icosolese right triangle is root2 * side
+            var hypot = this.options.pathRadius * Math.SQRT2,
+                newAngle = THREE.Math.degToRad( parentNode.angle + (sign * 135) );
 
-        var start = parentNode.line[1].clone().add( new THREE.Vector3(
-            Math.cos( newAngle ) * hypot,
-            Math.sin( newAngle ) * hypot,
-            0
-        ));
+            start = parentNode.line[1].clone().add( new THREE.Vector3(
+                Math.cos( newAngle ) * hypot,
+                Math.sin( newAngle ) * hypot,
+                0
+            ));
 
-        // SOH CAH TOA to get second point of line
-        var end = start.clone().add( new THREE.Vector3(
-            Math.cos( THREE.Math.degToRad( angle ) ) * dist,
-            Math.sin( THREE.Math.degToRad( angle ) ) * dist,
-            0
-        ));
+            // SOH CAH TOA to get second point of line
+            end = start.clone().add( new THREE.Vector3(
+                Math.cos( THREE.Math.degToRad( angle ) ) * options.length,
+                Math.sin( THREE.Math.degToRad( angle ) ) * options.length,
+                options.rise
+            ));
+        } else {
+            start = parentNode.line[1].clone();
+            end = start.clone().add( new THREE.Vector3(
+                Math.cos( THREE.Math.degToRad( parentNode.angle ) ) * options.length,
+                Math.sin( THREE.Math.degToRad( parentNode.angle ) ) * options.length,
+                options.rise
+            ));
+        }
 
         var stair = new Stairs( start, end );
+
+        $.extend( stair, options );
 
         stair.parent = parentNode;
         parentNode.child = stair;

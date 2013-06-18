@@ -102,7 +102,7 @@ var Mixin = global.Mixin = {
 
         },
         setLockDistance: function( entity, speed ) {
-            var computed = Utils.vecMoveOffset( this.mesh.position, entity.mesh.position, speed / Game.time.delta ),
+            var computed = Utils.vecMoveOffset( this.mesh.position, entity.mesh.position, speed * Game.time.delta ),
                 me = this;
 
             this.lockOffset = {

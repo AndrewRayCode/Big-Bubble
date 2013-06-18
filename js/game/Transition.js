@@ -35,7 +35,7 @@ var Transition = global.Transition = Class.create({
                         var zPos = thing.mesh.position.z;
 
                         if( zPos > 0 ) {
-                            thing.mesh.material.opacity -= 0.5 * Game.time.delta;
+                            thing.mesh.material.opacity -= Utils.speed( 0.5 );
 
                             if( thing.mesh.material.opacity <= 0 ) {
                                 Game.trigger('free', thing);
@@ -44,7 +44,7 @@ var Transition = global.Transition = Class.create({
                             thing.mesh.material.opacity = 0.5 - ((-1 * zPos) / 1000) * 0.5;
 
                             if( zPos > -300 ) {
-                                this.mesh.material.color.g += 0.1 * Game.time.delta;
+                                this.mesh.material.color.g += Utils.speed( 0.1 );
                             }
                         }
                         
@@ -65,7 +65,7 @@ var Transition = global.Transition = Class.create({
                         var zPos = thing.mesh.position.z;
 
                         if( zPos > 0 ) {
-                            thing.mesh.material.opacity -= 0.5 * Game.time.delta;
+                            thing.mesh.material.opacity -= Utils.speed( 0.5 );
 
                             if( thing.mesh.material.opacity <= 0 ) {
                                 Game.trigger('free', thing);
@@ -74,7 +74,7 @@ var Transition = global.Transition = Class.create({
                             thing.mesh.material.opacity = 0.5 - ((-1 * zPos) / 1000) * 0.5;
 
                             if( zPos > -200 ) {
-                                this.mesh.material.color.r += 0.01 * Game.time.delta;
+                                this.mesh.material.color.r += Utils.speed( 0.01 );
                             }
                         }
                         

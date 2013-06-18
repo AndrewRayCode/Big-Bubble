@@ -2,20 +2,13 @@
 
 var Factory = global.Factory = Class.create({
 
-    // stairs
-    // post-stair fill
-    // left zig
-    // right zig
-    // split ( / join )
-    // straigthtener / bend
-
     maze: function( opts ) {
 
         var options = $.extend( {
             startHeight: -40,
             incline: 1,
             nodes: 50,
-            pathWidth: 100
+            pathWidth: 140
         }, opts);
 
         options.pathRadius = options.pathWidth / 2;
@@ -23,24 +16,29 @@ var Factory = global.Factory = Class.create({
         var graph = new Graph( options );
 
         graph.start = new Bend(
-            GraphNode.point( 0, Camera.data.frustrum.min.y ),
-            GraphNode.point( 0, Camera.data.frustrum.min.y + 20 )
+            new THREE.Vector3( 0, -200, 0 ),
+            new THREE.Vector3( 0, 0, -40 )
         );
 
         var currentNode = graph.start,
             rand;
 
+        currentNode = graph.addBend( currentNode, new THREE.Vector3(
+            -50, 100, 0
+        ));
+        currentNode = graph.addStairs( currentNode, false, {
+            steps: 5,
+            length: 200,
+            rise: -100
+        });
+        currentNode = graph.addBend( currentNode, new THREE.Vector3(
+            -50, 100, 0
+        ));
+
         for( var x = 0; x < options.nodes; x++ ) {
             rand = Math.random();
-            if( rand > 0.8 ) {
+            if( rand > 0.5 ) {
                 currentNode = graph.addZig( currentNode, 100 + Utils.randInt( -5, 5 ) );
-
-                //if( Math.random() > 0.6 ) {
-                    //currentNode = graph.addZig( currentNode, 100 + Utils.randInt(-5, 5) );
-                //}
-                //if( Math.random() > 0.6 ) {
-                    //currentNode = graph.addZig( currentNode, 100 + Utils.randInt(-5, 5) );
-                //}
             } else if( rand > 0.1 ) {
                 currentNode = graph.addBend( currentNode, new THREE.Vector3(
                     Utils.randInt(-100, 100),
@@ -52,10 +50,16 @@ var Factory = global.Factory = Class.create({
                 // goes where
                 //maze.nodeHeight += options.incline;
             } else {
-                //stairs = node( Factory.stairs({ width: pathWidth }), 'stairs');
-                //stairs.type = 'stairs';
-                //stairs = node( stairs );
-                currentNode = graph.addStairs( currentNode, 100 + Utils.randInt( -5, 5 ) );
+                currentNode = graph.addStairs( currentNode, false, {
+                    steps: Utils.randInt( 4, 10 ),
+                    length: Utils.randInt( 100, 200 ),
+                    rise: Utils.randInt( -100, -200 )
+                });
+                currentNode = graph.addBend( currentNode, new THREE.Vector3(
+                    Utils.randInt(-100, 100),
+                    200 - Utils.randInt(-50, 50),
+                    0
+                ));
 
                 //depth = options.depth || 100,
                 //width = options.width || 100,
@@ -85,6 +89,13 @@ var Factory = global.Factory = Class.create({
             steps = options.steps || 10,
             top, side;
 
+        if( options.length ) {
+            depth = options.length / steps;
+        }
+        if( options.rise ) {
+            height = options.rise / steps;
+        }
+
         var group = new THREE.Object3D();
 
         var material = new THREE.MeshLambertMaterial({
@@ -106,11 +117,11 @@ var Factory = global.Factory = Class.create({
             group.add( top );
             group.add( side );
 
-            top.position.z -= height * x;
+            top.position.z += height * x;
             top.position.y += depth * x;
 
             side.position.y += (depth * x) + (depth / 2);
-            side.position.z -= (height * x) + (height / 2);
+            side.position.z += (height * x) + (height / 2);
             side.rotation.x += 90 * ( Math.PI / 180 );
 
             stairs.meshes.push( top, side );

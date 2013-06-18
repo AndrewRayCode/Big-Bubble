@@ -1,10 +1,7 @@
 (function( global ) {
 
-var point = function( x, y ) {
-    var z = this.z || -40;
-    return y !== undefined ?
-        new THREE.Vector3( x, y, z ) :
-        new THREE.Vector3( x.x, x.y, z );
+var to3dPoint = function( point, z ) {
+    return new THREE.Vector3( point.x, point.y, z );
 };
 
 var line = function( point1, point2 ) {
@@ -22,6 +19,7 @@ var GraphNode = global.GraphNode = Class.extend({
         var diff = new THREE.Vector3().subVectors( this.line[1], this.line[0] );
         this.angle = THREE.Math.radToDeg( Math.atan2( diff.y, diff.x ) );
         this.midPoint = Utils.midPoint( this.line[0], this.line[1] );
+        this.length = Utils.distance3d( this.line[0], this.line[1] );
     },
 
     chamfer: function( nextLine, distance, subDivisions ) {
@@ -37,8 +35,8 @@ var GraphNode = global.GraphNode = Class.extend({
             start, end, geom;
 
         for( var x = 0; x < points.length - 1; x++ ) {
-            start = GraphNode.point( points[ x ] );
-            end = GraphNode.point( points[ x + 1 ] );
+            start = GraphNode.to3dPoint( points[ x ], this.line[ 1 ].z );
+            end = GraphNode.to3dPoint( points[ x + 1 ], this.line[ 1 ].z );
 
             lines.push( new Chamfer( start, end ) );
         }
@@ -51,7 +49,7 @@ var GraphNode = global.GraphNode = Class.extend({
 
 });
 
-GraphNode.point = point;
+GraphNode.to3dPoint = to3dPoint;
 GraphNode.line = line;
 
 var Bend = global.Bend = GraphNode.extend({

@@ -20,39 +20,46 @@ var GraphBuilder = global.GraphBuilder = Class.extend({
     },
 
     buildMaze: function( node ) {
-        var mat;
-        var trans = false;
+        var mat,
+            debug = false;
         if( node instanceof Zig ) {
             mat = new THREE.MeshBasicMaterial({
                 color: 0xffffff,
-                wireframe: trans,
-                transparent: trans
+                wireframe: debug,
+                transparent: debug
             });
         } else if( node instanceof Chamfer ) {
             mat = new THREE.MeshBasicMaterial({
                 color: 0xe8dd00,
-                wireframe: trans,
-                transparent: trans
+                wireframe: debug,
+                transparent: debug
             });
         } else {
             mat = new THREE.MeshBasicMaterial({
                 color: 0x00ffff,
-                wireframe: trans,
-                transparent: trans
+                wireframe: debug,
+                transparent: debug
             });
         }
 
-        //var geometry = new THREE.Geometry(), line;
-        //geometry.vertices.push( node.line[0] );
-        //geometry.vertices.push( node.line[1] );
-        //line = new THREE.Line( geometry );
-        //this.maze.group.add(line);
+        if( debug ) {
+            var geometry = new THREE.Geometry(), line;
+            geometry.vertices.push( node.line[0] );
+            geometry.vertices.push( node.line[1] );
+            line = new THREE.Line( geometry );
+            this.maze.group.add(line);
+        }
 
         if( node instanceof Stairs ) {
 
-            var stairs = Factory.stairs({ steps: 5 });
+            var stairs = Factory.stairs({
+                steps: node.steps,
+                length: node.length,
+                rise: node.rise,
+                width: this.options.pathWidth
+            });
             stairs.group.position = node.line[0];
-            stairs.group.rotation.z = node.angle;
+            stairs.group.rotation.z = THREE.Math.degToRad( node.angle - 90 );
             this.maze.group.add( stairs.group );
             this.maze.tops = this.maze.tops.concat( stairs.tops );
             this.maze.sides = this.maze.sides.concat( stairs.sides );
@@ -103,6 +110,11 @@ var GraphBuilder = global.GraphBuilder = Class.extend({
                 // 1: top left,
                 // 2: bottom right,
                 // 3: top right
+            }
+
+            if( debug ) {
+                Utils.dot( node.line[0] );
+                Utils.dot( node.line[1] );
             }
             mesh.receiveShadow = true;
             mesh.geometry.verticesNeedUpdate = true;

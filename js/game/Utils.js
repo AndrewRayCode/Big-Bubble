@@ -1,5 +1,9 @@
 (function( global ) {
 
+var speed = function( val ) {
+    return val * Game.time.delta;
+};
+
 var Utils = global.Utils = {
 
     dot: function( vec, color, parent ) {
@@ -55,8 +59,10 @@ var Utils = global.Utils = {
     },
 
     vecSpeedOffset: function( vec1, vec2, speed ) {
-        return Utils.vecMoveOffset( vec1, vec2, speed * Game.time.delta );
+        return Utils.vecMoveOffset( vec1, vec2, speed(speed) );
     },
+
+    speed: speed,
 
     sign: function( num ) {
         return num ? num < 0 ? -1 : 1 : 0;

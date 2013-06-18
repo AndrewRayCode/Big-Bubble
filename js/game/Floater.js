@@ -58,7 +58,7 @@ var Floater = Thing.register('floater', Mixin.Entity.create({
         },
         fade: function() {
             if( this.mesh.material.opacity < this.opacity ) {
-                this.mesh.material.opacity += this.fadeSpeed * Game.time.delta;
+                this.mesh.material.opacity += Utils.speed( this.fadeSpeed );
             }
         },
         collision: function() {

@@ -83,7 +83,6 @@ var Game = global.Game = Class.create({
 
         this.restart();
         this.reqFrame();
-        Transition.run('maze');
     },
 
     restart: function() {
@@ -95,6 +94,9 @@ var Game = global.Game = Class.create({
             start: Date.now(),
             then: Date.now()
         };
+
+        Level.reset();
+        Thing.reset();
     },
 
     reqFrame: function() {
@@ -150,35 +152,9 @@ var Game = global.Game = Class.create({
 
         Thing.updateThings();
 
-        var rand = Math.random() - 1;
-
-        if( rand > 0.993 ) {
-            Thing.makeEntity('mine', {
-                radius: 0.5 + Math.random() * 0.1
-            });
-        } else if( rand > 0.97 ) {
-            Thing.makeEntity('floater', {
-                radius: 10 + Math.random() * 10
-            });
-        }
-
         World.shark.rotation.x += Math.sin( 50 * ( timer % 1 ) ) / 100;
         World.shark.position.x += Math.sin( 50 * ( timer % 1 ) );
         World.shark.position.y -= 0.4;
-
-        //bg.rotation.y += 0.01;
-
-        //var face, numberOfSides;
-        //for ( var i = 0; i < World.skyBox.geometry.faces.length; i++ ) {
-            //face = World.skyBox.geometry.faces[ i ];
-            //// determine if current face is a tri or a quad
-            //numberOfSides = ( face instanceof THREE.Face3 ) ? 3 : 4;
-            //// assign color to each vertex of current face
-            //for( var j = 0; j < numberOfSides; j++ ) {
-                //face.vertexColors[ j ].b += 0.0001;
-            //}
-        //}
-        //World.skyBox.colorsNeedUpdate = true;
 
         Camera.update();
     }

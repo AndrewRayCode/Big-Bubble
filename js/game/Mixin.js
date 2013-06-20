@@ -89,8 +89,8 @@ var Mixin = global.Mixin = {
 
             this.updateLocks();
         },
-        moveLockTowards: function( entity, speed ) {
-            var computed = Utils.vecMoveOffset( this.mesh.position, entity.mesh.position, speed ),
+        speedLockTowards: function( entity, speed ) {
+            var computed = Utils.vecMoveOffset( this.mesh.position, entity.mesh.position, Utils.speed( speed ) ),
                 me = this;
 
             this.lockOffset = {
@@ -99,8 +99,8 @@ var Mixin = global.Mixin = {
             };
 
         },
-        setLockDistance: function( entity, speed ) {
-            var computed = Utils.vecMoveOffset( this.mesh.position, entity.mesh.position, speed * Game.time.delta ),
+        setLockDistance: function( entity, distance ) {
+            var computed = Utils.vecMoveOffset( this.mesh.position, entity.mesh.position, distance ),
                 me = this;
 
             this.lockOffset = {

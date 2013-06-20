@@ -8,7 +8,7 @@ var Factory = global.Factory = Class.create({
             startHeight: -40,
             incline: 1,
             nodes: 50,
-            pathWidth: 140
+            pathWidth: 100
         }, opts);
 
         options.pathRadius = options.pathWidth / 2;

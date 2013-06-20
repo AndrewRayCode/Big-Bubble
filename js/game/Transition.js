@@ -17,6 +17,25 @@ var Transition = global.Transition = Class.create({
     },
 
     transitions: {
+        descend: {
+            start: function() {
+            },
+            end: function() {
+            },
+            loop: function() {
+                var rand = Math.random();
+
+                if( rand > 0.993 ) {
+                    Thing.makeEntity('mine', {
+                        radius: 0.5 + Math.random() * 0.1
+                    });
+                } else if( rand > 0.97 ) {
+                    Thing.makeEntity('floater', {
+                        radius: 10 + Math.random() * 10
+                    });
+                }
+            }
+        },
         forward: {
             initBind: function( thing ) {
                 if( thing.type === 'floater' ) {
@@ -150,6 +169,11 @@ var Transition = global.Transition = Class.create({
                 } else {
                     this.maze.inertia.z += 0.10;
                 }
+
+                if( this.maze.group.position.z > 2000 &&  this.maze.inertia.z > 19 ) {
+                    Level.advance();
+                }
+
                 if( backHit && Player.phys.inertia.y < 0 ) {
                     Player.phys.inertia.y = 0;
                 }
@@ -169,7 +193,7 @@ var Transition = global.Transition = Class.create({
                     }
                 }
 
-                Utils.cap( this.cameraInertia, 3.2 );
+                Utils.cap( this.cameraInertia, 3.4 );
                 Camera.pan( this.cameraInertia );
             }
         }

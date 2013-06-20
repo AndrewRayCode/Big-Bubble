@@ -3,21 +3,27 @@
 var Level = global.Level = Class.create({
     levels: [{
         next: 10,
-        zoom: 500
+        zoom: 500,
+        start: function() {
+            Transition.run('descend');
+        }
     }, {
         next: 50,
-        zoom: 600
+        zoom: 600,
+        start: function() {
+            Transition.run('maze');
+        }
     }, {
         next: 80,
         zoom: 700,
         start: function() {
-            World.Transition.run('forward');
+            Transition.run('descend');
         }
     }, {
         next: 90,
         zoom: 800,
         start: function() {
-            World.Transition.end('forward');
+            Transition.end('forward');
         }
     }],
     reset: function() {
@@ -38,8 +44,8 @@ var Level = global.Level = Class.create({
             this.level = this.levels[ this.index ];
         }
 
-        if( this.level.init ) {
-            this.level.init();
+        if( this.level.start ) {
+            this.level.start();
         }
     }
 });

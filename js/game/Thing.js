@@ -5,7 +5,7 @@ var Thing = global.Thing = Class.create({
 
     id: 0,
 
-    load: function() {
+    init: function() {
         var me = this;
         Game.bind( 'free', function( thing ) {
             me.free( thing );

@@ -84,10 +84,8 @@ var Mixin = global.Mixin = {
 
             this.updateLocks();
         },
-        move: function( xyz ) {
-            this.mesh.position.add(
-                new THREE.Vector3( xyz.x, xyz.y, xyz.z ).multiplyScalar( Game.time.delta )
-            );
+        move: function( vec ) {
+            this.mesh.position.add( Utils.speed( vec ) );
 
             this.updateLocks();
         },

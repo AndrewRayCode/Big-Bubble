@@ -109,7 +109,7 @@ var Transition = global.Transition = Class.create({
             start: function() {
                 Game.bind( 'initted', this.initBind );
 
-                this.cameraInertia = new THREE.Vector2( 0, 0 );
+                this.cameraInertia = new THREE.Vector3( 0, 0, 0 );
                 this.maze = Factory.maze();
                 this.maze.inertia.y = -2.8;
             },
@@ -157,20 +157,20 @@ var Transition = global.Transition = Class.create({
                 this.maze.group.position.z += this.maze.inertia.z;
                 Player.mesh.position.y += this.maze.inertia.y;
 
-                if( Player.mesh.position.x < Camera.data.frustrum.min.x + 50 ) {
-                    this.cameraInertia = new THREE.Vector2( -1.5, 0 );
-                    Camera.pan( this.cameraInertia );
-                } else if( Player.mesh.position.x > Camera.data.frustrum.max.x - 50 ) {
-                    this.cameraInertia = new THREE.Vector2( 1.5, 0 );
-                    Camera.pan( this.cameraInertia );
+                if( Player.mesh.position.x < Camera.main.position.x - 50 ) {
+                    this.cameraInertia.x -= 0.1;
+                } else if( Player.mesh.position.x > Camera.main.position.x + 50 ) {
+                    this.cameraInertia.x += 0.1;
                 } else if( this.cameraInertia.x ) {
                     this.cameraInertia.x += -Utils.sign( this.cameraInertia.x ) * 0.1;
 
                     if( Math.abs( this.cameraInertia.x ) <= 0.1 ) {
                         this.cameraInertia.x = 0;
                     }
-                    Camera.pan( this.cameraInertia );
                 }
+
+                Utils.cap( this.cameraInertia, 3.2 );
+                Camera.pan( this.cameraInertia );
             }
         }
     }

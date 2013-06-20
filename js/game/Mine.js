@@ -35,11 +35,9 @@ var Mine = global.Mine = Thing.register('mine', Mixin.Entity.create({
         this.mesh.position.x = options.x || Utils.randFloat( Camera.data.frustrum.min.x, Camera.data.frustrum.max.x );
         this.mesh.position.y = options.y || Camera.data.frustrum.max.y + ( radius * 2 );
         this.mesh.position.z = 0;
-        this.inertia = options.inertia || {
-            x: 0,
-            y: -100 - ( Math.random() ),
-            z: 0
-        };
+        this.inertia = options.inertia || new THREE.Vector3(
+            0, -100 - ( Math.random() ), 0
+        );
 
         this.scaleTo( radius );
 

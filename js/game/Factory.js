@@ -16,29 +16,23 @@ var Factory = global.Factory = Class.create({
         var graph = new Graph( options );
 
         graph.start = new Bend(
-            new THREE.Vector3( 0, -200, 0 ),
-            new THREE.Vector3( 0, 0, -40 )
+            new THREE.Vector3( 0, -200, -40 ),
+            new THREE.Vector3( 30, 20, -40 )
         );
 
         var currentNode = graph.start,
             rand;
 
-        currentNode = graph.addBend( currentNode, new THREE.Vector3(
-            -50, 100, 0
-        ));
-        currentNode = graph.addStairs( currentNode, false, {
-            steps: 5,
-            length: 200,
-            rise: -100
-        });
-        currentNode = graph.addBend( currentNode, new THREE.Vector3(
-            -50, 100, 0
-        ));
+
+        currentNode = graph.addZig( currentNode, 200 );
 
         for( var x = 0; x < options.nodes; x++ ) {
+            if( 0 ) {
+                continue;
+            }
             rand = Math.random();
             if( rand > 0.5 ) {
-                currentNode = graph.addZig( currentNode, 100 + Utils.randInt( -5, 5 ) );
+                currentNode = graph.addZig( currentNode, ( options.pathWidth * 2 ) + Utils.randInt( -5, 100 ) );
             } else if( rand > 0.1 ) {
                 currentNode = graph.addBend( currentNode, new THREE.Vector3(
                     Utils.randInt(-100, 100),
@@ -52,7 +46,7 @@ var Factory = global.Factory = Class.create({
             } else {
                 currentNode = graph.addStairs( currentNode, false, {
                     steps: Utils.randInt( 4, 10 ),
-                    length: Utils.randInt( 100, 200 ),
+                    length: Utils.randInt( 100, 500 ),
                     rise: Utils.randInt( -100, -200 )
                 });
                 currentNode = graph.addBend( currentNode, new THREE.Vector3(
@@ -98,19 +92,9 @@ var Factory = global.Factory = Class.create({
 
         var group = new THREE.Object3D();
 
-        var material = new THREE.MeshLambertMaterial({
-            color: 0x888888,
-            shading: THREE.FlatShading,
-            side: THREE.DoubleSide
-        });
-        var tmaterial = new THREE.MeshLambertMaterial({
-            color: 0x11ee55,
-            shading: THREE.FlatShading
-        });
-
-        for(var x = 0; x < steps; x++ ) {
-            top = new THREE.Mesh( new THREE.PlaneGeometry( width, depth, 10, 1), tmaterial );
-            side = new THREE.Mesh( new THREE.PlaneGeometry( width, height, 10, 1), material );
+        for( var x = 0; x < steps; x++ ) {
+            top = new THREE.Mesh( new THREE.PlaneGeometry( width, depth, 1, 1), options.topMaterial || options.material );
+            side = new THREE.Mesh( new THREE.PlaneGeometry( width, height, 1, 1), options.material );
 
             top.receiveShadow = true;
 

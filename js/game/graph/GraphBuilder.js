@@ -21,7 +21,8 @@ var GraphBuilder = global.GraphBuilder = Class.extend({
 
     buildMaze: function( node ) {
         var mat,
-            debug = false;
+            debug = 0;
+
         if( node instanceof Zig ) {
             mat = new THREE.MeshBasicMaterial({
                 color: 0xffffff,
@@ -53,6 +54,7 @@ var GraphBuilder = global.GraphBuilder = Class.extend({
         if( node instanceof Stairs ) {
 
             var stairs = Factory.stairs({
+                material: mat,
                 steps: node.steps,
                 length: node.length,
                 rise: node.rise,
@@ -95,7 +97,7 @@ var GraphBuilder = global.GraphBuilder = Class.extend({
                     mesh.updateMatrixWorld();
                 }
 
-                if( !(node.parent instanceof Zig) && !(node instanceof Zig) ) {
+                if( !(node instanceof Zig) ) {
                     node.parent.mesh.geometry.vertices[3].copy( node.parent.mesh.worldToLocal( botRightMid ) );
                     node.parent.mesh.geometry.vertices[1].copy( node.parent.mesh.worldToLocal( botLeftMid ) );
                     node.parent.mesh.geometry.verticesNeedUpdate = true;
@@ -112,10 +114,10 @@ var GraphBuilder = global.GraphBuilder = Class.extend({
                 // 3: top right
             }
 
-            if( debug ) {
-                Utils.dot( node.line[0] );
-                Utils.dot( node.line[1] );
-            }
+            //if( debug ) {
+                //Utils.dot( node.line[0] );
+                //Utils.dot( node.line[1] );
+            //}
             mesh.receiveShadow = true;
             mesh.geometry.verticesNeedUpdate = true;
 

@@ -10,9 +10,9 @@ var Player = global.Player = Mixin.Entity.create({
             segments: 26
         },
         phys: {
-            inertia: { x: 0, y: 0, z: 0 },
-            acceleration: 25,
-            deceleration: 10,
+            inertia: new THREE.Vector3( 0, 0, 0 ),
+            acceleration: 27,
+            deceleration: 15,
             max: 400
         }
     },
@@ -83,16 +83,8 @@ var Player = global.Player = Mixin.Entity.create({
 
         if( World.keysDown.right ) {
             inertia.x += phys.acceleration;
-
-            if( inertia.x > phys.max ) {
-                inertia.x = phys.max;
-            }
         } else if( World.keysDown.left ) {
             inertia.x -= phys.acceleration;
-
-            if( inertia.x < -phys.max ) {
-                inertia.x = -phys.max;
-            }
         } else if ( inertia.x ) {
             inertia.x -= Utils.sign( inertia.x ) * phys.deceleration;
 
@@ -103,16 +95,8 @@ var Player = global.Player = Mixin.Entity.create({
 
         if( World.keysDown.up ) {
             inertia.y += phys.acceleration;
-
-            if( inertia.y > phys.max ) {
-                inertia.y = phys.max;
-            }
         } else if( World.keysDown.down ) {
             inertia.y -= phys.acceleration;
-
-            if( inertia.y < -phys.max ) {
-                inertia.y = -phys.max;
-            }
         } else if ( inertia.y ) {
             inertia.y -= Utils.sign( inertia.y ) * phys.deceleration;
 
@@ -120,13 +104,12 @@ var Player = global.Player = Mixin.Entity.create({
                 inertia.y = 0;
             }
         }
+
+        Utils.cap( inertia, phys.max );
     },
 
     update: function() {
-        this.move({
-            x: this.phys.inertia.x,
-            y: this.phys.inertia.y
-        });
+        this.move( this.phys.inertia );
     },
     
     constrain: function() {

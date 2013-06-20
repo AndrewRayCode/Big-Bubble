@@ -1,10 +1,34 @@
 (function( global ) {
 
 var speed = function( val ) {
+    if( val instanceof THREE.Vector3 ) {
+        return val.clone().multiplyScalar( Game.time.delta );
+    }
     return val * Game.time.delta;
 };
 
 var Utils = global.Utils = {
+
+    cap: function( vector, cap ) {
+        if( vector.x > cap ) {
+            vector.x = cap;
+        }
+        if( vector.x < -cap ) {
+            vector.x = -cap;
+        }
+        if( vector.y > cap ) {
+            vector.y = cap;
+        }
+        if( vector.y < -cap ) {
+            vector.y = -cap;
+        }
+        if( vector.z > cap ) {
+            vector.z = cap;
+        }
+        if( vector.z < -cap ) {
+            vector.z = -cap;
+        }
+    },
 
     dot: function( vec, color, parent ) {
 

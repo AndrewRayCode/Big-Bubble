@@ -43,6 +43,8 @@ var Game = global.Game = Class.create({
     },
 
     activate: function() {
+        Factory.loadAssets();
+
         this.initted = true;
 
         for( var x = 0; x < this.mixers.length; x++ ) {
@@ -72,7 +74,7 @@ var Game = global.Game = Class.create({
         World.scene.matrixAutoUpdate = false;
 
         var sharkMaterial = new THREE.MeshBasicMaterial({
-            map: THREE.ImageUtils.loadTexture( 'media/shark.png' ),
+            map: Utils.textures.shark,
             transparent: true,
             opacity:0.2
         });
@@ -96,6 +98,7 @@ var Game = global.Game = Class.create({
         };
 
         Level.reset();
+        Level.advance();
         Thing.reset();
     },
 
@@ -125,7 +128,7 @@ var Game = global.Game = Class.create({
         World.pu.time.value = this.time.total;
 
         bgColor.addScalar( 0.0001 );
-        World.pu.bgColor.value = new THREE.Vector3( bgColor.r, bgColor.g, bgColor.b );
+        //World.pu.bgColor.value = new THREE.Vector3( bgColor.r, bgColor.g, bgColor.b );
 
         //World.pu.bgColor.value.b += 0.0001;
         //World.pu.dModifier.value += 0.001;

@@ -33,12 +33,12 @@ varying float posy;
 varying float posx;
 
 void main() {
-    vUv = uv;
-    posx = position.x;
-    posy = position.y;
-    posz = position.z;
-    vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );
-    gl_Position = projectionMatrix * mvPosition;
+vUv = uv;
+posx = position.x;
+posy = position.y;
+posz = position.z;
+vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );
+gl_Position = projectionMatrix * mvPosition;
 }
 
 </div>
@@ -52,12 +52,14 @@ uniform float beamSpeed;
 uniform int numBeams;
 uniform float brightness;
 uniform float slantBrightness;
+uniform float fractalBrightness;
+uniform float fractalSpeed;
 uniform float dModifier;
 
 #define PI 3.1416
 
 vec3 dir(vec3 pos, float rotation) {
-    return vec3(800,100,0);
+return vec3(800,100,0);
 }
 
 #ifdef GL_ES
@@ -69,6 +71,35 @@ bool leftToRight = false;
 float slopeSign = (leftToRight ? -1.0 : 1.0);
 float slope1 = 8.0 * slopeSign;
 float slope2 = 7.0 * slopeSign;
+
+
+
+
+// from https://glsl.heroku.com/e#9377.0
+float field(in vec3 pp) {
+    float strength = 7. + .03 * log(1.e-6 + fract(sin(time) * 4373.11));
+    float accum = 0.;
+    float prev = 0.;
+    float tw = 0.;
+    for (int i = 0; i < 32; ++i) {
+        float mag = dot(pp, pp);
+        pp = abs(pp) / mag + vec3(-.51, -.4, -1.3);
+        float w = exp(-float(i) / 7.);
+        accum += w * exp(-strength * pow(abs(mag - prev), 2.3));
+        tw += w;
+        prev = mag;
+    }
+    return max(0., 5. * accum / tw - .7);
+}
+vec3 nrand3( vec2 co ) {
+    vec3 a = fract( cos( co.x*8.3e-3 + co.y )*vec3(1.3e5, 4.7e5, 2.9e5) );
+    vec3 b = fract( sin( co.x*0.3e-3 + co.y )*vec3(8.1e5, 1.0e5, 0.1e5) );
+    vec3 c = mix(a, b, 0.5);
+    return c;
+}
+
+
+
 
 void main(void) {
     vec2 p = (gl_FragCoord.xy) / resolution.xy;
@@ -115,6 +146,47 @@ void main(void) {
 
 
 
+
+
+
+
+
+    vec2 uvv = 1.0 * gl_FragCoord.xy / resolution.xy - 1.0;
+    vec2 uvs = uvv * resolution.xy / max(resolution.x, resolution.y);
+    
+    vec3 pp = vec3(uvs / 4., 0) + vec3(2., -1.3, -1.);
+    pp += fractalSpeed * vec3(sin(time / 16.), sin(time / 12.),  sin(time / 128.));
+    
+    vec3 p2 = vec3(uvs / (4.+sin(time*0.11)*0.2+0.2+sin(time*0.15)*0.3+0.4), 1.5) + vec3(2., -1.3, -1.);
+    p2 += fractalSpeed * vec3(sin(time / 16.), sin(time / 12.),  sin(time / 128.));
+
+    vec3 p3 = vec3(uvs / (4.+sin(time*0.14)*0.23+0.23+sin(time*0.19)*0.31+0.31), 0.5) + vec3(2., -1.3, -1.);
+    p3 += fractalSpeed * vec3(sin(time / 16.), sin(time / 12.),  sin(time / 128.));
+    
+    float t = field(pp);
+    float t2 = field(p2);
+    float t3 = field(p3);
+
+    float v = (1. - exp((abs(uvv.x) - 1.) * 6.)) * (1. - exp((abs(uvv.y) - 1.) * 6.));
+    
+    vec4 c1 = mix(.4, 1., v) * vec4(1.8 * t * t * t, 1.4 * t * t, t, 1.0);
+    vec4 c2 = mix(.4, 1., v) * vec4(1.4 * t2 * t2 * t2, 1.8 * t2 * t2, t2, 1.0);
+    vec4 c3 = mix(.4, 1., v) * vec4(1.4 * t3 * t3 * t3, 1.8 * t3 * t3, t3, 1.0);
+    c1.b *= mod(gl_FragCoord.y+1.0, 9.0)*1.4;
+    c2.r *= mod(gl_FragCoord.y, 2.0)*3.4;
+    c3.g *= mod(gl_FragCoord.y, 2.0)*2.4;
+
+
+
+
+
+
+
+
+
+
+
+
     
     
     // https://www.shadertoy.com/view/4sX3Wr
@@ -130,7 +202,7 @@ void main(void) {
     vec4 pix = vec4(beamColor.r, beamColor.g, beamColor.b, 1.0);
     pix += clamp(bright / 1.0, 0.0, 1.0);
 
-    gl_FragColor = vec4(vec3(color), 1.0) + ( slantBrightness * pix );
+    gl_FragColor = vec4(vec3(color), 1.0) + ( slantBrightness * pix ) + fractalBrightness * (c1*0.7 + c2*0.5 + c3*0.0);
 
 
 }

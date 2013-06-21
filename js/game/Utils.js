@@ -9,6 +9,8 @@ var speed = function( val ) {
 
 var Utils = global.Utils = {
 
+    textures: {},
+
     cap: function( vector, cap ) {
         if( vector.x > cap ) {
             vector.x = cap;

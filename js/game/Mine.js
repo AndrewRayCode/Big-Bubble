@@ -4,7 +4,7 @@ var Mine = global.Mine = Thing.register('mine', Mixin.Entity.create({
     collision: [ Player ],
 
     defaults: {
-        fadeSpeed: 0.3,
+        fadeSpeed: 0.9,
         opacity: 0.5
     },
 
@@ -12,14 +12,9 @@ var Mine = global.Mine = Thing.register('mine', Mixin.Entity.create({
         var me = this;
 
         return Utils.loadModel( 'media/mine.js' ).then( function( geometry ) {
-            var modelTex = THREE.ImageUtils.loadTexture( 'media/metal.jpg' );
             var material = new THREE.MeshLambertMaterial({
                 shading: THREE.FlatShading,
-                transparent: true
-            });
-            material = new THREE.MeshLambertMaterial({
-                shading: THREE.FlatShading,
-                map: modelTex,
+                map: Utils.textures.metal,
                 transparent: true
             });
             return me.mesh = new THREE.Mesh( geometry, material );

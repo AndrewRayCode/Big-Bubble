@@ -8,7 +8,7 @@ var Factory = global.Factory = Class.create({
             startHeight: -40,
             incline: 1,
             nodes: 50,
-            pathWidth: 100
+            pathWidth: 140
         }, opts);
 
         options.pathRadius = options.pathWidth / 2;
@@ -170,7 +170,9 @@ var Factory = global.Factory = Class.create({
             bgColor: {value: new THREE.Vector3( World.bgColor.r, World.bgColor.g, World.bgColor.b ), type:'v3' },
             dModifier: {value: 0, type:'f' },
             brightness: {value: 0.8, type:'f' },
-            slantBrightness: {value: 0.1, type:'f' },
+            slantBrightness: {value: 0.8, type:'f' },
+            fractalBrightness: {value: 1.3, type:'f' },
+            fractalSpeed: {value: 0.3, type:'f' },
             numBeams: {value: 13, type:'i' }
         };
 
@@ -196,6 +198,12 @@ var Factory = global.Factory = Class.create({
         World.scene.add( plane.mesh );
 
         return cube;
+    },
+
+    loadAssets: function() {
+        Utils.textures.metal = THREE.ImageUtils.loadTexture( 'media/metal.jpg' );
+        Utils.textures.rust = THREE.ImageUtils.loadTexture( 'media/rust-peel.jpg' );
+        Utils.textures.shark = THREE.ImageUtils.loadTexture( 'media/shark.png' );
     }
 });
 

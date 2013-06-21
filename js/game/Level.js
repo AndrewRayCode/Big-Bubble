@@ -1,6 +1,10 @@
 (function( global ) {
 
 var Level = global.Level = Class.create({
+    init: function() {
+        this.index = -1;
+    },
+
     levels: [{
         next: 10,
         zoom: 500,
@@ -28,10 +32,6 @@ var Level = global.Level = Class.create({
     }],
     reset: function() {
         this.init();
-        this.advance();
-    },
-    init: function() {
-        this.index = -1;
     },
     advance: function() {
         this.index++;

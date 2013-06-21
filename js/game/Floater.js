@@ -14,7 +14,7 @@ var Floater = Thing.register('floater', Mixin.Entity.create({
     },
 
     defaults: {
-        fadeSpeed: 0.3,
+        fadeSpeed: 0.9,
         opacity: 0.5
     },
 

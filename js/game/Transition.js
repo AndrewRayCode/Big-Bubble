@@ -21,6 +21,15 @@ var Transition = global.Transition = Class.create({
             start: function() {
             },
             end: function() {
+                Thing.eachThing(function( thing ) {
+                    if( thing.inertia.y !== 0 ) {
+                        thing.inertia.y += 0.03;
+                        thing.inertia.z += 1;
+                    }
+                    if( thing.inertia.y > -0.03 ) {
+                        thing.inertia.y = 0;
+                    }
+                });
             },
             loop: function() {
                 var rand = Math.random();
@@ -36,19 +45,16 @@ var Transition = global.Transition = Class.create({
                 }
             }
         },
+
         forward: {
             initBind: function( thing ) {
                 if( thing.type === 'floater' ) {
                     thing.fadeSpeed = 0.05;
 
                     thing.mesh.position.x = Utils.randFloat( Camera.data.frustrum.min.x, Camera.data.frustrum.max.x );
-                    thing.mesh.position.y = Utils.randFloat( Camera.data.frustrum.min.y, Camera.data.frustrum.may.y );
+                    thing.mesh.position.y = Utils.randFloat( Camera.data.frustrum.min.y, Camera.data.frustrum.max.y );
                     thing.mesh.position.z = -1000;
-                    thing.inertia = {
-                        x: 0,
-                        y: 0,
-                        z: 100 - ( Math.random() )
-                    };
+                    thing.inertia = new THREE.Vector3( 0, 0, 100 - ( Math.random() ) );
 
                     thing.replaceUpdater( 'fade', function() {
                         var zPos = thing.mesh.position.z;
@@ -57,7 +63,7 @@ var Transition = global.Transition = Class.create({
                             thing.mesh.material.opacity -= Utils.speed( 0.5 );
 
                             if( thing.mesh.material.opacity <= 0 ) {
-                                Game.trigger('free', thing);
+                                Game.trigger( 'free', thing );
                             }
                         } else {
                             thing.mesh.material.opacity = 0.5 - ((-1 * zPos) / 1000) * 0.5;
@@ -72,13 +78,9 @@ var Transition = global.Transition = Class.create({
 
                     thing.fadeSpeed = 0.05;
                     thing.mesh.position.x = Utils.randFloat( Camera.data.frustrum.min.x, Camera.data.frustrum.max.x );
-                    thing.mesh.position.y = Utils.randFloat( Camera.data.frustrum.min.y, Camera.data.frustrum.may.y );
+                    thing.mesh.position.y = Utils.randFloat( Camera.data.frustrum.min.y, Camera.data.frustrum.max.y );
                     thing.mesh.position.z = -1000;
-                    thing.inertia = {
-                        x: 0,
-                        y: 0,
-                        z: 100 - ( Math.random() )
-                    };
+                    thing.inertia = new THREE.Vector3( 0, 0, 100 - ( Math.random() ) );
 
                     thing.replaceUpdater( 'fade', function() {
                         var zPos = thing.mesh.position.z;
@@ -107,6 +109,18 @@ var Transition = global.Transition = Class.create({
                 Game.unbind( 'initted', this.initBind );
             },
             loop: function() {
+                var rand = Math.random();
+
+                if( rand > 0.993 ) {
+                    Thing.makeEntity('mine', {
+                        radius: 0.5 + Math.random() * 0.1
+                    });
+                } else if( rand > 0.9 ) {
+                    Thing.makeEntity('floater', {
+                        radius: 20
+                    });
+                }
+
                 Thing.eachThing(function( thing ) {
                     if( thing.inertia.y !== 0 ) {
                         thing.inertia.y += 0.03;
@@ -162,7 +176,7 @@ var Transition = global.Transition = Class.create({
                         break;
                     }
                 }
-                
+
                 if( bottomHit ) {
                     this.maze.inertia.z = 0;
                     this.maze.group.position.z -= ( Player.build.radius - bottomDist );

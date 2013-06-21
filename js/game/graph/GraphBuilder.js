@@ -42,6 +42,10 @@ var GraphBuilder = global.GraphBuilder = Class.extend({
                 transparent: debug
             });
         }
+        mat = new THREE.MeshLambertMaterial({
+            shading: THREE.FlatShading,
+            map: Utils.textures.rust
+        });
 
         if( debug ) {
             var geometry = new THREE.Geometry(), line;

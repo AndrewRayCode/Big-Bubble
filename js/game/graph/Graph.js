@@ -10,7 +10,7 @@ var Graph = global.Graph = Class.extend({
             end = start.clone().add( endOffset ),
             bend = new Bend( start, end ),
 
-            newLines = parentNode.chamfer( bend.line, 40, 4 ),
+            newLines = parentNode.chamfer( bend.line, this.options.pathRadius, 4 ),
             parent = parentNode,
             newNode;
 

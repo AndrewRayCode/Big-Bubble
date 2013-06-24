@@ -63,6 +63,7 @@ var Factory = global.Factory = Class.create({
         }
 
         var maze = new GraphBuilder( options ).build( graph );
+        World.maze = maze;
 
         World.scene.add( maze.group );
 
@@ -201,8 +202,18 @@ var Factory = global.Factory = Class.create({
     },
 
     loadAssets: function() {
-        Utils.textures.metal = THREE.ImageUtils.loadTexture( 'media/metal.jpg' );
-        Utils.textures.rust = THREE.ImageUtils.loadTexture( 'media/rust-peel.jpg' );
+        var rust = Utils.textures.rust = THREE.ImageUtils.loadTexture( 'media/rust-peel.jpg' );
+        rust.wrapS = THREE.RepeatWrapping;
+        rust.wrapT = THREE.RepeatWrapping;
+
+        var metal = Utils.textures.metal = THREE.ImageUtils.loadTexture( 'media/metal.jpg' );
+        metal.wrapS = THREE.RepeatWrapping;
+        metal.wrapT = THREE.RepeatWrapping;
+
+        var uvtest = Utils.textures.uvtest = THREE.ImageUtils.loadTexture( 'media/uvtest.jpg' );
+        uvtest.wrapS = THREE.RepeatWrapping;
+        uvtest.wrapT = THREE.RepeatWrapping;
+
         Utils.textures.shark = THREE.ImageUtils.loadTexture( 'media/shark.png' );
     }
 });

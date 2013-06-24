@@ -44,7 +44,7 @@ var GraphBuilder = global.GraphBuilder = Class.extend({
         }
         mat = new THREE.MeshLambertMaterial({
             shading: THREE.FlatShading,
-            map: Utils.textures.rust
+            map: Utils.textures.uvtest
         });
 
         if( debug ) {
@@ -99,9 +99,7 @@ var GraphBuilder = global.GraphBuilder = Class.extend({
                     mesh.geometry.computeFaceNormals();
                     mesh.geometry.computeVertexNormals();
                     mesh.updateMatrixWorld();
-                }
 
-                if( !(node instanceof Zig) ) {
                     node.parent.mesh.geometry.vertices[3].copy( node.parent.mesh.worldToLocal( botRightMid ) );
                     node.parent.mesh.geometry.vertices[1].copy( node.parent.mesh.worldToLocal( botLeftMid ) );
                     node.parent.mesh.geometry.verticesNeedUpdate = true;
@@ -118,10 +116,33 @@ var GraphBuilder = global.GraphBuilder = Class.extend({
                 // 3: top right
             }
 
-            //if( debug ) {
-                //Utils.dot( node.line[0] );
-                //Utils.dot( node.line[1] );
-            //}
+            var texelMap = {
+                0: 3,
+                1: 1,
+                2: 0,
+                3: 2
+            };
+
+            if( !(node instanceof Stairs) ) {
+                var tiling = 0.001,
+                    uvMat = mesh.geometry.faceVertexUvs[0],
+                    faceVerts, fi, vi;
+
+                for( fi = 0; faceVerts = uvMat[fi++]; ) {
+                    for( vi = 0; vi < faceVerts.length; vi++ ) {
+
+                        var pos = mesh.localToWorld(
+                            mesh.geometry.vertices[ texelMap[ vi ] ].clone()
+                        ).multiplyScalar( tiling ).sub( mesh.position.clone().multiplyScalar( 2 * tiling ) );
+
+                        faceVerts[ vi ] = new THREE.Vector2(
+                            pos.x, pos.y
+                        );
+                    }
+                }
+                mesh.geometry.uvsNeedUpdate = true;
+            }
+
             mesh.receiveShadow = true;
             mesh.geometry.verticesNeedUpdate = true;
 

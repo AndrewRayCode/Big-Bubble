@@ -27,9 +27,6 @@ var Factory = global.Factory = Class.create({
         currentNode = graph.addZig( currentNode, 200 );
 
         for( var x = 0; x < options.nodes; x++ ) {
-            if( 0 ) {
-                continue;
-            }
             rand = Math.random();
             if( rand > 0.5 ) {
                 currentNode = graph.addZig( currentNode, ( options.pathWidth * 2 ) + Utils.randInt( -5, 100 ) );

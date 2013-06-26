@@ -44,7 +44,7 @@ var GraphBuilder = global.GraphBuilder = Class.extend({
         }
         mat = new THREE.MeshLambertMaterial({
             shading: THREE.FlatShading,
-            map: Utils.textures.uvtest
+            map: Utils.textures.rust
         });
 
         if( debug ) {
@@ -116,24 +116,20 @@ var GraphBuilder = global.GraphBuilder = Class.extend({
                 // 3: top right
             }
 
-            var texelMap = {
-                0: 3,
-                1: 1,
-                2: 0,
-                3: 2
-            };
-
             if( !(node instanceof Stairs) ) {
-                var tiling = 0.001,
+                var tiling = 0.005,
                     uvMat = mesh.geometry.faceVertexUvs[0],
-                    faceVerts, fi, vi;
+                    faceVerts, fi, vi, vertex, pos;
 
                 for( fi = 0; faceVerts = uvMat[fi++]; ) {
                     for( vi = 0; vi < faceVerts.length; vi++ ) {
 
-                        var pos = mesh.localToWorld(
-                            mesh.geometry.vertices[ texelMap[ vi ] ].clone()
-                        ).multiplyScalar( tiling ).sub( mesh.position.clone().multiplyScalar( 2 * tiling ) );
+                        vertex = mesh.geometry.vertices[
+                            mesh.geometry.faces[0][ String.fromCharCode( 97 + vi ) ]
+                        ].clone();
+
+                        pos = mesh.localToWorld( vertex )
+                            .multiplyScalar( tiling );
 
                         faceVerts[ vi ] = new THREE.Vector2(
                             pos.x, pos.y

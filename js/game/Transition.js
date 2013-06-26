@@ -144,7 +144,7 @@ var Transition = global.Transition = Class.create({
 
                 this.cameraInertia = new THREE.Vector3( 0, 0, 0 );
                 this.maze = Factory.maze();
-                this.maze.inertia.y = -2.8;
+                this.maze.inertia.y = -2.3;
             },
             end: function() {
                 Game.unbind( 'initted', this.initBind );

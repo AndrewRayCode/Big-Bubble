@@ -10,7 +10,7 @@ var GraphBuilder = global.GraphBuilder = Class.extend({
         this.maze = {
             tops: [],
             sides: [],
-            inertia: { x: 0, y: 0, z: 0 },
+            inertia: new THREE.Vector3( 0, 0, 0 ),
             group: new THREE.Object3D(),
             nodeHeight: 0
         };
@@ -44,7 +44,8 @@ var GraphBuilder = global.GraphBuilder = Class.extend({
         }
         mat = new THREE.MeshLambertMaterial({
             shading: THREE.FlatShading,
-            map: Utils.textures.rust
+            map: Utils.textures.rust,
+            transparent: true
         });
 
         if( debug ) {

@@ -13,16 +13,16 @@ var Factory = global.Factory = Class.create({
 
         options.pathRadius = options.pathWidth / 2;
 
-        var graph = new Graph( options );
+        var graph = new Graph( options ),
+            playerPos = Player.mesh.position;
 
         graph.start = new Bend(
-            new THREE.Vector3( 0, -200, -40 ),
-            new THREE.Vector3( 30, 20, -40 )
+            playerPos.clone().add(new THREE.Vector3(0, -200, 0)),
+            playerPos.clone().add(new THREE.Vector3(0, 100, 0))
         );
 
         var currentNode = graph.start,
             rand;
-
 
         currentNode = graph.addZig( currentNode, 200 );
 
@@ -32,8 +32,8 @@ var Factory = global.Factory = Class.create({
                 currentNode = graph.addZig( currentNode, ( options.pathWidth * 2 ) + Utils.randInt( -5, 100 ) );
             } else if( rand > 0.1 ) {
                 currentNode = graph.addBend( currentNode, new THREE.Vector3(
-                    Utils.randInt(-100, 100),
-                    200 - Utils.randInt(-50, 50),
+                    Utils.randInt( -90, 90 ),
+                    Utils.randInt( options.pathWidth, options.pathWidth * 3 ),
                     0
                 ));
 

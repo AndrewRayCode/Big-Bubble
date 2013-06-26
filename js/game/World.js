@@ -48,14 +48,9 @@ var World = global.World = Class.create({
     },
 
     populate: function() {
-
-        //var bgCube = new THREE.Mesh( bgGeometry, bgMaterial );
-        //bgCube.dynamic = true;
-        //bgCube.position.set( 100, 50, 0 );
-        //scene.add(bgCube);
         var skyBox = this.skyBox = Mixin.Entity.create({
             mesh: Factory.makeGradientCube(
-                Camera.data.frustrum.height * 5, 0x2185C5
+                Camera.data.frustrum.height * 10, 0x2185C5
             )
         });
         World.scene.add( skyBox.mesh );

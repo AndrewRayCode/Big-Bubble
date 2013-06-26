@@ -1,8 +1,26 @@
 (function( global ) {
 
-var Transition = global.Transition = Class.create({
+var Transition = Class.extend({
+    init: function() {
+        this.update = function() {
+            for( var key in this.fns ) {
+                if( 'id' in this ) {
+                    this[ key ].apply( this );
+                }
+            }
+        };
+    },
+
+    replaceFn: function( key, fn ) {
+        this.replaced = this.replaced || {};
+        this.replaced[ key ] = this[ key ];
+        this[ key ] = fn;
+    }
+});
+
+var Transitions = global.Transitions = Class.create({
     run: function( id ) {
-        var trans = Transition.transitions[ id ];
+        var trans = Transitions.transitions[ id ];
 
         World.transition = function() {
             trans.loop();
@@ -11,7 +29,7 @@ var Transition = global.Transition = Class.create({
     },
 
     end: function( id ) {
-        var trans =  Transition.transitions[ id ];
+        var trans =  Transitions.transitions[ id ];
         delete World.transition;
         trans.end();
     },
@@ -133,7 +151,7 @@ var Transition = global.Transition = Class.create({
             }
         },
 
-        maze: {
+        maze: Transition.create({
             initBind: function( thing ) {
                 //if( thing.type === 'floater' ) {
                 //} else if( thing.type === 'mine' ) {
@@ -144,12 +162,40 @@ var Transition = global.Transition = Class.create({
 
                 this.cameraInertia = new THREE.Vector3( 0, 0, 0 );
                 this.maze = Factory.maze();
-                this.maze.inertia.y = -2.3;
+                this.maze.group.position.z = -400;
+                this.maze.group.traverse( function( node ) {
+                    if( node.material ) {
+                        node.material.opacity = 0;
+                    }
+                });
+
+                this.replaceFn( 'loop', this.startLoop );
             },
             end: function() {
                 Game.unbind( 'initted', this.initBind );
             },
             loop: function() {
+                this.update();
+            },
+            startLoop: function() {
+                this.maze.inertia.z += 6;
+                this.maze.group.traverse( function( node ) {
+                    if( node.material ) {
+                        node.material.opacity += 0.05;
+                    }
+                });
+                this.maze.group.position
+                    .add( Utils.speed( Player.phys.inertia ) )
+                    .add( Utils.speed( this.maze.inertia ) );
+
+                this.updateCamera();
+
+                if( this.maze.group.position.z > Player.build.radius - 100 ) {
+                    this.maze.inertia.y = -160;
+                    this.replaceFn( 'loop', this.playLoop );
+                }
+            },
+            playLoop: function() {
                 var originPoint = Player.mesh.position.clone(),
                     bottomHit, bottomDist, backHit, i, vertex, directionVector, ray, collisionResults;
 
@@ -161,6 +207,7 @@ var Transition = global.Transition = Class.create({
 
                     if ( collisionResults.length && collisionResults[0].distance < directionVector.length() ) {
                         bottomHit = true;
+                        this.lastBottomHit = new Date();
                         bottomDist = collisionResults[0].distance;
                         break;
                     }
@@ -181,20 +228,25 @@ var Transition = global.Transition = Class.create({
                     this.maze.inertia.z = 0;
                     this.maze.group.position.z -= ( Player.build.radius - bottomDist );
                 } else {
-                    this.maze.inertia.z += 0.10;
+                    this.maze.inertia.z += 13;
                 }
 
-                if( this.maze.group.position.z > 2000 &&  this.maze.inertia.z > 19 ) {
+                if( this.maze.group.position.z > 2000 &&  this.maze.inertia.z > 100 ) {
                     Level.advance();
+                }
+
+                if( new Date() - this.lastBottomHit < 500 ) {
+                    Player.mesh.position.y += Utils.speed( this.maze.inertia.y );
                 }
 
                 if( backHit && Player.phys.inertia.y < 0 ) {
                     Player.phys.inertia.y = 0;
                 }
-                this.maze.group.position.y += this.maze.inertia.y;
-                this.maze.group.position.z += this.maze.inertia.z;
-                Player.mesh.position.y += this.maze.inertia.y;
+                this.maze.group.position.add( Utils.speed( this.maze.inertia ) );
 
+                this.updateCamera();
+            },
+            updateCamera: function() {
                 if( Player.mesh.position.x < Camera.main.position.x - 50 ) {
                     this.cameraInertia.x -= 0.1;
                 } else if( Player.mesh.position.x > Camera.main.position.x + 50 ) {
@@ -210,7 +262,7 @@ var Transition = global.Transition = Class.create({
                 Utils.cap( this.cameraInertia, 3.4 );
                 Camera.pan( this.cameraInertia );
             }
-        }
+        })
     }
 });
 

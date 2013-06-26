@@ -9,25 +9,25 @@ var Level = global.Level = Class.create({
         next: 10,
         zoom: 500,
         start: function() {
-            Transition.run('maze');
+            Transitions.run('descend');
         }
     }, {
         next: 50,
         zoom: 600,
         start: function() {
-            Transition.run('maze');
+            Transitions.run('maze');
         }
     }, {
         next: 80,
         zoom: 700,
         start: function() {
-            Transition.run('descend');
+            Transitions.run('descend');
         }
     }, {
         next: 90,
         zoom: 800,
         start: function() {
-            Transition.end('forward');
+            Transitions.end('forward');
         }
     }],
     reset: function() {

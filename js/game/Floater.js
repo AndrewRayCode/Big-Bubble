@@ -1,16 +1,34 @@
 (function( global ) {
 
-var Floater = Thing.register('floater', Mixin.Entity.create({
+var Floater = global.Floater = Mixin.Entity.extend({
 
     material: function() {
         var bgColor = World.bgColor,
             me = this;
 
-        return new THREE.MeshPhongMaterial({
-            color: new THREE.Color().copy( World.bgColor ),
-            transparent: true,
-            opacity: this.opacity
+        //return new THREE.MeshPhongMaterial({
+            //color: new THREE.Color().copy( World.bgColor ),
+            //transparent: true,
+            //opacity: this.opacity
+        //});
+
+        var fresnelShader = THREE.BubbleShader,
+            uniforms = THREE.UniformsUtils.clone( fresnelShader.uniforms );
+
+        //uniforms.tCube.value = Camera.mirror.renderTarget;
+        uniforms.c =   { type: "f", value: 1.2 };
+        uniforms.p =   { type: "f", value: 2.4 };
+        uniforms.glowColor = { type: "c", value: new THREE.Color(0xffffff) };
+        uniforms.viewVector = { type: "v3", value: Camera.main.position };
+
+        var fresnelMaterial = new THREE.ShaderMaterial({
+            fragmentShader: fresnelShader.fragmentShader,
+            vertexShader: fresnelShader.vertexShader,
+            uniforms: uniforms,
+            transparent: true
         });
+
+        return fresnelMaterial;
     },
 
     defaults: {
@@ -49,6 +67,7 @@ var Floater = Thing.register('floater', Mixin.Entity.create({
         move: function() {
             this.move( this.inertia );
             this.updateLocks();
+            this.mesh.lookAt( Camera.main.position );
 
             if ( this.mesh.position.y + this.r * 2 < Camera.data.frustrum.min.y ) {
                 Game.trigger( 'free', this );
@@ -68,8 +87,9 @@ var Floater = Thing.register('floater', Mixin.Entity.create({
 
                 this.replaceUpdater( 'move', function() {
 
-                    this.mesh.material.color.r += 0.01;
-                    this.mesh.material.color.b += 0.01;
+                    //this.mesh.material.color.r += 0.01;
+                    //this.mesh.material.color.b += 0.01;
+                    this.mesh.material.uniforms.c.value += Utils.speed( 0.2 );
                     this.speedLockTowards( Player, 4 );
 
                     if( new Date() - this.lockTime > 1600 ) {
@@ -86,6 +106,8 @@ var Floater = Thing.register('floater', Mixin.Entity.create({
             }
         }
     }
-}));
+});
+
+Thing.register( 'floater', new Floater() );
 
 }(this));

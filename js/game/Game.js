@@ -60,7 +60,7 @@ var Game = global.Game = Class.create({
         });
 
         // set its position
-        pointLight1.position.z = 560;
+        pointLight1.position.z = 1060;
         pointLight1.target = Player.mesh;
         Player.mesh.castShadow = true;
         //pointLight2.position.z = 2030;
@@ -76,10 +76,10 @@ var Game = global.Game = Class.create({
         var sharkMaterial = new THREE.MeshBasicMaterial({
             map: Utils.textures.shark,
             transparent: true,
-            opacity:0.2
+            opacity:0.5
         });
         var sharkGeometry = new THREE.PlaneGeometry(300, 300, 1, 1);
-        var shark = new THREE.Mesh(sharkGeometry, sharkMaterial);
+        var shark = new THREE.Mesh( sharkGeometry, sharkMaterial );
         World.scene.add( shark );
         World.shark = shark;
 
@@ -100,6 +100,7 @@ var Game = global.Game = Class.create({
         Level.reset();
         Level.advance();
         Thing.reset();
+        Player.reset();
     },
 
     reqFrame: function() {
@@ -126,6 +127,11 @@ var Game = global.Game = Class.create({
         }
 
         World.pu.time.value = this.time.total;
+        World.uniforms.time.value = this.time.total;
+
+        World.uniforms.viewVector.value = Camera.main.position.clone();
+
+        Player.mesh.lookAt( Camera.main.position );
 
         bgColor.addScalar( 0.0001 );
         //World.pu.bgColor.value = new THREE.Vector3( bgColor.r, bgColor.g, bgColor.b );

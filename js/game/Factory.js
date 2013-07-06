@@ -177,7 +177,8 @@ var Factory = global.Factory = Class.create({
         var bgShader = new THREE.ShaderMaterial({
             uniforms: World.pu,
             vertexShader:   $('#vshader').text(),
-            fragmentShader: $('#fshader').text()
+            fragmentShader: $('#fshader').text(),
+            side: THREE.BackSide
         });
 
         var cube = new THREE.Mesh(
@@ -185,9 +186,11 @@ var Factory = global.Factory = Class.create({
             material
         );
 
+        var mizer = Camera.data.frustrum.width * 0.01;
         var plane = Mixin.Entity.create({
             mesh: new THREE.Mesh(
-                new THREE.PlaneGeometry( Camera.data.frustrum.width * 1.5, Camera.data.frustrum.height * 1.5, 1, 1),
+                //new THREE.PlaneGeometry( Camera.data.frustrum.width * 1.5, Camera.data.frustrum.height * 1.5, 1, 1),
+                new THREE.CubeGeometry( mizer, mizer, mizer, 1, 1, 1 ),
                 bgShader
             )
         });

@@ -53,6 +53,7 @@ var World = global.World = Class.create({
                 Camera.data.frustrum.height * 10, 0x2185C5
             )
         });
+        skyBox.mesh.visible = false;
         World.scene.add( skyBox.mesh );
     },
 });

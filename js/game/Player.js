@@ -33,6 +33,8 @@ var Player = global.Player = Mixin.Entity.create({
         var fresnelShader = THREE.FresnelShader,
             uniforms = THREE.UniformsUtils.clone( fresnelShader.uniforms );
 
+        World.uniforms = uniforms;
+
         var renderTarget = new THREE.WebGLRenderTarget( window.innerWidth, window.innerHeight, {
             minFilter: THREE.LinearFilter,
             magFilter: THREE.NearestFilter,
@@ -40,11 +42,16 @@ var Player = global.Player = Mixin.Entity.create({
         });
 
         uniforms.tCube.value = Camera.mirror.renderTarget;
+        uniforms.c =   { type: "f", value: 1.0 };
+        uniforms.p =   { type: "f", value: 2.4 };
+        uniforms.glowColor = { type: "c", value: new THREE.Color(0xffffff) };
+        uniforms.viewVector = { type: "v3", value: Camera.main.position };
 
         var fresnelMaterial = new THREE.ShaderMaterial({
             fragmentShader: fresnelShader.fragmentShader,
             vertexShader: fresnelShader.vertexShader,
-            uniforms: uniforms
+            uniforms: uniforms,
+            transparent: true
         });
 
         var mesh = this.mesh = new THREE.Mesh( geometry, fresnelMaterial ),

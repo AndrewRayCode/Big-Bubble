@@ -169,6 +169,12 @@ var Transitions = global.Transitions = Class.create({
                     }
                 });
 
+                Thing.eachThing(function( thing ) {
+                    if( thing.type === 'mine' ) {
+                        Thing.free( thing );
+                    }
+                });
+
                 this.replaceFn( 'loop', this.startLoop );
             },
             end: function() {
@@ -191,11 +197,13 @@ var Transitions = global.Transitions = Class.create({
                 this.updateCamera();
 
                 if( this.maze.group.position.z > Player.build.radius - 100 ) {
+                    this.maze.inertia.z = 0;
                     this.maze.inertia.y = -160;
                     this.replaceFn( 'loop', this.playLoop );
                 }
             },
             playLoop: function() {
+                this.maze.inertia.y -= 0.2;
                 var originPoint = Player.mesh.position.clone(),
                     bottomHit, bottomDist, backHit, i, vertex, directionVector, ray, collisionResults;
 
@@ -246,11 +254,12 @@ var Transitions = global.Transitions = Class.create({
 
                 this.updateCamera();
             },
+
             updateCamera: function() {
-                if( Player.mesh.position.x < Camera.main.position.x - 50 ) {
-                    this.cameraInertia.x -= 0.1;
-                } else if( Player.mesh.position.x > Camera.main.position.x + 50 ) {
-                    this.cameraInertia.x += 0.1;
+                if( Player.mesh.position.x < Camera.main.position.x - 50 && Player.phys.inertia.x < 0 ) {
+                    this.cameraInertia.x = Utils.speed( Player.phys.inertia.x );
+                } else if( Player.mesh.position.x > Camera.main.position.x + 50 && Player.phys.inertia.x > 0) {
+                    this.cameraInertia.x = Utils.speed( Player.phys.inertia.x );
                 } else if( this.cameraInertia.x ) {
                     this.cameraInertia.x += -Utils.sign( this.cameraInertia.x ) * 0.1;
 
@@ -259,7 +268,7 @@ var Transitions = global.Transitions = Class.create({
                     }
                 }
 
-                Utils.cap( this.cameraInertia, 3.4 );
+                //Utils.cap( this.cameraInertia, Player.phys.max );
                 Camera.pan( this.cameraInertia );
             }
         })

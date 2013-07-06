@@ -1,6 +1,6 @@
 (function( global ) {
 
-var Mine = global.Mine = Thing.register('mine', Mixin.Entity.create({
+var Mine = global.Mine = Mixin.Entity.extend({
     collision: [ Player ],
 
     defaults: {
@@ -59,6 +59,8 @@ var Mine = global.Mine = Thing.register('mine', Mixin.Entity.create({
             }
         }
     }
-}));
+});
+
+Thing.register( 'mine', new Mine() );
 
 }(this));

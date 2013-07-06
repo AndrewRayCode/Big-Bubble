@@ -6,7 +6,7 @@ var Level = global.Level = Class.create({
     },
 
     levels: [{
-        next: 10,
+        next: 30,
         zoom: 500,
         start: function() {
             Transitions.run('descend');

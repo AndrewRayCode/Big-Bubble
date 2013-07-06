@@ -24,6 +24,7 @@ var Camera = global.Camera = Mixin.Doodad.create({
 
         var mirror = this.mirror = new THREE.CubeCamera( 0.1, 10000, 128 );
         mirror.renderTarget.minFilter = THREE.LinearMipMapLinearFilter;
+        mirror.rotation.z += THREE.Math.degToRad( 180 );
         World.scene.add( mirror );
 
         mirror.material = new THREE.MeshBasicMaterial({
@@ -86,12 +87,16 @@ var Camera = global.Camera = Mixin.Doodad.create({
             this.zoom( Camera.data.zoom + 10 );
         }
 
+        this.mirror.position.x = Player.mesh.position.x * (World.dickx || 1.3);
+        this.mirror.position.y = Player.mesh.position.y * (World.dickx || 1.3);
+        this.mirror.position.z = Player.mesh.position.z + (Player.build.radius + 200);
+
         this.mirror.position.x = Player.mesh.position.x;
         this.mirror.position.y = Player.mesh.position.y;
-        this.mirror.position.z = Player.mesh.position.z - 10;
+        this.mirror.position.z = Player.mesh.position.z + 10;
 
         Player.mesh.visible = false;
-        World.plane.mesh.visible = false;
+        //World.plane.mesh.visible = false;
 
         //var floater, id;
         //for( id in BubbleManager.forgotten ) {

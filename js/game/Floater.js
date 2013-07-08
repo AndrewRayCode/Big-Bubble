@@ -91,6 +91,7 @@ var Floater = global.Floater = Mixin.Entity.extend({
                     //this.mesh.material.color.b += 0.01;
                     this.mesh.material.uniforms.c.value += Utils.speed( 0.2 );
                     this.speedLockTowards( Player, 4 );
+                    this.mesh.lookAt( Camera.main.position );
 
                     if( new Date() - this.lockTime > 1600 ) {
                         Game.trigger( 'free', this );

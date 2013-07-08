@@ -129,7 +129,7 @@ var Game = global.Game = Class.create({
         World.pu.time.value = this.time.total;
         World.uniforms.time.value = this.time.total;
 
-        World.uniforms.viewVector.value = Camera.main.position.clone();
+        //World.uniforms.viewVector.value = Camera.main.position.clone();
 
         Player.mesh.lookAt( Camera.main.position );
 

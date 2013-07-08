@@ -60,8 +60,8 @@ THREE.FresnelShader = {
             "vec3 vNormal = normalize( normalMatrix * normal );",
             "vec3 vNormel = normalize( normalMatrix * viewVector );",
             "intensity = pow( c - dot(vNormal, vNormel), p );",
-            
-            //"gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );",
+
+            "gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );",
 
 		"}"
 
@@ -91,7 +91,7 @@ THREE.FresnelShader = {
 			"refractedColor = refractedColor + ( 0.6 * thing + refractedColor.r );",
 
             "vec4 mixed = mix( refractedColor, reflectedColor, clamp( vReflectionFactor, 0.0, 1.0 ) );",
-            "mixed.a = clamp( intensity * 3.6, 0.5, 0.8);",
+            "mixed.a = clamp( intensity * 3.6, 0.4, 0.8);",
 
 			"gl_FragColor = mixed;",
 

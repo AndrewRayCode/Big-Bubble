@@ -28,9 +28,9 @@ var Player = global.Player = Mixin.Entity.create({
 
     load: function() {
         var build = this.build,
-            geometry = this.geometry = new THREE.SphereGeometry( this.build.radius, this.build.segments, this.build.segments );
+            geometry = this.geometry = new THREE.SphereGeometry( this.build.radius, this.build.segments, this.build.segments ),
 
-        var fresnelShader = THREE.FresnelShader,
+            fresnelShader = THREE.FresnelShader,
             uniforms = THREE.UniformsUtils.clone( fresnelShader.uniforms );
 
         World.uniforms = uniforms;
@@ -41,6 +41,7 @@ var Player = global.Player = Mixin.Entity.create({
             format: THREE.RGBFormat
         });
 
+        // uniform types https://github.com/mrdoob/three.js/wiki/Uniforms-types
         uniforms.tCube.value = Camera.mirror.renderTarget;
         uniforms.c =   { type: "f", value: 1.0 };
         uniforms.p =   { type: "f", value: 2.4 };
@@ -54,7 +55,23 @@ var Player = global.Player = Mixin.Entity.create({
             transparent: true
         });
 
-        var mesh = this.mesh = new THREE.Mesh( geometry, fresnelMaterial ),
+        World.uniforms = {
+            time: { type: "f", value: 0.0 },
+            tExplosion: { // texture in slot 0, loaded with ImageUtils
+                type: "t",
+                value: THREE.ImageUtils.loadTexture( 'media/explosion.png' )
+            },
+            brightness: { type: 'f', value: 0.6  },
+            fireSpeed: { type: 'f', value: 1.0  },
+            noiseHeight: { type: 'f', value: 1.0  }
+        };
+        var fireballMaterial = new THREE.ShaderMaterial({
+            uniforms: World.uniforms,
+            vertexShader: $( '#fball-vshader' ).text(),
+            fragmentShader: $( '#fball-fshader' ).text()
+        });
+
+        var mesh = this.mesh = new THREE.Mesh( geometry, fireballMaterial ),
             v;
 
         var vertexIndex = mesh.geometry.vertices.length - 1;

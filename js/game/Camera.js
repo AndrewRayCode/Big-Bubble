@@ -87,9 +87,9 @@ var Camera = global.Camera = Mixin.Doodad.create({
             this.zoom( Camera.data.zoom + 10 );
         }
 
-        this.mirror.position.x = Player.mesh.position.x * (World.dickx || 1.3);
-        this.mirror.position.y = Player.mesh.position.y * (World.dickx || 1.3);
-        this.mirror.position.z = Player.mesh.position.z + (Player.build.radius + 200);
+        this.mirror.position.x = Player.mesh.position.x * (World.dickx || 1.0);
+        this.mirror.position.y = Player.mesh.position.y * (World.dickx || 1.0);
+        this.mirror.position.z = Player.mesh.position.z + (Player.build.radius + 500);
 
         this.mirror.position.x = Player.mesh.position.x;
         this.mirror.position.y = Player.mesh.position.y;

@@ -12,14 +12,8 @@ THREE.FresnelShader = {
         "mFresnelPower": { type: "f", value: 2.0 },
         "mFresnelScale": { type: "f", value: 2.0 },
         "time": { type: "f", value: 0.0 },
-
 		"tCube": { type: "t", value: null }
-
 	},
-//World.uniforms.mRefractionRatio.value = .1
-//World.uniforms.mFresnelBias.value = -1
-//World.uniforms.mFresnelPower.value = 2
-//World.uniforms.mFresnelScale.value = 2
 
 	vertexShader: [
 
@@ -97,7 +91,6 @@ THREE.FresnelShader = {
 
             //"vec3 glow = glowColor * intensity;",
             //"gl_FragColor = vec4( glow, 1.0 );",
-
 		"}"
 
 	].join("\n")

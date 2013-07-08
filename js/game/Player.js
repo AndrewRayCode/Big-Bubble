@@ -29,52 +29,10 @@ var Player = global.Player = Mixin.Entity.create({
     load: function() {
         var build = this.build,
             geometry = this.geometry = new THREE.SphereGeometry( this.build.radius, this.build.segments, this.build.segments ),
-
-            fresnelShader = THREE.FresnelShader,
-            uniforms = THREE.UniformsUtils.clone( fresnelShader.uniforms );
-
-        World.uniforms = uniforms;
-
-        var renderTarget = new THREE.WebGLRenderTarget( window.innerWidth, window.innerHeight, {
-            minFilter: THREE.LinearFilter,
-            magFilter: THREE.NearestFilter,
-            format: THREE.RGBFormat
-        });
-
-        // uniform types https://github.com/mrdoob/three.js/wiki/Uniforms-types
-        uniforms.tCube.value = Camera.mirror.renderTarget;
-        uniforms.c =   { type: "f", value: 1.0 };
-        uniforms.p =   { type: "f", value: 2.4 };
-        uniforms.glowColor = { type: "c", value: new THREE.Color(0xffffff) };
-        uniforms.viewVector = { type: "v3", value: Camera.main.position };
-
-        var fresnelMaterial = new THREE.ShaderMaterial({
-            fragmentShader: fresnelShader.fragmentShader,
-            vertexShader: fresnelShader.vertexShader,
-            uniforms: uniforms,
-            transparent: true
-        });
-
-        World.uniforms = {
-            time: { type: "f", value: 0.0 },
-            tExplosion: { // texture in slot 0, loaded with ImageUtils
-                type: "t",
-                value: THREE.ImageUtils.loadTexture( 'media/explosion.png' )
-            },
-            brightness: { type: 'f', value: 0.6  },
-            fireSpeed: { type: 'f', value: 1.0  },
-            noiseHeight: { type: 'f', value: 1.0  }
-        };
-        var fireballMaterial = new THREE.ShaderMaterial({
-            uniforms: World.uniforms,
-            vertexShader: $( '#fball-vshader' ).text(),
-            fragmentShader: $( '#fball-fshader' ).text()
-        });
-
-        var mesh = this.mesh = new THREE.Mesh( geometry, fireballMaterial ),
+            mesh = this.mesh = new THREE.Mesh( geometry, Shader.shaders.fresnel() ),
+            vertexIndex = mesh.geometry.vertices.length - 1,
             v;
 
-        var vertexIndex = mesh.geometry.vertices.length - 1;
         while( v = mesh.geometry.vertices[ vertexIndex-- ] ) {
             if( v.z <= 0 && v.z > -8) {
                 if( v.y < 0 ) {

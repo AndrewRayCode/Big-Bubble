@@ -115,7 +115,8 @@ var Game = global.Game = Class.create({
         Player.keyCheck();
 
         var timer = 0.0001 * Date.now(),
-            bgColor = World.bgColor;
+            bgColor = World.bgColor,
+            me = this;
 
         this.time.now = Date.now();
         this.time.delta = (this.time.now - this.time.then) / 1000;
@@ -126,10 +127,14 @@ var Game = global.Game = Class.create({
             World.transition();
         }
 
-        World.pu.time.value = this.time.total;
-        World.uniforms.time.value = this.time.total;
-
-        //World.uniforms.viewVector.value = Camera.main.position.clone();
+        _.each( Shader.cache, function( shader, name ) {
+            if( 'time' in shader.uniforms ) {
+                shader.uniforms.time.value = me.time.total;
+            }
+            if( 'viewVector' in shader.uniforms ) {
+                shader.uniforms.viewVector.value = Camera.main.position.clone();
+            }
+        });
 
         Player.mesh.lookAt( Camera.main.position );
 

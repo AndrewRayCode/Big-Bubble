@@ -6,7 +6,7 @@ var Shader = global.Shader = Class.create({
     load: function() {
         var me = this;
 
-        _.each(me.shaders, function( _fn, shaderName ) {
+        _.each( me.shaders, function( _fn, shaderName ) {
             var $container = $('#' + shaderName),
                 shader = {
                     fragment: $container.find('script[type="x-shader/x-fragment"]').text(),
@@ -17,14 +17,21 @@ var Shader = global.Shader = Class.create({
             shader.uniforms = me.parseUniforms( shader.src );
 
             me.shaders[ shaderName ] = function() {
-                var args = Array.prototype.slice( arguments, 0 );
+                var args = Array.prototype.slice( arguments, 0 ),
+                    material;
 
                 args = [ shader ].concat( args );
-                shader = _fn.apply( me, args );
+                material = _fn.apply( me, args );
 
-                me.cache[ shaderName ] = shader;
+                _.each( material.uniforms, function( uniform, key ) {
+                    if( uniform.value instanceof THREE.Color ) {
+                        material.uniforms[ key ].type = 'c';
+                    }
+                });
 
-                return shader;
+                me.cache[ shaderName ] = material;
+
+                return material;
             };
         });
     },
@@ -86,7 +93,7 @@ var Shader = global.Shader = Class.create({
             // Set default values
             shader.uniforms.tExplosion.value = THREE.ImageUtils.loadTexture( 'media/explosion.png' );
             shader.uniforms.brightness.value = 0.6;
-            shader.uniforms.fireSpeed.value = 1.0;
+            shader.uniforms.fireSpeed.value = 0.6;
             shader.uniforms.noiseHeight.value = 1.0;
 
             return new THREE.ShaderMaterial({

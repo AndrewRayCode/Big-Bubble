@@ -1,0 +1,10 @@
+{
+    "name": "big-bubble",
+    "version": "0.0.0",
+    "devDependencies": {
+        "grunt": "*",
+        "grunt-contrib-uglify": "*",
+        "grunt-contrib-sass": "*",
+        "grunt-contrib-watch": "*"
+    }
+}

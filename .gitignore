@@ -2,3 +2,5 @@
 *~
 .DS_Store
 sessions
+.sass-cache
+node_modules

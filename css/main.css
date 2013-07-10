@@ -1,0 +1,13 @@
+body {
+  background: #092B5A;
+  padding: 0;
+  margin: 0;
+  font-weight: bold;
+  overflow: hidden; }
+
+#game {
+  margin: 20px auto 40px;
+  border: 10px solid #09738A; }
+
+a {
+  color: #ffffff; }

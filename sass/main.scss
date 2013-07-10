@@ -9,6 +9,8 @@ body {
 }
 
 #game {
+    border-radius:10px;
+    box-shadow:inset 1px 1px 20px darken( $bgColor, 10% );
     margin:20px auto 40px;
     border:10px solid lighten( $bgColor, 10% );
 }

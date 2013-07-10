@@ -6,6 +6,8 @@ body {
   overflow: hidden; }
 
 #game {
+  border-radius: 10px;
+  box-shadow: inset 1px 1px 20px #04152c;
   margin: 20px auto 40px;
   border: 10px solid #0e4188; }
 

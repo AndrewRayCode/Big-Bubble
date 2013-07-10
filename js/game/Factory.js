@@ -156,31 +156,6 @@ var Factory = global.Factory = Class.create({
             }
         }
 
-        //var cube = new THREE.Mesh( geometry, material );
-        //cube.dynamic = true;
-
-        World.pu = {
-            time: {value: 0, type:'f' },
-            resolution: { value: new THREE.Vector2( World.stage.width , World.stage.height ), type:'v2' },
-            mouse: { value: new THREE.Vector2( 10, 10 ), type:'v2' },
-            beamSpeed: {value: 0.26, type:'f' },
-            beamColor: {value: new THREE.Vector3( 0.1, 0.2, 0.8 ), type:'v3' },
-            bgColor: {value: new THREE.Vector3( World.bgColor.r, World.bgColor.g, World.bgColor.b ), type:'v3' },
-            dModifier: {value: 0, type:'f' },
-            brightness: {value: 0.8, type:'f' },
-            slantBrightness: {value: 0.8, type:'f' },
-            fractalBrightness: {value: 1.3, type:'f' },
-            fractalSpeed: {value: 0.3, type:'f' },
-            numBeams: {value: 13, type:'i' }
-        };
-
-        var bgShader = new THREE.ShaderMaterial({
-            uniforms: World.pu,
-            vertexShader:   $('#vshader').text(),
-            fragmentShader: $('#fshader').text(),
-            side: THREE.BackSide
-        });
-
         var cube = new THREE.Mesh(
             geometry,
             material
@@ -191,7 +166,7 @@ var Factory = global.Factory = Class.create({
             mesh: new THREE.Mesh(
                 //new THREE.PlaneGeometry( Camera.data.frustrum.width * 1.5, Camera.data.frustrum.height * 1.5, 1, 1),
                 new THREE.CubeGeometry( mizer, mizer, mizer, 1, 1, 1 ),
-                bgShader
+                Shader.shaders.oceanbg()
             )
         });
         plane.mesh.position.set( 0, 0, -500 );

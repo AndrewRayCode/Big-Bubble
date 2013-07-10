@@ -2,50 +2,23 @@
 
 var Floater = global.Floater = Mixin.Entity.extend({
 
-    material: function() {
-        var bgColor = World.bgColor,
-            me = this;
-
-        //return new THREE.MeshPhongMaterial({
-            //color: new THREE.Color().copy( World.bgColor ),
-            //transparent: true,
-            //opacity: this.opacity
-        //});
-
-        var fresnelShader = THREE.BubbleShader,
-            uniforms = THREE.UniformsUtils.clone( fresnelShader.uniforms );
-
-        //uniforms.tCube.value = Camera.mirror.renderTarget;
-        uniforms.c =   { type: "f", value: 1.2 };
-        uniforms.p =   { type: "f", value: 2.4 };
-        uniforms.glowColor = { type: "c", value: new THREE.Color(0xffffff) };
-        uniforms.viewVector = { type: "v3", value: Camera.main.position };
-
-        var fresnelMaterial = new THREE.ShaderMaterial({
-            fragmentShader: fresnelShader.fragmentShader,
-            vertexShader: fresnelShader.vertexShader,
-            uniforms: uniforms,
-            transparent: true
-        });
-
-        return fresnelMaterial;
-    },
-
     defaults: {
         fadeSpeed: 0.9,
         opacity: 0.5
     },
 
+    material: function() {
+        return Shader.shaders.bubble();
+    },
+
     geometry: new THREE.SphereGeometry( 1, 32, 32 ),
 
     loadGeometry: function() {
-        return this.mesh = new THREE.Mesh( this.geometry, this.material() );
+        return this.mesh = new THREE.Mesh( this.geometry );
     },
 
     load: function( options ) {
         this.mesh.material = this.material();
-        this.mesh.material.opacity = 0;
-
         options = options || {};
 
         var radius = options.radius || 10 + 5 * Math.random();

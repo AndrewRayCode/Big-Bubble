@@ -1,5 +1,7 @@
+$bgColor: #092B5A;
+
 body {
-    background:#092B5A;
+    background:$bgColor;
     padding:0;
     margin:0;
     font-weight: bold;
@@ -8,6 +10,6 @@ body {
 
 #game {
     margin:20px auto 40px;
-    border:10px solid #09738A;
+    border:10px solid lighten( $bgColor, 10% );
 }
 a { color: #ffffff; }

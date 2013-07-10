@@ -63,13 +63,9 @@ var Game = global.Game = Class.create({
         pointLight1.position.z = 1060;
         pointLight1.target = Player.mesh;
         Player.mesh.castShadow = true;
-        //pointLight2.position.z = 2030;
-        //pointLight3.position.z = 2030;
 
         // add to the scene
         World.scene.add( pointLight1 );
-        //World.scene.add(pointLight2);
-        //World.scene.add(pointLight3);
 
         World.scene.matrixAutoUpdate = false;
 
@@ -115,7 +111,6 @@ var Game = global.Game = Class.create({
         Player.keyCheck();
 
         var timer = 0.0001 * Date.now(),
-            bgColor = World.bgColor,
             me = this;
 
         this.time.now = Date.now();
@@ -127,6 +122,7 @@ var Game = global.Game = Class.create({
             World.transition();
         }
 
+        // Update global shader uniform values
         _.each( Shader.cache, function( shader, name ) {
             if( 'time' in shader.uniforms ) {
                 shader.uniforms.time.value = me.time.total;
@@ -138,24 +134,11 @@ var Game = global.Game = Class.create({
 
         Player.mesh.lookAt( Camera.main.position );
 
-        bgColor.addScalar( 0.0001 );
-        //World.pu.bgColor.value = new THREE.Vector3( bgColor.r, bgColor.g, bgColor.b );
-
-        //World.pu.bgColor.value.b += 0.0001;
-        //World.pu.dModifier.value += 0.001;
-        //World.pu.brightness.value += 0.1;
-
         Player.update();
         Player.constrain();
 
         pointLight1.position.x = Player.mesh.position.x;
         pointLight1.position.y = Player.mesh.position.y;
-
-        //pointLight2.position.x = Player.mesh.position.x - 1000;
-        //pointLight2.position.y = Player.mesh.position.y;
-
-        //pointLight3.position.x = Player.mesh.position.x + 1000;
-        //pointLight3.position.y = Player.mesh.position.y + 1000;
 
         // This kind of makes me want to throw up
         //Camera.main.lookAt({

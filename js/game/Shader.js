@@ -91,7 +91,7 @@ var Shader = global.Shader = Class.create({
             shader.uniforms.tCube.value = Camera.mirror.renderTarget;
             shader.uniforms.c.value = 1.0;
             shader.uniforms.p.value = 2.4;
-            shader.uniforms.glowColor.value = new THREE.Color( 0xffffff );
+            shader.uniforms.glowColor.value = new THREE.Color( 0x69D2E7 );
             shader.uniforms.mRefractionRatio.value = 0.1;
             shader.uniforms.mFresnelBias.value = -1;
             shader.uniforms.mFresnelPower.value = 2.0;
@@ -110,12 +110,14 @@ var Shader = global.Shader = Class.create({
             // Set default values
             shader.uniforms.c.value = 1.2;
             shader.uniforms.p.value = 2.4;
-            shader.uniforms.glowColor.value = new THREE.Color( 0xffffff );
+            shader.uniforms.glowColor.value = new THREE.Color( 0x69D2E7 );
 
             return new THREE.ShaderMaterial({
                 fragmentShader: shader.fragment,
                 vertexShader: shader.vertex,
                 uniforms: $.extend( {}, shader.uniforms, _uniforms ),
+                side: THREE.FrontSide,
+                blending: THREE.AdditiveBlending,
                 transparent: true
             });
         },

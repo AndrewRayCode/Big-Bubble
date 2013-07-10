@@ -19,7 +19,9 @@ varying float intensity;
 
 void main() {
     vec4 glow = vec4( glowColor * intensity, 1.0 );
-    glow.a = clamp( intensity * 1.6, 0.2, 1.0 );
+    glow.a = clamp( intensity * 1.6, 0.0, 0.9 );
+
     gl_FragColor = glow;
+
 }
 </script>

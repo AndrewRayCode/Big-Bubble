@@ -9,6 +9,7 @@ varying vec3 vReflect;
 varying vec3 vRefract[3];
 varying float vReflectionFactor;
 varying vec3 vNormal;
+varying vec3 cNormal;
 varying vec3 newPosition;
 
 // dongus
@@ -28,7 +29,7 @@ void main() {
     newPosition =
         position +
         normal *
-        vec3(sin( ( -time * speed ) + ( (100.0 + position.y) * frequency ) )) * amplitude ;
+        vec3(sin( ( -time * speed ) + ( position.y * frequency ) )) * amplitude ;
 
     vec4 mvPosition = modelViewMatrix * vec4( newPosition, 1.0 );
     vec4 worldPosition = modelMatrix * vec4( newPosition, 1.0 );
@@ -48,6 +49,9 @@ void main() {
     vec3 vNormel = normalize( normalMatrix * viewVector );
     intensity = pow( c - dot(vNormal, vNormel), p );
     thingy = projectionMatrix * modelViewMatrix * vec4( newPosition, 1.0 );
+    cNormal = normal *
+        vec3(sin( ( -time * speed ) + ( position.y * frequency ) )) * amplitude ;
+
 
     gl_Position = thingy;
 
@@ -57,6 +61,7 @@ void main() {
 <script type="x-shader/x-fragment">
 uniform samplerCube tCube;
 uniform vec3 glowColor;
+varying vec3 cNormal;
 varying vec3 newPosition;
 varying vec4 thingy;
 
@@ -80,8 +85,11 @@ void main() {
     refractedColor = refractedColor + ( 1.6 * glowRim + refractedColor.r );
 
     vec4 mixed = mix( refractedColor, reflectedColor, clamp( vReflectionFactor, 0.0, 1.0 ) );
+
+    vec3 interp = vec3( mixed.x, mixed.y, mixed.z ) * dot( vec3(-10.0, 10.0, 0.0), vNormal );
+    vec4 done = vec4( interp, 1.0 );
     mixed.a = clamp( intensity * 3.6, 0.4, 0.8 );
 
-    gl_FragColor = mixed;
+    gl_FragColor = mixed + 0.1 * dot( vec3(0.0, 10.0, 0.0), cNormal );
 }
 </script>

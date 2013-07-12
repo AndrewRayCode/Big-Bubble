@@ -132,20 +132,13 @@ var Game = global.Game = Class.create({
             }
         });
 
-        Player.mesh.lookAt( Camera.main.position );
+        //Player.mesh.lookAt( Camera.main.position );
 
         Player.update();
         Player.constrain();
 
         pointLight1.position.x = Player.mesh.position.x;
         pointLight1.position.y = Player.mesh.position.y;
-
-        // This kind of makes me want to throw up
-        //Camera.main.lookAt({
-            //x: Player.mesh.position.x / 10,
-            //y: Player.mesh.position.y / 10,
-            //z: Player.mesh.position.z / 10
-        //});
 
         Thing.updateThings();
 

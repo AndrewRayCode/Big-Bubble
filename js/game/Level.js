@@ -9,7 +9,8 @@ var Level = global.Level = Class.create({
         next: 30,
         zoom: 500,
         start: function() {
-            Transitions.run('descend');
+            setTimeout(function(){Player.grow(50);}, 1);
+            //Transitions.run('descend');
         }
     }, {
         next: 50,

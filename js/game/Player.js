@@ -7,7 +7,7 @@ var Player = global.Player = Mixin.Entity.create({
             radius: 20,
             origRadius: 20,
             scale: 1,
-            segments: 26
+            segments: 36
         },
         phys: {
             inertia: new THREE.Vector3( 0, 0, 0 ),

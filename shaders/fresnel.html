@@ -49,8 +49,7 @@ void main() {
     vec3 vNormel = normalize( normalMatrix * viewVector );
     intensity = pow( c - dot(vNormal, vNormel), p );
     thingy = projectionMatrix * modelViewMatrix * vec4( newPosition, 1.0 );
-    cNormal = normal *
-        vec3(sin( ( -time * speed ) + ( position.y * frequency ) )) * amplitude ;
+    cNormal = vec3(sin( ( -time * speed ) + ( position.y * frequency ) )) * amplitude ;
 
 
     gl_Position = thingy;

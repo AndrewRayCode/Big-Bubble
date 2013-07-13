@@ -4,8 +4,8 @@ var Player = global.Player = Mixin.Entity.create({
 
     defaults: {
         build: {
-            radius: 20,
-            origRadius: 20,
+            radius: 50,
+            origRadius: 50,
             scale: 1,
             segments: 36
         },
@@ -123,8 +123,8 @@ var Player = global.Player = Mixin.Entity.create({
         }
     },
 
-    grow: function( radius ) {
-        this.build.radius += radius;
+    grow: function( amount ) {
+        this.build.radius += amount / 2;
         this.build.scale = this.mesh.scale.x = this.mesh.scale.y = this.mesh.scale.z = this.build.radius / this.build.origRadius;
     }
 });

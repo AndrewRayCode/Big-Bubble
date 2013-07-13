@@ -18,7 +18,7 @@ var Shader = global.Shader = Class.create({
             }
 
             shader.src = shader.fragment + '\n' + shader.vertex;
-            shader.uniforms = me.parseUniforms( shader.src );
+            $.extend( shader, me.parseMembers( shader.src ) );
 
             me.shaders[ shaderName ] = function() {
                 var args = Array.prototype.slice( arguments, 0 ),
@@ -54,13 +54,16 @@ var Shader = global.Shader = Class.create({
         sampler2D: { type: 't' }
     },
 
-    parseUniforms: function( src ) {
-        var regex = /^\s*uniform\s+(\w+)\s+(\w+)\s*;$/gm,
-            uniforms = {},
-            match;
+    parseMembers: function( src ) {
+        var regex = /^\s*(uniform|attribute)\s+(\w+)\s+(\w+)\s*;$/gm,
+            members = {
+                uniforms: {},
+                attributes: {}
+            },
+            match, mapped;
 
         while ( (match = regex.exec( src )) !== null ) {
-            var mapped = $.extend( {}, this.umap[ match[ 1 ] ] );
+            mapped = $.extend( {}, this.umap[ match[ 2 ] ] );
 
             if( mapped.value && typeof mapped.value === 'function' ) {
                 mapped.value = mapped.value();
@@ -68,24 +71,25 @@ var Shader = global.Shader = Class.create({
                 mapped.value = null;
             }
 
-            uniforms[ match[ 2 ] ] = mapped;
+            members[ match[ 1 ] + 's' ][ match[ 3 ] ] = mapped;
         }
 
         // Defaults
-        uniforms.resolution = {
+        members.uniforms.resolution = {
             value: new THREE.Vector2( World.stage.width , World.stage.height ),
             type:'v2'
         };
-        uniforms.mouse = {
+        members.uniforms.mouse = {
             value: new THREE.Vector2( 10, 10 ),
             type:'v2'
         };
 
-        return uniforms;
+        return members;
     },
 
     shaders: {
-        fresnel: function( shader, _uniforms ) {
+        fresnel: function( shader, members ) {
+            members = members || {};
 
             // Set default values
             shader.uniforms.tCube.value = Camera.mirror.renderTarget;
@@ -100,12 +104,14 @@ var Shader = global.Shader = Class.create({
             return new THREE.ShaderMaterial({
                 fragmentShader: shader.fragment,
                 vertexShader: shader.vertex,
-                uniforms: $.extend( {}, shader.uniforms, _uniforms ),
+                uniforms: $.extend( {}, shader.uniforms, members.uniforms ),
+                attributes: $.extend( {}, shader.attributes, members.attributes ),
                 transparent: true
             });
         },
 
-        bubble: function( shader, _uniforms ) {
+        bubble: function( shader, members ) {
+            members = members || {};
 
             // Set default values
             shader.uniforms.c.value = 1.2;
@@ -115,14 +121,16 @@ var Shader = global.Shader = Class.create({
             return new THREE.ShaderMaterial({
                 fragmentShader: shader.fragment,
                 vertexShader: shader.vertex,
-                uniforms: $.extend( {}, shader.uniforms, _uniforms ),
+                uniforms: $.extend( {}, shader.uniforms, members.uniforms ),
+                attributes: $.extend( {}, shader.attributes, members.attributes ),
                 side: THREE.FrontSide,
                 blending: THREE.AdditiveBlending,
                 transparent: true
             });
         },
 
-        fireball: function( shader, _uniforms ) {
+        fireball: function( shader, members ) {
+            members = members || {};
 
             // Set default values
             shader.uniforms.tExplosion.value = THREE.ImageUtils.loadTexture( 'media/explosion.png' );
@@ -131,13 +139,15 @@ var Shader = global.Shader = Class.create({
             shader.uniforms.noiseHeight.value = 1.0;
 
             return new THREE.ShaderMaterial({
-                uniforms: $.extend( {}, shader.uniforms, _uniforms ),
+                uniforms: $.extend( {}, shader.uniforms, members.uniforms ),
+                attributes: $.extend( {}, shader.attributes, members.attributes ),
                 fragmentShader: shader.fragment,
                 vertexShader: shader.vertex,
             });
         },
 
-        oceanbg: function( shader, _uniforms ) {
+        oceanbg: function( shader, members ) {
+            members = members || {};
 
             shader.uniforms.beamSpeed.value = 0.26;
             shader.uniforms.beamColor.value = new THREE.Vector3( 0.1, 0.2, 0.8 );
@@ -150,7 +160,8 @@ var Shader = global.Shader = Class.create({
             shader.uniforms.numBeams.value = 13;
 
             return new THREE.ShaderMaterial({
-                uniforms: $.extend( {}, shader.uniforms, _uniforms ),
+                uniforms: $.extend( {}, shader.uniforms, members.uniforms ),
+                attributes: $.extend( {}, shader.attributes, members.attributes ),
                 side: THREE.BackSide,
                 fragmentShader: shader.fragment,
                 vertexShader: shader.vertex

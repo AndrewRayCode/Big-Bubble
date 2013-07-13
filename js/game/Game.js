@@ -132,6 +132,9 @@ var Game = global.Game = Class.create({
             }
         });
 
+        Player.mesh.material.uniforms.diameter.value = Player.build.radius * 2;
+        Player.mesh.material.uniforms.scale.value = Player.build.scale;
+
         //Player.mesh.lookAt( Camera.main.position );
 
         Player.update();

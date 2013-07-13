@@ -130,8 +130,6 @@ var Game = global.Game = Class.create({
             }
         });
 
-        //Player.mesh.lookAt( Camera.main.position );
-
         Player.update();
 
         pointLight1.position.x = Player.mesh.position.x;

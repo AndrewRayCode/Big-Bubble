@@ -56,7 +56,7 @@ var Transitions = global.Transitions = Class.create({
                     Thing.makeEntity('mine', {
                         radius: 0.5 + Math.random() * 0.1
                     });
-                } else if( rand > 0.99 ) {
+                } else if( rand > 0.96 ) {
                     Thing.makeEntity('floater', {
                         radius: 10 + Math.random() * 10
                     });

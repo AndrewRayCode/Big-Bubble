@@ -98,6 +98,9 @@ var Player = global.Player = Mixin.Entity.create({
             this.constrain();
         },
         shader: function() {
+
+            Player.mesh.lookAt( Camera.main.position );
+
             if( this.phys.amplitude > 0 ) {
                 this.phys.amplitude -= Utils.speed( 12 );
                 if( this.phys.amplitude < 0 ) {

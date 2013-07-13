@@ -100,6 +100,9 @@ var Shader = global.Shader = Class.create({
             shader.uniforms.mFresnelBias.value = -1;
             shader.uniforms.mFresnelPower.value = 2.0;
             shader.uniforms.mFresnelScale.value = 2.0;
+            shader.uniforms.amplitude.value = 0;
+            shader.uniforms.frequency.value = 0.3;
+            shader.uniforms.speed.value = 20.0;
 
             return new THREE.ShaderMaterial({
                 fragmentShader: shader.fragment,

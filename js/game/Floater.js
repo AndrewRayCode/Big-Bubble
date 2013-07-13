@@ -70,6 +70,7 @@ var Floater = global.Floater = Mixin.Entity.extend({
                         Game.trigger( 'free', this );
 
                         Player.grow( this.r / 12 );
+                        Player.ripple( this );
 
                         if( Player.build.radius > Level.level.next ) {
                             Level.advance();

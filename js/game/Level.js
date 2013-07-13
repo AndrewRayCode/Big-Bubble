@@ -6,14 +6,13 @@ var Level = global.Level = Class.create({
     },
 
     levels: [{
-        next: 30,
+        next: 80,
         zoom: 500,
         start: function() {
-            setTimeout(function(){Player.grow(100);}, 1);
-            //Transitions.run('descend');
+            Transitions.run('descend');
         }
     }, {
-        next: 50,
+        next: 100,
         zoom: 600,
         start: function() {
             Transitions.run('maze');

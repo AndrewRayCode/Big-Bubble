@@ -108,8 +108,6 @@ var Game = global.Game = Class.create({
     },
 
     loop: function() {
-        Player.keyCheck();
-
         var timer = 0.0001 * Date.now(),
             me = this;
 
@@ -132,15 +130,9 @@ var Game = global.Game = Class.create({
             }
         });
 
-        if( 'diameter' in Player.mesh.material.uniforms ) {
-            Player.mesh.material.uniforms.diameter.value = Player.build.radius * 2;
-            Player.mesh.material.uniforms.scale.value = Player.build.scale;
-        }
-
         //Player.mesh.lookAt( Camera.main.position );
 
         Player.update();
-        Player.constrain();
 
         pointLight1.position.x = Player.mesh.position.x;
         pointLight1.position.y = Player.mesh.position.y;

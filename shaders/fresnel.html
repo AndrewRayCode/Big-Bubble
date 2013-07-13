@@ -1,4 +1,5 @@
 <script type="x-shader/x-vertex">
+// search lights https://glsl.heroku.com/e#9751.3
 uniform float diameter;
 uniform float scale;
 uniform float mRefractionRatio;
@@ -6,6 +7,9 @@ uniform float mFresnelBias;
 uniform float mFresnelScale;
 uniform float mFresnelPower;
 uniform float time;
+uniform float amplitude;
+uniform float frequency;
+uniform float speed;
 
 varying vec3 vReflect;
 varying vec3 vRefract[3];
@@ -19,11 +23,6 @@ uniform vec3 viewVector;
 uniform float c;
 uniform float p;
 varying float intensity;
-varying vec4 thingy;
-
-float amplitude = 3.125;
-float frequency = 0.3;
-float speed = 14.0;
 
 void main() {
 
@@ -49,9 +48,8 @@ void main() {
     vNormal = normalize( normalMatrix * normal );
     vec3 vNormel = normalize( normalMatrix * viewVector );
     intensity = pow( c - dot(vNormal, vNormel), p );
-    thingy = projectionMatrix * modelViewMatrix * vec4( newPosition, 1.0 );
 
-    gl_Position = thingy;
+    gl_Position = projectionMatrix * modelViewMatrix * vec4( newPosition, 1.0 );
 
 }
 </script>
@@ -59,10 +57,10 @@ void main() {
 <script type="x-shader/x-fragment">
 uniform samplerCube tCube;
 uniform vec3 glowColor;
+uniform float amplitude;
+
 varying vec3 tapered;
 varying vec3 newPosition;
-varying vec4 thingy;
-
 varying vec3 vNormal;
 varying vec3 vReflect;
 varying vec3 vRefract[3];
@@ -88,6 +86,6 @@ void main() {
     vec4 done = vec4( interp, 1.0 );
     mixed.a = clamp( intensity * 3.6, 0.4, 0.8 );
 
-    gl_FragColor = mixed + ( 0.05 * dot( vec3(0.0, 10.0, 0.0), tapered ) );
+    gl_FragColor = mixed + ( 0.001 * amplitude * dot( vec3(0.0, 10.0, 0.0), tapered ) );
 }
 </script>

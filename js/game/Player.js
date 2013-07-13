@@ -13,7 +13,8 @@ var Player = global.Player = Mixin.Entity.create({
             inertia: new THREE.Vector3( 0, 0, 0 ),
             acceleration: 27,
             deceleration: 15,
-            max: 400
+            max: 400,
+            amplitude: 0
         }
     },
 
@@ -23,6 +24,7 @@ var Player = global.Player = Mixin.Entity.create({
     },
 
     init: function() {
+        this.id = 0;
         this._super();
     },
 
@@ -90,8 +92,25 @@ var Player = global.Player = Mixin.Entity.create({
         Utils.cap( inertia, phys.max );
     },
 
-    update: function() {
-        this.move( this.phys.inertia );
+    updateFns: {
+        move: function() {
+            this.move( this.phys.inertia );
+            this.constrain();
+        },
+        shader: function() {
+            if( this.phys.amplitude > 0 ) {
+                this.phys.amplitude -= Utils.speed( 12 );
+                if( this.phys.amplitude < 0 ) {
+                    this.phys.amplitude = 0;
+                }
+                this.mesh.material.uniforms.amplitude.value = this.phys.amplitude;
+                this.mesh.rotation.z = this.build.zrot;
+            }
+
+        },
+        keyCheck: function() {
+            this.keyCheck();
+        }
     },
     
     constrain: function() {
@@ -123,9 +142,24 @@ var Player = global.Player = Mixin.Entity.create({
         }
     },
 
+    ripple: function( target ) {
+        this.phys.amplitude = 7;
+
+        if( target ) {
+            var p1 = Player.mesh.position,
+                p2 = target.mesh.position;
+            this.build.zrot = Math.atan2( p2.y - p1.y, p2.x - p1.x ) - THREE.Math.degToRad( 90 );
+        }
+    },
+
     grow: function( amount ) {
         this.build.radius += amount / 2;
         this.build.scale = this.mesh.scale.x = this.mesh.scale.y = this.mesh.scale.z = this.build.radius / this.build.origRadius;
+
+        if( 'diameter' in this.mesh.material.uniforms ) {
+            this.mesh.material.uniforms.diameter.value = this.build.radius * 2;
+            this.mesh.material.uniforms.scale.value = this.build.scale;
+        }
     }
 });
 

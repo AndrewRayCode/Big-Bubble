@@ -14,7 +14,8 @@ var Player = global.Player = Mixin.Entity.create({
             acceleration: 27,
             deceleration: 15,
             max: 400,
-            amplitude: 0
+            amplitude: 0,
+            friction: 2
         }
     },
 
@@ -34,6 +35,10 @@ var Player = global.Player = Mixin.Entity.create({
             mesh = this.mesh = new THREE.Mesh( geometry, Shader.shaders.fresnel() ),
             vertexIndex = mesh.geometry.vertices.length - 1,
             v;
+
+        // Force player bubble drawing over all other bubbles to avoid
+        // z-fighting during bubble intersection
+        mesh.renderDepth = 1000;
 
         while( v = mesh.geometry.vertices[ vertexIndex-- ] ) {
             if( v.z <= 0 && v.z > -8) {
@@ -102,11 +107,13 @@ var Player = global.Player = Mixin.Entity.create({
             Player.mesh.lookAt( Camera.main.position );
 
             if( this.phys.amplitude > 0 ) {
-                this.phys.amplitude -= Utils.speed( 12 );
+                this.phys.amplitude -= Utils.speed( this.phys.friction );
                 if( this.phys.amplitude < 0 ) {
                     this.phys.amplitude = 0;
                 }
-                this.mesh.material.uniforms.amplitude.value = this.phys.amplitude;
+                if( 'amplitude' in this.mesh.material.uniforms ) {
+                    this.mesh.material.uniforms.amplitude.value = this.phys.amplitude;
+                }
                 this.mesh.rotation.z = this.build.zrot;
             }
 
@@ -145,13 +152,15 @@ var Player = global.Player = Mixin.Entity.create({
         }
     },
 
-    ripple: function( target ) {
-        this.phys.amplitude = 7;
+    ripple: function( target, amplitude ) {
+        if( this.phys.amplitude <= 3 ) {
+            this.phys.amplitude = amplitude;
 
-        if( target ) {
-            var p1 = Player.mesh.position,
-                p2 = target.mesh.position;
-            this.build.zrot = Math.atan2( p2.y - p1.y, p2.x - p1.x ) - THREE.Math.degToRad( 90 );
+            if( target ) {
+                var p1 = Player.mesh.position,
+                    p2 = target.mesh.position;
+                this.build.zrot = Math.atan2( p2.y - p1.y, p2.x - p1.x ) - THREE.Math.degToRad( 90 );
+            }
         }
     },
 

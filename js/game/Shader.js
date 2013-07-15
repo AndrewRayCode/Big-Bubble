@@ -88,6 +88,7 @@ var Shader = global.Shader = Class.create({
     },
 
     shaders: {
+
         fresnel: function( shader, members ) {
             members = members || {};
 
@@ -101,16 +102,20 @@ var Shader = global.Shader = Class.create({
             shader.uniforms.mFresnelPower.value = 2.0;
             shader.uniforms.mFresnelScale.value = 2.0;
             shader.uniforms.amplitude.value = 0;
-            shader.uniforms.frequency.value = 0.3;
+            shader.uniforms.frequency.value = 0.4;
             shader.uniforms.speed.value = 20.0;
 
-            return new THREE.ShaderMaterial({
+            var mat = new THREE.ShaderMaterial({
                 fragmentShader: shader.fragment,
                 vertexShader: shader.vertex,
                 uniforms: $.extend( {}, shader.uniforms, members.uniforms ),
                 attributes: $.extend( {}, shader.attributes, members.attributes ),
                 transparent: true
             });
+
+            mat.depthWite = false;
+
+            return mat;
         },
 
         bubble: function( shader, members ) {
@@ -121,7 +126,7 @@ var Shader = global.Shader = Class.create({
             shader.uniforms.p.value = 2.4;
             shader.uniforms.glowColor.value = new THREE.Color( 0x69D2E7 );
 
-            return new THREE.ShaderMaterial({
+            var mat = new THREE.ShaderMaterial({
                 fragmentShader: shader.fragment,
                 vertexShader: shader.vertex,
                 uniforms: $.extend( {}, shader.uniforms, members.uniforms ),
@@ -130,6 +135,8 @@ var Shader = global.Shader = Class.create({
                 blending: THREE.AdditiveBlending,
                 transparent: true
             });
+
+            return mat;
         },
 
         fireball: function( shader, members ) {

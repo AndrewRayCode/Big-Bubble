@@ -42,6 +42,7 @@ var Thing = global.Thing = Class.create({
         var complete = function() {
             thing.id = me.id;
             thing.load( options );
+            thing.mesh.renderDepth = 500 + thing.id;
             cache.active[ thing.id ] = thing;
 
             World.scene.add( thing.mesh );

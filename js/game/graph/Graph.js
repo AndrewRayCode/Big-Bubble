@@ -1,3 +1,4 @@
+// http://www.brandonheyer.com/2013/04/24/maze-generating-algorithms-fun-with-html-and-javascript/
 (function( global ) {
 
 var Graph = global.Graph = Class.extend({

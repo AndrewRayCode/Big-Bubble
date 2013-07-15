@@ -23,9 +23,11 @@ var Floater = global.Floater = Mixin.Entity.extend({
 
         var radius = options.radius || 10 + 5 * Math.random();
 
-        this.mesh.position.x = options.x || Utils.randFloat( Camera.data.frustrum.min.x, Camera.data.frustrum.max.x );
-        this.mesh.position.y = options.y || Camera.data.frustrum.max.y + ( radius * 2 );
-        this.mesh.position.z = 0;
+        this.mesh.position = new THREE.Vector3(
+            options.x || Utils.randFloat( Camera.data.frustrum.min.x, Camera.data.frustrum.max.x ),
+            options.y || Camera.data.frustrum.max.y + ( radius * 2 ),
+            options.z || 0
+        );
         this.inertia = options.inertia || new THREE.Vector3(
             0, -100 - ( Math.random() ), 0
         );
@@ -53,15 +55,12 @@ var Floater = global.Floater = Mixin.Entity.extend({
         },
         collision: function() {
             if( Player.isCollidingWith( this ) ) {
-                this.mesh.position.z = 0;
                 this.lockTo( Player );
 
                 this.setLockDistance( Player, this.r );
 
                 this.replaceUpdater( 'move', function() {
 
-                    //this.mesh.material.color.r += 0.01;
-                    //this.mesh.material.color.b += 0.01;
                     this.mesh.material.uniforms.c.value += Utils.speed( 0.2 );
                     this.speedLockTowards( Player, 4 );
                     this.mesh.lookAt( Camera.main.position );
@@ -70,7 +69,7 @@ var Floater = global.Floater = Mixin.Entity.extend({
                         Game.trigger( 'free', this );
 
                         Player.grow( this.r / 12 );
-                        Player.ripple( this );
+                        Player.ripple( this, 1 + this.r / 5 );
 
                         if( Player.build.radius > Level.level.next ) {
                             Level.advance();

@@ -86,6 +86,6 @@ void main() {
     vec4 done = vec4( interp, 1.0 );
     mixed.a = clamp( intensity * 3.6, 0.4, 0.8 );
 
-    gl_FragColor = mixed + ( 0.001 * amplitude * dot( vec3(0.0, 10.0, 0.0), tapered ) );
+    gl_FragColor = mixed + ( 0.002 * amplitude * dot( vec3(0.0, 10.0, 0.0), tapered ) );
 }
 </script>

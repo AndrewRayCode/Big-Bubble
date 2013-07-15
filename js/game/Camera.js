@@ -93,77 +93,18 @@ var Camera = global.Camera = Mixin.Doodad.create({
 
         this.mirror.position.x = Player.mesh.position.x;
         this.mirror.position.y = Player.mesh.position.y;
-        this.mirror.position.z = Player.mesh.position.z + 10;
+        this.mirror.position.z = Player.mesh.position.z + Player.build.radius;
 
         Player.mesh.visible = false;
-        //World.plane.mesh.visible = false;
 
-        //var floater, id;
-        //for( id in BubbleManager.forgotten ) {
-            //floater = BubbleManager.forgotten[ id ];
-            //floater.scaleTo( floater.mesh.scale.x + 2 );
-        //}
-        //for( id in BubbleManager.floaters ) {
-            //floater = BubbleManager.floaters[ id ];
-            //floater.scaleTo( floater.mesh.scale.x + 2 );
-        //}
-
-        //var cubeGeometry = World.skyBox.geometry,
-            //faceIndices = [ 'a', 'b', 'c', 'd' ],
-            //size = Camera.data.frustrum.y * 2,
-            //face, numberOfSides, vertexIndex, point, color, i, j, rgbPoint;
-
-        //for ( i = 0; i < cubeGeometry.faces.length; i++ ) {
-            //face = cubeGeometry.faces[ i ];
-            //// determine if current face is a tri or a quad
-            //numberOfSides = ( face instanceof THREE.Face3 ) ? 3 : 4;
-            //// assign color to each vertex of current face
-            //for( j = 0; j < numberOfSides; j++ ) {
-                //vertexIndex = face[ faceIndices[ j ] ];
-                //// store coordinates of vertex
-                //point = cubeGeometry.vertices[ vertexIndex ];
-                //// initialize color variable
-                ////color = new THREE.Color( 0xffffff );
-                ////color.setRGB( 0.5 + point.x / size, 0.5 + point.y / size, 0.5 + point.z / size );
-                ////face.vertexColors[ j ] = color;
-            //}
-        //}
-
-        //World.skyBox.colorsNeedUpdate = true;
+        _.each( Player.locks, function( lock ) {
+            lock.mesh.visible = false;
+        });
         this.mirror.updateCubeMap( World.renderer, World.scene );
+        _.each( Player.locks, function( lock ) {
+            lock.mesh.visible = true;
+        });
 
-        //for ( i = 0; i < cubeGeometry.faces.length; i++ ) {
-            //face = cubeGeometry.faces[ i ];
-
-            //// determine if current face is a tri or a quad
-            //numberOfSides = ( face instanceof THREE.Face3 ) ? 3 : 4;
-
-            //// assign color to each vertex of current face
-            //for( j = 0; j < numberOfSides; j++ ) {
-                //vertexIndex = face[ faceIndices[ j ] ];
-                //// store coordinates of vertex
-                //rgbPoint = cubeGeometry.vertices[ vertexIndex ];
-
-                //color = new THREE.Color( 0x2185C5 );
-
-                ////0.5 + rgbPoint.y / cubeSide, 0.5 + rgbPoint.z / cubeSide );
-                ////color.r -= 0.3 * ( 0.5 - rgbPoint.x / size );
-                ////color.g -= 0.3 * ( 0.5 - rgbPoint.y / size );
-                ////color.b -= 0.3 * ( 0.5 - rgbPoint.z / size );
-                //color.setRGB( 0.5 + rgbPoint.x / size, 0.5 + rgbPoint.y / size, 0.5 + rgbPoint.z / size );
-                //face.vertexColors[ j ] = color;
-            //}
-        //}
-        //World.skyBox.colorsNeedUpdate = true;
-
-        //for( id in BubbleManager.forgotten ) {
-            //floater = BubbleManager.forgotten[ id ];
-            //floater.scaleTo( floater.mesh.scale.x - 2 );
-        //}
-        //for( id in BubbleManager.floaters ) {
-            //floater = BubbleManager.floaters[ id ];
-            //floater.scaleTo( floater.mesh.scale.x - 2 );
-        //}
         Player.mesh.visible = true;
         World.plane.mesh.visible = true;
 

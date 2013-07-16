@@ -94,7 +94,9 @@ var Shader = global.Shader = Class.create({
 
             // Set default values
             shader.uniforms.tCube.value = Camera.mirror.renderTarget;
-            shader.uniforms.c.value = 1.0;
+            // Anything lower than this seems to cause a black artifact on
+            // the bubble
+            shader.uniforms.c.value = 1.01;
             shader.uniforms.p.value = 2.4;
             shader.uniforms.glowColor.value = new THREE.Color( 0x69D2E7 );
             shader.uniforms.mRefractionRatio.value = 0.1;

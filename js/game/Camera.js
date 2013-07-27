@@ -12,6 +12,16 @@ var Camera = global.Camera = Mixin.Doodad.create({
 
     init: function() {
         this._super();
+
+        var me = this;
+
+        Game.bind( 'resize', function( dim ) {
+            if( me.main ) {
+                me.main.aspect = dim.x / dim.y;
+                me.calculateFrustrum();
+                me.main.updateProjectionMatrix();
+            }
+        });
     },
 
     activate: function() {
@@ -19,7 +29,7 @@ var Camera = global.Camera = Mixin.Doodad.create({
 
         // PerspectiveCamera( fov, aspect, near, far )
         this.main = new THREE.PerspectiveCamera(
-            this.data.fov, World.stage.width / World.stage.height, 1, 100000
+            this.data.fov, World.size.x / World.size.y, 1, 100000
         );
 
         var mirror = this.mirror = new THREE.CubeCamera( 0.1, 10000, 128 );
@@ -38,7 +48,7 @@ var Camera = global.Camera = Mixin.Doodad.create({
         var frustumHeight = 2.0 * distanceFromCamera * Math.tan(this.data.fov * 0.5 * ( Math.PI / 180 ) ),
             box = new THREE.Box2(),
             size = new THREE.Vector2(
-                frustumHeight * World.stage.aspect,
+                frustumHeight * World.aspect,
                 frustumHeight
             );
 
@@ -46,7 +56,7 @@ var Camera = global.Camera = Mixin.Doodad.create({
         box.height = size.y;
         
         return box.setFromCenterAndSize( this.main.position, new THREE.Vector2(
-            frustumHeight * World.stage.aspect,
+            frustumHeight * World.aspect,
             frustumHeight
         ));
     },

@@ -6,22 +6,20 @@ var Level = global.Level = Class.create({
     },
 
     levels: [{
-        next: 80,
+        next: 13,
         zoom: 500,
         start: function() {
             Transitions.run('descend');
         }
     }, {
-        next: 100,
-        zoom: 600,
-        start: function() {
-            Transitions.run('maze');
-        }
+        next: 30,
+        zoom: 700,
+        size: new THREE.Vector2( 400, 500 )
     }, {
         next: 80,
         zoom: 700,
         start: function() {
-            Transitions.run('descend');
+            Transitions.run('maze');
         }
     }, {
         next: 90,
@@ -42,6 +40,10 @@ var Level = global.Level = Class.create({
             this.levels[ this.index ].next *= 1.5;
             this.levels[ this.index ].zoom += 100;
             this.level = this.levels[ this.index ];
+        }
+
+        if( this.level.size ) {
+            World.grow( this.level.size.clone().sub( World.size ));
         }
 
         if( this.level.start ) {

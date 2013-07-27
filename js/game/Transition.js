@@ -58,7 +58,7 @@ var Transitions = global.Transitions = Class.create({
                     });
                 } else if( rand > 0.96 ) {
                     Thing.makeEntity('floater', {
-                        radius: 10 + Math.random() * 10
+                        radius: Utils.randInt(Player.build.radius / 10, Player.build.radius / 2)
                     });
                 }
             }

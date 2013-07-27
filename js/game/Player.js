@@ -4,8 +4,7 @@ var Player = global.Player = Mixin.Entity.create({
 
     defaults: {
         build: {
-            radius: 50,
-            origRadius: 50,
+            radius: 10,
             scale: 1,
             segments: 36
         },
@@ -59,11 +58,12 @@ var Player = global.Player = Mixin.Entity.create({
 
     reset: function() {
         this.resetDefaults();
+        this.build.origRadius = this.build.targetRadius = this.build.radius;
 
         this.mesh.position.x = 0;
         this.mesh.position.y = 0;
         this.mesh.position.z = 0;
-        this.scaleTo( 1 );
+        this.scale( this.build.radius );
     },
 
     keyCheck: function() {
@@ -99,6 +99,10 @@ var Player = global.Player = Mixin.Entity.create({
 
     updateFns: {
         move: function() {
+            var delta = this.build.targetRadius - this.build.radius;
+            if( Math.abs( delta ) > 0.1 ) {
+                this.scale( this.build.radius + ( delta / 5 ) + 0.01);
+            }
             this.move( this.phys.inertia );
             this.constrain();
         },
@@ -154,7 +158,12 @@ var Player = global.Player = Mixin.Entity.create({
 
     ripple: function( target, amplitude ) {
         if( this.phys.amplitude <= 3 ) {
+            amplitude = 4 + ( amplitude * 0.05 );
             this.phys.amplitude = amplitude;
+
+            if( 'amplitude' in this.mesh.material.uniforms ) {
+                this.mesh.material.uniforms.frequency.value = Utils.randFloat( 0.3, 3 );
+            }
 
             if( target ) {
                 var p1 = Player.mesh.position,
@@ -165,8 +174,16 @@ var Player = global.Player = Mixin.Entity.create({
     },
 
     grow: function( amount ) {
-        this.build.radius += amount / 2;
-        this.build.scale = this.mesh.scale.x = this.mesh.scale.y = this.mesh.scale.z = this.build.radius / this.build.origRadius;
+        this.build.targetRadius += amount / 10;
+    },
+
+    scale: function( radius ) {
+        this.build.radius = radius;
+        this.build.scale = this.mesh.scale.x = this.mesh.scale.y = this.mesh.scale.z = radius / this.build.origRadius;
+
+        this.phys.acceleration = 5.0 + ( 0.054 * radius );
+        this.phys.deceleration = 5.0 + ( 0.04 * radius );
+        this.phys.max = 80 + ( 3 * radius );
 
         if( 'diameter' in this.mesh.material.uniforms ) {
             this.mesh.material.uniforms.diameter.value = this.build.radius * 2;

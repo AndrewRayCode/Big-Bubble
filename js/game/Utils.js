@@ -1,7 +1,7 @@
 (function( global ) {
 
 var speed = function( val ) {
-    if( val instanceof THREE.Vector3 ) {
+    if( val instanceof THREE.Vector3 || val instanceof THREE.Vector2 ) {
         return val.clone().multiplyScalar( Game.time.delta );
     }
     return val * Game.time.delta;

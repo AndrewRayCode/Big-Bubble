@@ -7,7 +7,6 @@ if ( !window.Detector.webgl ) {
 (function() {
 
 Shader.load();
-World.load();
 Camera.activate();
 Player.load();
 World.populate();

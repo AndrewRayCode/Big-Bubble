@@ -27,7 +27,7 @@ varying float intensity;
 void main() {
 
     vec3 scaledPosition = position * scale;
-    vec3 wave = vec3(sin( ( time * speed ) + ( position.y * frequency ) )) * amplitude * normal;
+    vec3 wave = ( vec3(sin( ( time * speed ) + ( position.y * frequency ) )) * amplitude * normal ) / scale;
     tapered = wave * ( ( scaledPosition.y + ( diameter / 2.0 ) ) / 300. );
 
     newPosition = position + normal + tapered;
@@ -86,6 +86,6 @@ void main() {
     vec4 done = vec4( interp, 1.0 );
     mixed.a = clamp( intensity * 3.6, 0.4, 0.8 );
 
-    gl_FragColor = mixed + ( 0.002 * amplitude * dot( vec3(0.0, 10.0, 0.0), tapered ) );
+    gl_FragColor = mixed + ( 0.02 * amplitude * dot( vec3(0.0, 10.0, 0.0), tapered ) );
 }
 </script>

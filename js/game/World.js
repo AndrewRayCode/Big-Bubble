@@ -1,50 +1,53 @@
 (function( global ) {
 
-var World = global.World = Class.create({
+var World = global.World = Mixin.Doodad.create({
     keysDown: {},
 
     scene: new THREE.Scene(),
 
-    stage: {
-        width: 400,
-        height: 600,
-
-        calculateAspect: function() {
-            return (this.aspect = this.width / this.height);
-        },
-
-        setSize: function( x, y ) {
-            var me = this;
-            this.width = x;
-            this.height = y;
-
-            World.renderer.setSize( x, y );
-            World.$container.css({
-                width: x + 'px',
-                height: y  + 'px'
-            });
-        }
+    defaults: {
+        size: new THREE.Vector2( 300, 500 ),
     },
 
-    load: function() {
-        this.renderer = new THREE.WebGLRenderer( { antialias: true } );
-        this.renderer.setSize( this.stage.width, this.stage.height );
+    calculateAspect: function() {
+        return ( this.aspect = this.size.x / this.size.y );
+    },
+
+    grow: function( dim ) {
+        this.growTarget = this.size.clone().add( dim );
+    },
+
+    setSize: function( dim ) {
+        this.size.copy( dim );
+        this.calculateAspect();
+
+        this.renderer.setSize( dim.x, dim.y );
+        this.$container.css({
+            width: dim.x + 'px',
+            height: dim.y  + 'px'
+        });
+
+        Game.trigger( 'resize', dim );
+    },
+
+    init: function() {
+        this._super();
+
+        this.renderer = new THREE.WebGLRenderer( { autoClear: false, antialias: true } );
         this.renderer.shadowMapEnabled = true;
 
-        this.stage.calculateAspect();
+        this.$container = $('#game');
+        this.setSize( this.size );
 
-        var $container = this.$container = $('#game').css({
-            width: this.stage.width + 'px',
-            height: this.stage.height + 'px'
-        });
-        $container.append( this.renderer.domElement );
+        this.$container.append( this.renderer.domElement );
 
         this.reset();
     },
 
     reset: function() {
         this.bgColor = new THREE.Color( 0x002462 );
-        this.stage.setSize(this.stage.width, this.stage.height);
+        this.resetDefaults();
+        this.setSize( this.size );
     },
 
     populate: function() {
@@ -54,8 +57,24 @@ var World = global.World = Class.create({
             )
         });
         skyBox.mesh.visible = false;
-        World.scene.add( skyBox.mesh );
+        this.scene.add( skyBox.mesh );
     },
+
+    update: function() {
+
+        if( this.growTarget ) {
+            var delta = this.growTarget.clone().sub( World.size );
+
+            if( Math.abs( delta.x ) > 0.1 || Math.abs( delta.y ) > 0.1 ) {
+                this.newSize = new THREE.Vector2(
+                    this.size.x + ( delta.x / 6 ) + 0.01,
+                    this.size.y + ( delta.y / 6 ) + 0.01
+                );
+            } else {
+                delete this.growTarget;
+            }
+        }
+    }
 });
 
 }(this));

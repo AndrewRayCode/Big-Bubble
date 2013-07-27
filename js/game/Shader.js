@@ -1,4 +1,5 @@
 // uniform types https://github.com/mrdoob/three.js/wiki/Uniforms-types
+// textures! www.textureking.com
 (function( global ) {
 
 var Shader = global.Shader = Class.create({
@@ -76,7 +77,7 @@ var Shader = global.Shader = Class.create({
 
         // Defaults
         members.uniforms.resolution = {
-            value: new THREE.Vector2( World.stage.width , World.stage.height ),
+            value: World.size.clone(),
             type:'v2'
         };
         members.uniforms.mouse = {

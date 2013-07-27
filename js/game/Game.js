@@ -12,7 +12,9 @@ var Game = global.Game = Class.create({
     bounds: {},
 
     trigger: function() {
-        this.binder.trigger.apply( this.binder, arguments );
+        var args = [ arguments[0] ];
+        args = args.concat( [ Array.prototype.slice.call(arguments, 1) ] );
+        this.binder.trigger.apply( this.binder, args );
     },
 
     bind: function( evt, fn ) {
@@ -25,7 +27,7 @@ var Game = global.Game = Class.create({
         if( !evts ) {
             evts = this.bounds[ evt ] = [];
         }
-        evts.push( {orig: fn, bound: newFn } );
+        evts.push( { orig: fn, bound: newFn } );
         this.binder.bind( evt, newFn );
     },
 
@@ -103,6 +105,13 @@ var Game = global.Game = Class.create({
         window.requestAnimationFrame( Game.reqFrame );
 
         if( Game.running ) {
+            if( World.newSize ) {
+                World.setSize( World.newSize );
+
+                _.each( Shader.cache, function( shader, name ) {
+                    shader.uniforms.resolution.value = World.size.clone();
+                });
+            }
             Game.loop();
         }
     },
@@ -130,6 +139,7 @@ var Game = global.Game = Class.create({
             }
         });
 
+        World.update();
         Player.update();
 
         pointLight1.position.x = Player.mesh.position.x;

@@ -68,8 +68,8 @@ var Floater = global.Floater = Mixin.Entity.extend({
                     if( new Date() - this.lockTime > 1600 ) {
                         Game.trigger( 'free', this );
 
-                        Player.grow( this.r / 12 );
-                        Player.ripple( this, 1 + this.r / 5 );
+                        Player.grow( this.r );
+                        Player.ripple( this, 1 + this.r );
 
                         if( Player.build.radius > Level.level.next ) {
                             Level.advance();

@@ -6,6 +6,7 @@
 // 2d water refraction https://www.shadertoy.com/view/4slGRM
 // sonar https://glsl.heroku.com/e#10201.0
 // spirals spinning https://glsl.heroku.com/e#10207.0
+// beautiful cloud-like surface https://glsl.heroku.com/e#10647.1
 (function( global ) {
 
 var Shader = global.Shader = Class.create({

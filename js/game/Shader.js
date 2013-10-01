@@ -1,5 +1,11 @@
 // uniform types https://github.com/mrdoob/three.js/wiki/Uniforms-types
+// www.flickr.com/photos/chorando/sets/72157607835630011/
 // textures! www.textureking.com
+// 3d fireball https://www.shadertoy.com/view/4ssGzn
+// pretty flame https://www.shadertoy.com/view/MdX3zr
+// 2d water refraction https://www.shadertoy.com/view/4slGRM
+// sonar https://glsl.heroku.com/e#10201.0
+// spirals spinning https://glsl.heroku.com/e#10207.0
 (function( global ) {
 
 var Shader = global.Shader = Class.create({
@@ -167,7 +173,7 @@ var Shader = global.Shader = Class.create({
             shader.uniforms.bgColor.value = World.bgColor;
             shader.uniforms.dModifier.value = 0;
             shader.uniforms.brightness.value = 0.8;
-            shader.uniforms.slantBrightness.value = 0.8;
+            shader.uniforms.slantBrightness.value = 0.2;
             shader.uniforms.fractalBrightness.value = 1.3;
             shader.uniforms.fractalSpeed.value = 0.3;
             shader.uniforms.numBeams.value = 13;

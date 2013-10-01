@@ -77,18 +77,17 @@ var Transitions = global.Transitions = Class.create({
                     thing.replaceUpdater( 'fade', function() {
                         var zPos = thing.mesh.position.z;
 
-                        if( zPos > 0 ) {
-                            thing.mesh.material.opacity -= Utils.speed( 0.5 );
+                        if( zPos > -Player.build.radius * 6.0 ) {
+                            if( thing.inertia.z > 0.1 ) {
+                                thing.inertia.z -= Utils.speed( 80.0 );
+                            }
+                            thing.mesh.material.uniforms.opacity.value -= Utils.speed( 0.01 );
 
-                            if( thing.mesh.material.opacity <= 0 ) {
+                            if( thing.mesh.material.uniforms.opacity.value <= 0 ) {
                                 Game.trigger( 'free', thing );
                             }
                         } else {
-                            thing.mesh.material.opacity = 0.5 - ((-1 * zPos) / 1000) * 0.5;
-
-                            if( zPos > -300 ) {
-                                this.mesh.material.color.g += Utils.speed( 0.1 );
-                            }
+                            thing.mesh.material.uniforms.opacity.value = 0.5 - ((-1 * zPos) / 1000) * 0.5;
                         }
                         
                     });
@@ -121,6 +120,7 @@ var Transitions = global.Transitions = Class.create({
                 }
             },
             start: function() {
+                //this.cameraInertia = new THREE.Vector3( 0, 0, 0 );
                 Game.bind( 'initted', this.initBind );
             },
             end: function() {
@@ -133,9 +133,9 @@ var Transitions = global.Transitions = Class.create({
                     Thing.makeEntity('mine', {
                         radius: 0.5 + Math.random() * 0.1
                     });
-                } else if( rand > 0.9 ) {
+                } else if( rand > 0.91 ) {
                     Thing.makeEntity('floater', {
-                        radius: 20
+                        radius: Player.build.radius
                     });
                 }
 
@@ -148,7 +148,17 @@ var Transitions = global.Transitions = Class.create({
                         thing.inertia.y = 0;
                     }
                 });
-            }
+                //this.updateCamera();
+            },
+
+            // todo: offset camera based on player position
+            //updateCamera: function() {
+                //Camera.offset( new THREE.Vector3(
+                    //Player.mesh.position.x / 10,
+                    //Player.mesh.position.y / 10,
+                    //0
+                //));
+            //}
         },
 
         maze: Transition.create({

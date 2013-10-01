@@ -5,6 +5,7 @@ var Camera = global.Camera = Mixin.Doodad.create({
     defaults: {
         data: {
             target: new THREE.Vector3( 0, 0, 0 ),
+            offset: new THREE.Vector3( 0, 0, 0 ),
             fov: 60,
             frustrum: {}
         }
@@ -61,16 +62,16 @@ var Camera = global.Camera = Mixin.Doodad.create({
         ));
     },
 
-    calculateFrustrum: function( ) {
+    calculateFrustrum: function() {
         this.data.frustrum = this.getFrustrumAt( this.data.zoom );
     },
 
     pan: function( vecOffset ) {
         vecOffset.z = vecOffset.z || 0;
 
-        Camera.main.position.add( vecOffset );
-        Camera.data.target.add( vecOffset );
-        Camera.main.lookAt( Camera.data.target );
+        this.main.position.add( vecOffset );
+        this.data.target.add( vecOffset );
+        this.main.lookAt( this.data.target );
 
         World.plane.mesh.position.add( vecOffset );
         World.skyBox.mesh.position.add( vecOffset );

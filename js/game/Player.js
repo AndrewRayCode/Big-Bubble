@@ -181,9 +181,9 @@ var Player = global.Player = Mixin.Entity.create({
         this.build.radius = radius;
         this.build.scale = this.mesh.scale.x = this.mesh.scale.y = this.mesh.scale.z = radius / this.build.origRadius;
 
-        this.phys.acceleration = 10.0 + ( 0.054 * radius );
-        this.phys.deceleration = 5.0 + ( 0.04 * radius );
-        this.phys.max = 200 + ( 3 * radius );
+        this.phys.acceleration = 11.0 + ( 0.054 * radius );
+        this.phys.deceleration = 2.9 + ( 0.04 * radius );
+        this.phys.max = 190 + ( 3 * radius );
 
         if( 'diameter' in this.mesh.material.uniforms ) {
             this.mesh.material.uniforms.diameter.value = this.build.radius * 2;

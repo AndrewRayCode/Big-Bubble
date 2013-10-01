@@ -15,11 +15,12 @@ void main() {
 
 <script type="x-shader/x-fragment">
 uniform vec3 glowColor;
+uniform float opacity;
 varying float intensity;
 
 void main() {
     vec4 glow = vec4( glowColor * intensity, 1.0 );
-    glow.a = clamp( intensity * 1.6, 0.0, 0.9 );
+    glow.a = clamp( intensity * 1.6, 0.0, 0.9 ) * opacity;
 
     gl_FragColor = glow;
 

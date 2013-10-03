@@ -9,16 +9,24 @@ var Level = global.Level = Class.create({
         next: 13,
         zoom: 500,
         start: function() {
+            var text = new Text3d('Big Bubble!');
+            text.introduce();
             Transitions.run('descend');
         }
     }, {
         next: 30,
         zoom: 700,
+        start: function() {
+            var text = new Text3d('Zoom out!');
+            text.introduce();
+        },
         size: new THREE.Vector2( 400, 500 )
     }, {
         next: 80,
         zoom: 700,
         start: function() {
+            var text = new Text3d('Bubble Madness!');
+            text.introduce();
             Transitions.run('maze');
         }
     }, {
@@ -29,8 +37,6 @@ var Level = global.Level = Class.create({
         }
     }],
     reset: function() {
-        var text = new Text3d('Big Bubble!');
-        text.introduce();
         this.init();
     },
     advance: function() {

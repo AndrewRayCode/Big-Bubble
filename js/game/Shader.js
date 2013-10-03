@@ -134,6 +134,7 @@ var Shader = global.Shader = Class.create({
             // Set default values
             shader.uniforms.c.value = 1.2;
             shader.uniforms.p.value = 2.4;
+            shader.uniforms.opacity.value = 1.0;
             shader.uniforms.glowColor.value = new THREE.Color( 0x69D2E7 );
 
             var mat = new THREE.ShaderMaterial({

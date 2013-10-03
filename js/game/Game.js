@@ -139,6 +139,8 @@ var Game = global.Game = Class.create({
             }
         });
 
+        TWEEN.update();
+        TextManager.update();
         World.update();
         Player.update();
 

@@ -10,7 +10,6 @@ Shader.load();
 Camera.activate();
 Player.load();
 World.populate();
-Level.reset();
 Camera.zoom( Camera.data.zoom );
 Game.activate();
 

@@ -9,7 +9,7 @@ var Level = global.Level = Class.create({
         next: 13,
         zoom: 500,
         start: function() {
-            Transitions.run('forward');
+            Transitions.run('descend');
         }
     }, {
         next: 30,
@@ -29,6 +29,8 @@ var Level = global.Level = Class.create({
         }
     }],
     reset: function() {
+        var text = new Text3d('Big Bubble!');
+        text.introduce();
         this.init();
     },
     advance: function() {

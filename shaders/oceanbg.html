@@ -260,7 +260,7 @@ void main(void) {
     vec2 resP = gl_FragCoord.xy * 1.0 / resolution.xx;
     float q = fbm(resP - time * 0.08);
     vec2 r = vec2(
-        fbm(resP + q + time * 0.087 - resP.x - resP.y),
+        fbm(resP + q + time * 0.088 + resP.x - resP.y),
         fbm(resP + q - time * 0.088)
     );
     vec3 oilColor = mix(color1, color2, fbm(resP - r));
@@ -281,7 +281,7 @@ void main(void) {
         Caustic;
 
     gl_FragColor =
-        ( vec4(oilColor, 1.0) * 0.05 ) +
+        ( vec4(oilColor, 1.0) * 0.08 ) +
 
         ( godRays * 0.005 ) +
 

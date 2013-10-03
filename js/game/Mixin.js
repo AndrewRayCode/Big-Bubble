@@ -12,6 +12,35 @@ var Mixin = global.Mixin = {
 
     Entity: Class.extend({
 
+        tween: function( to, duration ) {
+            var tweener = {},
+                me = this,
+                update = function() {},
+                sendTo;
+
+            if( 'position' in to ) {
+                tweener = this.mesh.position;
+                sendTo = to.position;
+
+            } else if( 'opacity' in to ) {
+                tweener = {
+                    opacity: this.mesh.material.opacity
+                };
+                sendTo = {
+                    opacity: to.opacity
+                };
+                update = function() {
+                    me.mesh.material.opacity = this.opacity;
+                };
+            }
+
+            return new TWEEN.Tween( tweener )
+                .to( sendTo, duration || 1000 )
+                .onUpdate( update )
+                .start();
+
+        },
+
         init: function() {
             this.resetDefaults();
 

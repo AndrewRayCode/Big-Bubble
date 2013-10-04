@@ -55,6 +55,7 @@
         "GraphBuilder",
         "TextManager",
         "Stairs",
+        "Offset",
         "Text3d",
         "TWEEN"
     ],

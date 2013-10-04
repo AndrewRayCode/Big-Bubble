@@ -54,7 +54,7 @@ var Text3d = global.Text3d = Mixin.Entity.extend({
             letter.offset = Utils.randInt( 2, 12 );
             letter.amplitude = Utils.randInt( 1, 3 );
             letter.mesh.position.x = tally;
-            letter.mesh.startingPosition = letter.mesh.position.clone();
+            Offset.manage( letter.mesh );
 
             tally += letter.textWidth + kearning;
         }
@@ -68,8 +68,9 @@ var Text3d = global.Text3d = Mixin.Entity.extend({
     },
 
     introduce: function() {
-        var delay = 100,
-            animateTime = 500,
+        var delay = 90,
+            animateTime = 800,
+            fadeTime = 300,
             duration = 3000,
             distance = 100,
             me = this;
@@ -79,26 +80,31 @@ var Text3d = global.Text3d = Mixin.Entity.extend({
             letter.mesh.position.y += distance;
 
             setTimeout( function() {
-                letter.tween({ opacity: 1 }, animateTime);
+                letter.tween({ opacity: 1 }, fadeTime);
                 letter.tween({
                     position: {
+                        z: letter.mesh.position.z - distance,
                         y: letter.mesh.position.y - distance
                     }
-                }, 500).easing( TWEEN.Easing.Cubic.Out );
+                }, animateTime).easing( TWEEN.Easing.Cubic.Out );
             }, index * delay);
 
             setTimeout( function() {
-                letter.tween({ opacity: 0 }, animateTime);
+                letter.tween({ opacity: 0 }, fadeTime);
                 letter.tween({
                     position: {
-                        y: letter.mesh.position.y - distance
+                        z: letter.mesh.position.z - distance,
+                        y: letter.mesh.position.y + distance
                     }
-                }, 500).easing( TWEEN.Easing.Cubic.Out );
+                }, animateTime).easing( TWEEN.Easing.Cubic.Out );
             }, duration + ( index * delay ));
         });
 
         setTimeout( function() {
             World.scene.remove( me.group );
+            _.each( this.letters, function( letter ) {
+                Offset.free( letter );
+            });
             Game.trigger( 'textFree', me );
         }, duration + ( ( this.letters.length + 1 ) * delay ) + animateTime );
 
@@ -108,7 +114,7 @@ var Text3d = global.Text3d = Mixin.Entity.extend({
     updateFns: {
         main: function() {
             _.each( this.letters, function( letter, index ) {
-                letter.mesh.position = letter.mesh.startingPosition.clone().add(new THREE.Vector3(
+                Offset.set( letter.mesh, new THREE.Vector3(
                     letter.amplitude * Math.sin( new Date().getTime() / 400 + letter.offset ),
                     letter.amplitude * Math.cos( new Date().getTime() / 400 + letter.offset ),
                     0

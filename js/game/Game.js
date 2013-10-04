@@ -153,7 +153,9 @@ var Game = global.Game = Class.create({
         World.shark.position.x += Math.sin( 50 * ( timer % 1 ) );
         World.shark.position.y -= 0.4;
 
+        Offset.offset();
         Camera.update();
+        Offset.reset();
     }
 });
 

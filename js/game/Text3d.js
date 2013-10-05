@@ -10,9 +10,11 @@ var Letter = global.Letter = Mixin.Entity.extend({
             color: 0xdddddd
         });
         var textGeom = new THREE.TextGeometry( letter, {
-            size: 40, height: 4, curveSegments: 3,
-            font: 'helvetiker', weight: 'bold',
-            bevelThickness: 2, bevelSize: 2, bevelEnabled: true,
+            size: 20, height: 10, curveSegments: 3,
+            //font: 'janda manatee solid', weight: 'normal',
+            //font: 'pleasantly plump', weight: 'normal',
+            font: 'sniglet', weight: 'normal',
+            bevelThickness: 4, bevelSize: 2, bevelEnabled: true,
             extrudeMaterial: 1
         });
         // font: helvetiker, gentilis, droid sans, droid serif, optimer

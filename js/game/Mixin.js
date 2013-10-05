@@ -160,7 +160,7 @@ var Mixin = global.Mixin = {
             }
         },
         scaleTo: function( scale ) {
-            this.mesh.scale.x = this.mesh.scale.y = this.mesh.scale.z = scale;
+            this.mesh.scale.set( scale, scale, scale );
         }
     }),
 

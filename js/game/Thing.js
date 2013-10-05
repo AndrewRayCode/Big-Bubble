@@ -58,6 +58,8 @@ var Thing = global.Thing = Class.create({
             thing = freeCache.pop();
             complete();
         } else {
+            // todo: I think this should be done with new Thing() to preserve
+            // instanceof. this is the only place we use utils.create?
             thing = Utils.create( cache.thing );
             var p = thing.loadGeometry( options );
             thing.type = thingId;

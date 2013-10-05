@@ -61,6 +61,12 @@ var Transitions = global.Transitions = Class.create({
                         radius: Utils.randInt(Player.build.radius / 10, Player.build.radius / 2)
                     });
                 }
+
+                if( rand > 0.998 ) {
+                    Thing.makeEntity('fireball', {
+                        radius: Player.build.radius
+                    });
+                }
             }
         },
 

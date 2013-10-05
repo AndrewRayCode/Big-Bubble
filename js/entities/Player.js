@@ -179,7 +179,8 @@ var Player = global.Player = Mixin.Entity.create({
 
     scale: function( radius ) {
         this.build.radius = radius;
-        this.build.scale = this.mesh.scale.x = this.mesh.scale.y = this.mesh.scale.z = radius / this.build.origRadius;
+        var scale = this.build.scale = radius / this.build.origRadius;
+        this.mesh.scale.set( scale, scale, scale );
 
         this.phys.acceleration = 11.0 + ( 0.054 * radius );
         this.phys.deceleration = 2.9 + ( 0.04 * radius );

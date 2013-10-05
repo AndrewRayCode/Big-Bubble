@@ -43,14 +43,14 @@ var Shader = global.Shader = Class.create({
                     }
                 });
 
-                me.cache[ shaderName ] = material;
+                me.cache.push( material );
 
                 return material;
             };
         });
     },
 
-    cache: {},
+    cache: [],
 
     umap: {
         float: { type: 'f', value: 0 },

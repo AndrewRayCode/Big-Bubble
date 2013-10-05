@@ -22,6 +22,10 @@ var Mixin = global.Mixin = {
                 tweener = this.mesh.position;
                 sendTo = to.position;
 
+            } else if( 'rotation' in to ) {
+                tweener = this.mesh.rotation;
+                sendTo = to.rotation;
+
             } else if( 'opacity' in to ) {
                 tweener = {
                     opacity: this.mesh.material.opacity

@@ -7,8 +7,10 @@ var Letter = global.Letter = Mixin.Entity.extend({
 
         var material = new THREE.MeshPhongMaterial({
             transparent: true,
-            color: 0xdddddd
+            color: 0xc4feff
         });
+        //material.color.g += Utils.randFloat( -0.05, 0.05 );
+        //material.color.b += Utils.randFloat( -0.05, 0.05 );
         var textGeom = new THREE.TextGeometry( letter, {
             height: 10, curveSegments: 3,
             //size: 20, font: 'janda manatee solid', weight: 'normal',
@@ -89,6 +91,11 @@ var Text3d = global.Text3d = Mixin.Entity.extend({
                         y: letter.mesh.position.y - distance
                     }
                 }, animateTime).easing( TWEEN.Easing.Cubic.Out );
+                letter.tween({
+                    rotation: {
+                        z: letter.mesh.rotation.z - Math.PI * 2,
+                    }
+                }, animateTime).easing( TWEEN.Easing.Cubic.Out );
             }, index * delay);
 
             setTimeout( function() {
@@ -97,6 +104,11 @@ var Text3d = global.Text3d = Mixin.Entity.extend({
                     position: {
                         z: letter.mesh.position.z - distance,
                         y: letter.mesh.position.y + distance
+                    }
+                }, animateTime).easing( TWEEN.Easing.Cubic.Out );
+                letter.tween({
+                    rotation: {
+                        z: letter.mesh.rotation.z + Math.PI * 2,
                     }
                 }, animateTime).easing( TWEEN.Easing.Cubic.Out );
             }, duration + ( index * delay ));

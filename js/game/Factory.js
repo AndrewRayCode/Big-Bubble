@@ -1,6 +1,5 @@
-(function( global ) {
-
-var Factory = global.Factory = Class.create({
+// todo: this class is short sighted and too broad
+Bub.Factory = {
 
     maze: function( opts ) {
 
@@ -13,10 +12,10 @@ var Factory = global.Factory = Class.create({
 
         options.pathRadius = options.pathWidth / 2;
 
-        var graph = new Graph( options ),
-            playerPos = Player.mesh.position;
+        var graph = new Bub.Graph( options ),
+            playerPos = Bub.player.mesh.position;
 
-        graph.start = new Bend(
+        graph.start = new Bub.Graph.Bend(
             playerPos.clone().add(new THREE.Vector3(0, -200, 0)),
             playerPos.clone().add(new THREE.Vector3(0, 100, 0))
         );
@@ -29,11 +28,11 @@ var Factory = global.Factory = Class.create({
         for( var x = 0; x < options.nodes; x++ ) {
             rand = Math.random();
             if( rand > 0.5 ) {
-                currentNode = graph.addZig( currentNode, ( options.pathWidth * 2 ) + Utils.randInt( -5, 100 ) );
+                currentNode = graph.addZig( currentNode, ( options.pathWidth * 2 ) + Bub.Utils.randInt( -5, 100 ) );
             } else if( rand > 0.1 ) {
                 currentNode = graph.addBend( currentNode, new THREE.Vector3(
-                    Utils.randInt( -90, 90 ),
-                    Utils.randInt( options.pathWidth, options.pathWidth * 3 ),
+                    Bub.Utils.randInt( -90, 90 ),
+                    Bub.Utils.randInt( options.pathWidth, options.pathWidth * 3 ),
                     0
                 ));
 
@@ -42,13 +41,13 @@ var Factory = global.Factory = Class.create({
                 //maze.nodeHeight += options.incline;
             } else {
                 currentNode = graph.addStairs( currentNode, false, {
-                    steps: Utils.randInt( 4, 10 ),
-                    length: Utils.randInt( 100, 500 ),
-                    rise: Utils.randInt( -100, -200 )
+                    steps: Bub.Utils.randInt( 4, 10 ),
+                    length: Bub.Utils.randInt( 100, 500 ),
+                    rise: Bub.Utils.randInt( -100, -200 )
                 });
                 currentNode = graph.addBend( currentNode, new THREE.Vector3(
-                    Utils.randInt(-100, 100),
-                    200 - Utils.randInt(-50, 50),
+                    Bub.Utils.randInt(-100, 100),
+                    200 - Bub.Utils.randInt(-50, 50),
                     0
                 ));
 
@@ -59,10 +58,10 @@ var Factory = global.Factory = Class.create({
             }
         }
 
-        var maze = new GraphBuilder( options ).build( graph );
-        World.maze = maze;
+        var maze = new Bub.GraphBuilder( options ).build( graph );
+        Bub.World.maze = maze;
 
-        World.scene.add( maze.group );
+        Bub.World.scene.add( maze.group );
 
         return maze;
     },
@@ -111,7 +110,7 @@ var Factory = global.Factory = Class.create({
             stairs.sides.push( side );
         }
 
-        World.scene.add( group );
+        Bub.World.scene.add( group );
         stairs.group = group;
         group.position.z -= height;
 
@@ -161,36 +160,34 @@ var Factory = global.Factory = Class.create({
             material
         );
 
-        var mizer = Camera.data.frustrum.width * 0.01;
-        var plane = Mixin.Entity.create({
-            mesh: new THREE.Mesh(
-                //new THREE.PlaneGeometry( Camera.data.frustrum.width * 1.5, Camera.data.frustrum.height * 1.5, 1, 1),
-                new THREE.CubeGeometry( mizer, mizer, mizer, 1, 1, 1 ),
-                Shader.shaders.oceanbg()
-            )
-        });
+        var mizer = Bub.camera.data.frustrum.width * 0.01;
+        var plane = new Bub.Mixin.Entity();
+        plane.mesh = new THREE.Mesh(
+            //new THREE.PlaneGeometry( Bub.camera.data.frustrum.width * 1.5, Bub.camera.data.frustrum.height * 1.5, 1, 1),
+            new THREE.CubeGeometry( mizer, mizer, mizer, 1, 1, 1 ),
+            Bub.Shader.shaders.oceanbg()
+        );
         plane.mesh.position.set( 0, 0, -500 );
-        World.plane = plane;
-        World.scene.add( plane.mesh );
+        Bub.World.plane = plane;
+        Bub.World.scene.add( plane.mesh );
 
         return cube;
     },
 
     loadAssets: function() {
-        var rust = Utils.textures.rust = THREE.ImageUtils.loadTexture( 'media/rust-peel.jpg' );
+        var rust = Bub.Utils.textures.rust = THREE.ImageUtils.loadTexture( 'media/rust-peel.jpg' );
         rust.wrapS = THREE.RepeatWrapping;
         rust.wrapT = THREE.RepeatWrapping;
 
-        var metal = Utils.textures.metal = THREE.ImageUtils.loadTexture( 'media/metal.jpg' );
+        var metal = Bub.Utils.textures.metal = THREE.ImageUtils.loadTexture( 'media/metal.jpg' );
         metal.wrapS = THREE.RepeatWrapping;
         metal.wrapT = THREE.RepeatWrapping;
 
-        var uvtest = Utils.textures.uvtest = THREE.ImageUtils.loadTexture( 'media/uvtest.jpg' );
+        var uvtest = Bub.Utils.textures.uvtest = THREE.ImageUtils.loadTexture( 'media/uvtest.jpg' );
         uvtest.wrapS = THREE.RepeatWrapping;
         uvtest.wrapT = THREE.RepeatWrapping;
 
-        Utils.textures.shark = THREE.ImageUtils.loadTexture( 'media/shark.png' );
+        Bub.Utils.textures.shark = THREE.ImageUtils.loadTexture( 'media/shark.png' );
     }
-});
 
-}(this));
+};

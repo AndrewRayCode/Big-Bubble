@@ -1,126 +1,121 @@
-(function( global ) {
+Bub.Camera = function() {
+    Bub.Mixin.Doodad.call( this );
 
-var Camera = global.Camera = Mixin.Doodad.create({
+    var me = this;
 
-    defaults: {
-        data: {
-            target: new THREE.Vector3( 0, 0, 0 ),
-            offset: new THREE.Vector3( 0, 0, 0 ),
-            fov: 60,
-            frustrum: {}
+    Bub.bind( 'resize', function( dim ) {
+        if( me.main ) {
+            me.main.aspect = dim.x / dim.y;
+            me.calculateFrustrum();
+            me.main.updateProjectionMatrix();
         }
-    },
+    });
+};
+    
+Bub.Camera.prototype = Object.create( Bub.Mixin.Doodad.prototype );
 
-    init: function() {
-        this._super();
+Bub.Camera.prototype.defaults = {
+    data: {
+        target: new THREE.Vector3( 0, 0, 0 ),
+        offset: new THREE.Vector3( 0, 0, 0 ),
+        fov: 60,
+        frustrum: {}
+    }
+};
 
-        var me = this;
+Bub.Camera.prototype.activate = function() {
+    this.data.zoom = this.defaults.zoom = Bub.Level.levels[0].zoom;
 
-        Game.bind( 'resize', function( dim ) {
-            if( me.main ) {
-                me.main.aspect = dim.x / dim.y;
-                me.calculateFrustrum();
-                me.main.updateProjectionMatrix();
-            }
-        });
-    },
+    // PerspectiveBub.Camera( fov, aspect, near, far )
+    this.main = new THREE.PerspectiveCamera(
+        this.data.fov, Bub.World.size.x / Bub.World.size.y, 1, 100000
+    );
 
-    activate: function() {
-        this.data.zoom = this.defaults.zoom = Level.levels[0].zoom;
+    var mirror = this.mirror = new THREE.CubeCamera( 0.1, 10000, 128 );
+    mirror.renderTarget.minFilter = THREE.LinearMipMapLinearFilter;
+    mirror.rotation.z += THREE.Math.degToRad( 180 );
+    Bub.World.scene.add( mirror );
 
-        // PerspectiveCamera( fov, aspect, near, far )
-        this.main = new THREE.PerspectiveCamera(
-            this.data.fov, World.size.x / World.size.y, 1, 100000
+    mirror.material = new THREE.MeshBasicMaterial({
+        envMap: mirror.renderTarget
+    });
+
+    this.zoom( this.data.zoom );
+};
+
+Bub.Camera.prototype.getFrustrumAt = function( distanceFromCamera ) {
+    var frustumHeight = 2.0 * distanceFromCamera * Math.tan(this.data.fov * 0.5 * ( Math.PI / 180 ) ),
+        box = new THREE.Box2(),
+        size = new THREE.Vector2(
+            frustumHeight * Bub.World.aspect,
+            frustumHeight
         );
 
-        var mirror = this.mirror = new THREE.CubeCamera( 0.1, 10000, 128 );
-        mirror.renderTarget.minFilter = THREE.LinearMipMapLinearFilter;
-        mirror.rotation.z += THREE.Math.degToRad( 180 );
-        World.scene.add( mirror );
+    box.width = size.x;
+    box.height = size.y;
+    
+    return box.setFromCenterAndSize( this.main.position, new THREE.Vector2(
+        frustumHeight * Bub.World.aspect,
+        frustumHeight
+    ));
+};
 
-        mirror.material = new THREE.MeshBasicMaterial({
-            envMap: mirror.renderTarget
-        });
+Bub.Camera.prototype.calculateFrustrum = function() {
+    this.data.frustrum = this.getFrustrumAt( this.data.zoom );
+};
 
-        this.zoom( this.data.zoom );
-    },
+Bub.Camera.prototype.pan = function( vecOffset ) {
+    vecOffset.z = vecOffset.z || 0;
 
-    getFrustrumAt: function( distanceFromCamera ) {
-        var frustumHeight = 2.0 * distanceFromCamera * Math.tan(this.data.fov * 0.5 * ( Math.PI / 180 ) ),
-            box = new THREE.Box2(),
-            size = new THREE.Vector2(
-                frustumHeight * World.aspect,
-                frustumHeight
-            );
+    this.main.position.add( vecOffset );
+    this.data.target.add( vecOffset );
+    this.main.lookAt( this.data.target );
 
-        box.width = size.x;
-        box.height = size.y;
-        
-        return box.setFromCenterAndSize( this.main.position, new THREE.Vector2(
-            frustumHeight * World.aspect,
-            frustumHeight
-        ));
-    },
+    Bub.World.plane.mesh.position.add( vecOffset );
+    Bub.World.skyBox.mesh.position.add( vecOffset );
 
-    calculateFrustrum: function() {
-        this.data.frustrum = this.getFrustrumAt( this.data.zoom );
-    },
+    this.calculateFrustrum();
+};
 
-    pan: function( vecOffset ) {
-        vecOffset.z = vecOffset.z || 0;
+Bub.Camera.prototype.zoom = function( level ) {
+    var camera = this.main,
+        data = this.data;
 
-        this.main.position.add( vecOffset );
-        this.data.target.add( vecOffset );
-        this.main.lookAt( this.data.target );
+    data.zoom = camera.position.z = level;
+    this.calculateFrustrum();
 
-        World.plane.mesh.position.add( vecOffset );
-        World.skyBox.mesh.position.add( vecOffset );
+    if( Bub.World.skyBox ) {
+        var planeScale = this.getFrustrumAt( data.zoom - Bub.World.plane.mesh.position.z );
 
-        this.calculateFrustrum();
-    },
-
-    zoom: function( level ) {
-        var camera = this.main,
-            data = this.data;
-
-        data.zoom = camera.position.z = level;
-        this.calculateFrustrum();
-
-        if( World.skyBox ) {
-            var planeScale = this.getFrustrumAt( data.zoom - World.plane.mesh.position.z );
-
-            World.plane.scaleTo( planeScale.height );
-        }
-    },
-
-    update: function() {
-        if( Camera.data.zoom < Level.level.zoom ) {
-            this.zoom( Camera.data.zoom + 10 );
-        }
-
-        this.mirror.position.x = Player.mesh.position.x * (World.dickx || 1.0);
-        this.mirror.position.y = Player.mesh.position.y * (World.dickx || 1.0);
-        this.mirror.position.z = Player.mesh.position.z + (Player.build.radius + 500);
-
-        this.mirror.position.x = Player.mesh.position.x;
-        this.mirror.position.y = Player.mesh.position.y;
-        this.mirror.position.z = Player.mesh.position.z + Player.build.radius;
-
-        Player.mesh.visible = false;
-
-        _.each( Player.locks, function( lock ) {
-            lock.mesh.visible = false;
-        });
-        this.mirror.updateCubeMap( World.renderer, World.scene );
-        _.each( Player.locks, function( lock ) {
-            lock.mesh.visible = true;
-        });
-
-        Player.mesh.visible = true;
-        World.plane.mesh.visible = true;
-
-        World.renderer.render( World.scene, Camera.main );
+        Bub.World.plane.scaleTo( planeScale.height );
     }
-});
+};
 
-}(this));
+Bub.Camera.prototype.update = function() {
+    if( this.data.zoom < Bub.Level.level.zoom ) {
+        this.zoom( this.data.zoom + 10 );
+    }
+
+    this.mirror.position.x = Bub.player.mesh.position.x * (Bub.World.dickx || 1.0);
+    this.mirror.position.y = Bub.player.mesh.position.y * (Bub.World.dickx || 1.0);
+    this.mirror.position.z = Bub.player.mesh.position.z + (Bub.player.build.radius + 500);
+
+    this.mirror.position.x = Bub.player.mesh.position.x;
+    this.mirror.position.y = Bub.player.mesh.position.y;
+    this.mirror.position.z = Bub.player.mesh.position.z + Bub.player.build.radius;
+
+    Bub.player.mesh.visible = false;
+
+    _.each( Bub.player.locks, function( lock ) {
+        lock.mesh.visible = false;
+    });
+    this.mirror.updateCubeMap( Bub.World.renderer, Bub.World.scene );
+    _.each( Bub.player.locks, function( lock ) {
+        lock.mesh.visible = true;
+    });
+
+    Bub.player.mesh.visible = true;
+    Bub.World.plane.mesh.visible = true;
+
+    Bub.World.renderer.render( Bub.World.scene, this.main );
+};

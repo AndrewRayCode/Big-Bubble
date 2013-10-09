@@ -26,38 +26,14 @@
         "beforeEach",
         "google",
 
-        // Three
+        // deps
+        "TWEEN",
+        "Bub",
         "_",
         "THREE",
         "Mousetrap",
         "Q",
-        "xyz",
-        "World",
-        "Mixin",
-        "Game",
-        "Level",
-        "Player",
-        "Camera",
-        "Utils",
-        "Factory",
-        "Thing",
-        "Mine",
-        "Floater",
-        "Shader",
-        "Graph",
-        "GraphNode",
-        "Zig",
-        "Bend",
-        "Chamfer",
-        "Stairs",
-        "Transition",
-        "Transitions",
-        "GraphBuilder",
-        "TextManager",
-        "Stairs",
-        "Offset",
-        "Text3d",
-        "TWEEN"
+        "xyz"
     ],
 
 

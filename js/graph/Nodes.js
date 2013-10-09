@@ -1,79 +1,68 @@
-(function( global ) {
+Bub.GraphNode = function( line ) {
+    this.line = line;
+    this.recalculate();
+};
 
-var to3dPoint = function( point, z ) {
+Bub.GraphNode.prototype.recalculate = function() {
+    var diff = new THREE.Vector3().subVectors( this.line[1], this.line[0] );
+    this.angle = THREE.Math.radToDeg( Math.atan2( diff.y, diff.x ) );
+    this.midPoint = Bub.Utils.midPoint( this.line[0], this.line[1] );
+    this.length = Bub.Utils.distance3d( this.line[0], this.line[1] );
+};
+
+Bub.GraphNode.prototype.chamfer = function( nextLine, distance, subDivisions ) {
+    var arr = arr || [],
+
+        newA = Bub.Utils.vecMoveOffset( this.line[1], this.line[0], distance ),
+        newB = Bub.Utils.vecMoveOffset( nextLine[0], nextLine[1], distance ),
+
+        curve = new THREE.QuadraticBezierCurve( newA, this.line[1], newB ),
+
+        points = curve.getPoints( subDivisions ),
+        lines = [],
+        start, end, geom;
+
+    for( var x = 0; x < points.length - 1; x++ ) {
+        start = Bub.GraphNode.to3dPoint( points[ x ], this.line[ 1 ].z );
+        end = Bub.GraphNode.to3dPoint( points[ x + 1 ], this.line[ 1 ].z );
+
+        lines.push( new Bub.Graph.Chamfer( start, end ) );
+    }
+
+    this.line[1] = newA;
+    nextLine[0].copy( newB );
+
+    return lines;
+};
+
+Bub.GraphNode.to3dPoint = function( point, z ) {
     return new THREE.Vector3( point.x, point.y, z );
 };
 
-var line = function( point1, point2 ) {
+Bub.GraphNode.line = function( point1, point2 ) {
     return [ point1, point2 ];
 };
 
-var GraphNode = global.GraphNode = Class.extend({
+Bub.Graph.Bend = function( start, end ) {
+    Bub.GraphNode.call( this, Bub.GraphNode.line( start, end ) );
+};
 
-    init: function( line ) {
-        this.line = line;
-        this.recalculate();
-    },
+Bub.Graph.Bend.prototype = Object.create( Bub.GraphNode.prototype );
 
-    recalculate: function() {
-        var diff = new THREE.Vector3().subVectors( this.line[1], this.line[0] );
-        this.angle = THREE.Math.radToDeg( Math.atan2( diff.y, diff.x ) );
-        this.midPoint = Utils.midPoint( this.line[0], this.line[1] );
-        this.length = Utils.distance3d( this.line[0], this.line[1] );
-    },
+Bub.Graph.Zig = function( start, end ) {
+    Bub.GraphNode.call( this, Bub.GraphNode.line( start, end ) );
+};
 
-    chamfer: function( nextLine, distance, subDivisions ) {
-        var arr = arr || [],
+Bub.Graph.Zig.prototype = Object.create( Bub.GraphNode.prototype );
 
-            newA = Utils.vecMoveOffset( this.line[1], this.line[0], distance ),
-            newB = Utils.vecMoveOffset( nextLine[0], nextLine[1], distance ),
+Bub.Graph.Chamfer = function( start, end ) {
+    Bub.GraphNode.call( this, Bub.GraphNode.line( start, end ) );
+};
 
-            curve = new THREE.QuadraticBezierCurve( newA, this.line[1], newB ),
+Bub.Graph.Chamfer.prototype = Object.create( Bub.GraphNode.prototype );
 
-            points = curve.getPoints( subDivisions ),
-            lines = [],
-            start, end, geom;
+Bub.Graph.Stairs = function( start, end ) {
+    Bub.GraphNode.call( this, Bub.GraphNode.line( start, end ) );
+};
 
-        for( var x = 0; x < points.length - 1; x++ ) {
-            start = GraphNode.to3dPoint( points[ x ], this.line[ 1 ].z );
-            end = GraphNode.to3dPoint( points[ x + 1 ], this.line[ 1 ].z );
-
-            lines.push( new Chamfer( start, end ) );
-        }
-
-        this.line[1] = newA;
-        nextLine[0].copy( newB );
-
-        return lines;
-    }
-
-});
-
-GraphNode.to3dPoint = to3dPoint;
-GraphNode.line = line;
-
-var Bend = global.Bend = GraphNode.extend({
-    init: function( start, end ) {
-        this._super( line( start, end ) );
-    }
-});
-
-var Zig = global.Zig = GraphNode.extend({
-    init: function( start, end ) {
-        this._super( line( start, end ) );
-    }
-});
-
-var Chamfer = global.Chamfer = GraphNode.extend({
-    init: function( start, end ) {
-        this._super( line( start, end ) );
-    }
-});
-
-var Stairs = global.Stairs = GraphNode.extend({
-    init: function( start, end ) {
-        this._super( line( start, end ) );
-    }
-});
-
-}(this));
+Bub.Graph.Stairs.prototype = Object.create( Bub.GraphNode.prototype );

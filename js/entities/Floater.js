@@ -1,87 +1,85 @@
-(function( global ) {
+Bub.Floater = function() {
+    Bub.Mixin.Entity.call( this );
+};
 
-var Floater = global.Floater = Mixin.Entity.extend({
+Bub.Floater.prototype = Object.create( Bub.Mixin.Entity.prototype );
 
-    defaults: {
-        fadeSpeed: 0.9,
-        opacity: 0.5
+Bub.Floater.prototype.defaults = {
+    fadeSpeed: 0.9,
+    opacity: 0.5
+};
+
+Bub.Floater.prototype.material = function() {
+    return Bub.Shader.shaders.bubble();
+};
+
+Bub.Floater.prototype.geometry = new THREE.SphereGeometry( 1, 32, 32 );
+
+Bub.Floater.prototype.loadGeometry = function() {
+    return this.mesh = new THREE.Mesh( this.geometry );
+};
+
+Bub.Floater.prototype.load = function( options ) {
+    this.mesh.material = this.material();
+    options = options || {};
+
+    var radius = options.radius || 10 + 5 * Math.random(),
+        frustrum = Bub.camera.data.frustrum;
+
+    this.mesh.position = new THREE.Vector3(
+        options.x || Bub.Utils.randFloat( frustrum.min.x, frustrum.max.x ),
+        options.y || frustrum.max.y + ( radius * 2 ),
+        options.z || 0
+    );
+    this.inertia = options.inertia || new THREE.Vector3(
+        0, -100 - ( Math.random() ), 0
+    );
+
+    this.scaleTo( 1 + radius );
+    this.r = radius;
+
+    Bub.trigger( 'initted', this );
+};
+
+Bub.Floater.prototype.updateFns = {
+    move: function() {
+        this.move( this.inertia );
+        this.updateLocks();
+        this.mesh.lookAt( Bub.camera.main.position );
+
+        if ( this.mesh.position.y + this.r * 2 < Bub.camera.data.frustrum.min.y ) {
+            Bub.trigger( 'free', this );
+        }
     },
-
-    material: function() {
-        return Shader.shaders.bubble();
+    fade: function() {
+        if( this.mesh.material.opacity < this.opacity ) {
+            this.mesh.material.opacity += Bub.Utils.speed( this.fadeSpeed );
+        }
     },
+    collision: function() {
+        if( Bub.player.isCollidingWith( this ) ) {
+            this.lockTo( Bub.player );
 
-    geometry: new THREE.SphereGeometry( 1, 32, 32 ),
+            this.setLockDistance( Bub.player, this.r );
 
-    loadGeometry: function() {
-        return this.mesh = new THREE.Mesh( this.geometry );
-    },
+            this.replaceUpdater( 'move', function() {
 
-    load: function( options ) {
-        this.mesh.material = this.material();
-        options = options || {};
+                this.mesh.material.uniforms.c.value += Bub.Utils.speed( 0.2 );
+                this.speedLockTowards( Bub.player, 4 );
+                this.mesh.lookAt( Bub.camera.main.position );
 
-        var radius = options.radius || 10 + 5 * Math.random();
+                if( new Date() - this.lockTime > 1600 ) {
+                    Bub.trigger( 'free', this );
 
-        this.mesh.position = new THREE.Vector3(
-            options.x || Utils.randFloat( Camera.data.frustrum.min.x, Camera.data.frustrum.max.x ),
-            options.y || Camera.data.frustrum.max.y + ( radius * 2 ),
-            options.z || 0
-        );
-        this.inertia = options.inertia || new THREE.Vector3(
-            0, -100 - ( Math.random() ), 0
-        );
+                    Bub.player.grow( this.r );
+                    Bub.player.ripple( this, 1 + this.r );
 
-        this.scaleTo( 1 + radius );
-        this.r = radius;
-
-        Game.trigger( 'initted', this );
-    },
-
-    updateFns: {
-        move: function() {
-            this.move( this.inertia );
-            this.updateLocks();
-            this.mesh.lookAt( Camera.main.position );
-
-            if ( this.mesh.position.y + this.r * 2 < Camera.data.frustrum.min.y ) {
-                Game.trigger( 'free', this );
-            }
-        },
-        fade: function() {
-            if( this.mesh.material.opacity < this.opacity ) {
-                this.mesh.material.opacity += Utils.speed( this.fadeSpeed );
-            }
-        },
-        collision: function() {
-            if( Player.isCollidingWith( this ) ) {
-                this.lockTo( Player );
-
-                this.setLockDistance( Player, this.r );
-
-                this.replaceUpdater( 'move', function() {
-
-                    this.mesh.material.uniforms.c.value += Utils.speed( 0.2 );
-                    this.speedLockTowards( Player, 4 );
-                    this.mesh.lookAt( Camera.main.position );
-
-                    if( new Date() - this.lockTime > 1600 ) {
-                        Game.trigger( 'free', this );
-
-                        Player.grow( this.r );
-                        Player.ripple( this, 1 + this.r );
-
-                        if( Player.build.radius > Level.level.next ) {
-                            Level.advance();
-                        }
+                    if( Bub.player.build.radius > Bub.Level.level.next ) {
+                        Bub.Level.advance();
                     }
-                });
-                this.replaceUpdater( 'collision', function() {});
-            }
+                }
+            });
+            this.replaceUpdater( 'collision', function() {});
         }
     }
-});
-
-Thing.register( 'floater', new Floater() );
-
-}(this));
+};

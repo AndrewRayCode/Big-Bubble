@@ -1,99 +1,97 @@
-(function( global ) {
+Bub.Fireball = function() {
 
-var Fireball = global.Fireball = Mixin.Entity.extend({
-
-    defaults: {},
+    this.defaults = {};
 
     // todo: player and this use this silly scale system, divided by orig
     // radius. We should just set starting radius to 1 and go from there
     // for everything?
-    build: {
+    this.build = {
         scale: 1,
         radius: 10
-    },
+    };
 
-    material: function() {
-        return Shader.shaders.fireball();
-    },
+    Bub.Mixin.Entity.call( this );
+};
+    
+Bub.Fireball.prototype = Object.create( Bub.Mixin.Entity.prototype );
 
-    geometry: new THREE.SphereGeometry( 10, 32, 32 ),
+Bub.Fireball.prototype.material = function() {
+    return Bub.Shader.shaders.fireball();
+};
 
-    loadGeometry: function() {
-        return this.mesh = new THREE.Mesh( this.geometry, this.material() );
-    },
+Bub.Fireball.prototype.geometry = new THREE.SphereGeometry( 10, 32, 32 );
 
-    load: function( options ) {
-        options = options || {};
-        this.build.origRadius = this.build.radius;
+Bub.Fireball.prototype.loadGeometry = function() {
+    return this.mesh = new THREE.Mesh( this.geometry, this.material() );
+};
 
-        var radius = options.radius || 10 + 5 * Math.random();
+Bub.Fireball.prototype.load = function( options ) {
+    options = options || {};
+    this.build.origRadius = this.build.radius;
 
-        this.mesh.position = new THREE.Vector3(
-            options.x || Utils.randFloat( Camera.data.frustrum.min.x, Camera.data.frustrum.max.x ),
-            options.y || Camera.data.frustrum.max.y + ( radius * 2 ),
-            options.z || 0
-        );
+    var radius = options.radius || 10 + 5 * Math.random(),
+        frustrum = Bub.camera.data.frustrum;
 
-        this.inertia = options.inertia || new THREE.Vector3(
-            0, -100 - ( Math.random() ), 0
-        );
+    this.mesh.position = new THREE.Vector3(
+        options.x || Bub.Utils.randFloat( frustrum.min.x, frustrum.max.x ),
+        options.y || frustrum.max.y + ( radius * 2 ),
+        options.z || 0
+    );
 
-        this.scale( radius );
-        this.r = radius;
+    this.inertia = options.inertia || new THREE.Vector3(
+        0, -100 - ( Math.random() ), 0
+    );
 
-        Game.trigger( 'initted', this );
-    },
+    this.scale( radius );
+    this.r = radius;
 
-    updateFns: {
-        move: function() {
-            this.move( this.inertia );
+    Bub.trigger( 'initted', this );
+};
 
-            if ( this.mesh.position.y + this.r * 2 < Camera.data.frustrum.min.y ) {
-                Game.trigger( 'free', this );
-            }
-        },
-        collision: function() {
-            var bind = function( thing ) {
-                // todo, refactor this and utils.create
-                if( thing.type === 'floater' ) {
-                    thing.mesh.material = Shader.shaders.fireball();
-                    thing.replaceUpdater( 'collision', function() {
-                        if( Player.isCollidingWith( this ) ) {
-                            Game.trigger( 'free', this );
+Bub.Fireball.prototype.updateFns = {
+    move: function() {
+        this.move( this.inertia );
 
-                            Player.grow( this.r );
-
-                            if( Player.build.radius > Level.level.next ) {
-                                Level.advance();
-                            }
-                        }
-                    });
-                }
-            };
-
-            if( Player.isCollidingWith( this ) ) {
-                Game.bind( 'initted', bind );
-
-                setTimeout( function() {
-                    Player.mesh.material = Shader.shaders.fresnel();
-                    Game.unbind( 'initted', bind );
-                }, 6000);
-
-                var text = new Text3d('Fire Bubble!');
-                text.introduce();
-                Game.trigger( 'free', this );
-                Player.mesh.material = Shader.shaders.fireball();
-            }
+        if ( this.mesh.position.y + this.r * 2 < Bub.camera.data.frustrum.min.y ) {
+            Bub.trigger( 'free', this );
         }
     },
+    collision: function() {
+        var initBind = function( thing ) {
+            if( thing instanceof Bub.Floater ) {
+                thing.mesh.material = Bub.Shader.shaders.fireball();
+                thing.replaceUpdater( 'collision', function() {
+                    if( Bub.player.isCollidingWith( this ) ) {
+                        Bub.trigger( 'free', this );
 
-    scale: function( radius ) {
-        this.build.radius = radius;
-        var scale = this.build.scale = radius / this.build.origRadius;
-        this.mesh.scale.set( scale, scale, scale );
+                        Bub.player.grow( this.r );
+
+                        if( Bub.player.build.radius > Bub.Level.level.next ) {
+                            Bub.Level.advance();
+                        }
+                    }
+                });
+            }
+        };
+
+        if( Bub.player.isCollidingWith( this ) ) {
+            Bub.bind( 'initted', initBind );
+
+            setTimeout( function() {
+                Bub.player.mesh.material = Bub.Shader.shaders.fresnel();
+                Bub.unbind( 'initted', initBind );
+            }, 6000);
+
+            var text = new Bub.Text3d('Fire Bubble!');
+            text.introduce();
+            Bub.trigger( 'free', this );
+            Bub.player.mesh.material = Bub.Shader.shaders.fireball();
+        }
     }
-});
+};
 
-Thing.register( 'fireball', new Fireball() );
-
-}(this));
+Bub.Fireball.prototype.scale = function( radius ) {
+    this.build.radius = radius;
+    var scale = this.build.scale = radius / this.build.origRadius;
+    this.mesh.scale.set( scale, scale, scale );
+};

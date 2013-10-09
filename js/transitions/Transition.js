@@ -1,14 +1,17 @@
-(function( global ) {
+(function() {
 
-var Transition = Class.extend({
-    init: function() {
-        this.update = function() {
-            for( var key in this.fns ) {
-                if( 'id' in this ) {
-                    this[ key ].apply( this );
-                }
+Bub.Transition = function( props ) {
+    $.extend( this, props );
+};
+
+Bub.Transition.prototype = {
+
+    update: function() {
+        for( var key in this.fns ) {
+            if( 'id' in this ) {
+                this[ key ].apply( this );
             }
-        };
+        }
     },
 
     replaceFn: function( key, fn ) {
@@ -16,30 +19,32 @@ var Transition = Class.extend({
         this.replaced[ key ] = this[ key ];
         this[ key ] = fn;
     }
-});
 
-var Transitions = global.Transitions = Class.create({
+};
+
+Bub.Transitions = {
+
     run: function( id ) {
-        var trans = Transitions.transitions[ id ];
+        var trans = this.transitions[ id ];
 
-        World.transition = function() {
+        Bub.World.transition = function() {
             trans.loop();
         };
         trans.start();
     },
 
     end: function( id ) {
-        var trans =  Transitions.transitions[ id ];
-        delete World.transition;
+        var trans =  this.transitions[ id ];
+        delete Bub.World.transition;
         trans.end();
     },
 
     transitions: {
-        descend: {
+        descend: new Bub.Transition({
             start: function() {
             },
             end: function() {
-                Thing.eachThing(function( thing ) {
+                Bub.Cache.each(function( thing ) {
                     if( thing.inertia.y !== 0 ) {
                         thing.inertia.y += 0.03;
                         thing.inertia.z += 1;
@@ -52,56 +57,56 @@ var Transitions = global.Transitions = Class.create({
             loop: function() {
                 var rand = Math.random();
 
-                if( rand > 0.999 ) {
-                    Thing.makeEntity('mine', {
+                if( rand > 0.998 ) {
+                    Bub.Cache.birth( Bub.Mine, {
                         radius: 0.5 + Math.random() * 0.1
                     });
-                } else if( rand > 0.96 ) {
-                    Thing.makeEntity('floater', {
-                        radius: Utils.randInt(Player.build.radius / 10, Player.build.radius / 2)
+                } else if( rand > 0.94 ) {
+                    Bub.Cache.birth( Bub.Floater, {
+                        radius: Bub.Utils.randInt(Bub.player.build.radius / 10, Bub.player.build.radius / 2)
                     });
                 }
 
                 if( rand > 0.998 ) {
-                    Thing.makeEntity('fireball', {
-                        radius: Player.build.radius
+                    Bub.Cache.birth( Bub.Fireball, {
+                        radius: Bub.player.build.radius
                     });
                 }
             }
-        },
+        }),
 
-        forward: {
+        forward: new Bub.Transition({
             initBind: function( thing ) {
-                if( thing.type === 'floater' ) {
+                if( thing instanceof Bub.Floater ) {
                     thing.fadeSpeed = 0.05;
 
-                    thing.mesh.position.x = Utils.randFloat( Camera.data.frustrum.min.x, Camera.data.frustrum.max.x );
-                    thing.mesh.position.y = Utils.randFloat( Camera.data.frustrum.min.y, Camera.data.frustrum.max.y );
+                    thing.mesh.position.x = Bub.Utils.randFloat( Bub.camera.data.frustrum.min.x, Bub.camera.data.frustrum.max.x );
+                    thing.mesh.position.y = Bub.Utils.randFloat( Bub.camera.data.frustrum.min.y, Bub.camera.data.frustrum.max.y );
                     thing.mesh.position.z = -1000;
                     thing.inertia = new THREE.Vector3( 0, 0, 100 - ( Math.random() ) );
 
                     thing.replaceUpdater( 'fade', function() {
                         var zPos = thing.mesh.position.z;
 
-                        if( zPos > -Player.build.radius * 6.0 ) {
+                        if( zPos > -Bub.player.build.radius * 6.0 ) {
                             if( thing.inertia.z > 0.1 ) {
-                                thing.inertia.z -= Utils.speed( 80.0 );
+                                thing.inertia.z -= Bub.Utils.speed( 80.0 );
                             }
-                            thing.mesh.material.uniforms.opacity.value -= Utils.speed( 0.01 );
+                            thing.mesh.material.uniforms.opacity.value -= Bub.Utils.speed( 0.01 );
 
                             if( thing.mesh.material.uniforms.opacity.value <= 0 ) {
-                                Game.trigger( 'free', thing );
+                                Bub.trigger( 'free', thing );
                             }
                         } else {
                             thing.mesh.material.uniforms.opacity.value = 0.5 - ((-1 * zPos) / 1000) * 0.5;
                         }
                         
                     });
-                } else if( thing.type === 'mine' ) {
+                } else if( thing instanceof Bub.Mine ) {
 
                     thing.fadeSpeed = 0.05;
-                    thing.mesh.position.x = Utils.randFloat( Camera.data.frustrum.min.x, Camera.data.frustrum.max.x );
-                    thing.mesh.position.y = Utils.randFloat( Camera.data.frustrum.min.y, Camera.data.frustrum.max.y );
+                    thing.mesh.position.x = Bub.Utils.randFloat( Bub.camera.data.frustrum.min.x, Bub.camera.data.frustrum.max.x );
+                    thing.mesh.position.y = Bub.Utils.randFloat( Bub.camera.data.frustrum.min.y, Bub.camera.data.frustrum.max.y );
                     thing.mesh.position.z = -1000;
                     thing.inertia = new THREE.Vector3( 0, 0, 100 - ( Math.random() ) );
 
@@ -109,16 +114,16 @@ var Transitions = global.Transitions = Class.create({
                         var zPos = thing.mesh.position.z;
 
                         if( zPos > 0 ) {
-                            thing.mesh.material.opacity -= Utils.speed( 0.5 );
+                            thing.mesh.material.opacity -= Bub.Utils.speed( 0.5 );
 
                             if( thing.mesh.material.opacity <= 0 ) {
-                                Game.trigger('free', thing);
+                                Bub.trigger('free', thing);
                             }
                         } else {
                             thing.mesh.material.opacity = 0.5 - ((-1 * zPos) / 1000) * 0.5;
 
                             if( zPos > -200 ) {
-                                this.mesh.material.color.r += Utils.speed( 0.01 );
+                                this.mesh.material.color.r += Bub.Utils.speed( 0.01 );
                             }
                         }
                         
@@ -127,25 +132,25 @@ var Transitions = global.Transitions = Class.create({
             },
             start: function() {
                 //this.cameraInertia = new THREE.Vector3( 0, 0, 0 );
-                Game.bind( 'initted', this.initBind );
+                Bub.bind( 'initted', this.initBind );
             },
             end: function() {
-                Game.unbind( 'initted', this.initBind );
+                Bub.unbind( 'initted', this.initBind );
             },
             loop: function() {
                 var rand = Math.random();
 
                 if( rand > 0.993 ) {
-                    Thing.makeEntity('mine', {
+                    Bub.Cache.birth( Bub.Mine, {
                         radius: 0.5 + Math.random() * 0.1
                     });
                 } else if( rand > 0.91 ) {
-                    Thing.makeEntity('floater', {
-                        radius: Player.build.radius
+                    Bub.Cache.birth( Bub.Floater, {
+                        radius: Bub.player.build.radius
                     });
                 }
 
-                Thing.eachThing(function( thing ) {
+                Bub.Cache.each(function( thing ) {
                     if( thing.inertia.y !== 0 ) {
                         thing.inertia.y += 0.03;
                         thing.inertia.z += 1;
@@ -154,30 +159,30 @@ var Transitions = global.Transitions = Class.create({
                         thing.inertia.y = 0;
                     }
                 });
-                //this.updateCamera();
+                //this.updateBub.camera();
             },
 
             // todo: offset camera based on player position
-            //updateCamera: function() {
-                //Camera.offset( new THREE.Vector3(
-                    //Player.mesh.position.x / 10,
-                    //Player.mesh.position.y / 10,
+            //updateBub.camera: function() {
+                //Bub.camera.offset( new THREE.Vector3(
+                    //Bub.player.mesh.position.x / 10,
+                    //Bub.player.mesh.position.y / 10,
                     //0
                 //));
             //}
-        },
+        }),
 
-        maze: Transition.create({
+        maze: new Bub.Transition({
             initBind: function( thing ) {
                 //if( thing.type === 'floater' ) {
                 //} else if( thing.type === 'mine' ) {
                 //}
             },
             start: function() {
-                Game.bind( 'initted', this.initBind );
+                Bub.bind( 'initted', this.initBind );
 
                 this.cameraInertia = new THREE.Vector3( 0, 0, 0 );
-                this.maze = Factory.maze();
+                this.maze = Bub.Factory.maze();
                 this.maze.group.position.z = -400;
                 this.maze.group.traverse( function( node ) {
                     if( node.material ) {
@@ -185,16 +190,16 @@ var Transitions = global.Transitions = Class.create({
                     }
                 });
 
-                Thing.eachThing(function( thing ) {
-                    if( thing.type === 'mine' ) {
-                        Thing.free( thing );
+                Bub.Cache.each(function( thing ) {
+                    if( thing instanceof Bub.Mine ) {
+                        Bub.Cache.free( thing );
                     }
                 });
 
                 this.replaceFn( 'loop', this.startLoop );
             },
             end: function() {
-                Game.unbind( 'initted', this.initBind );
+                Bub.unbind( 'initted', this.initBind );
             },
             loop: function() {
                 this.update();
@@ -207,12 +212,12 @@ var Transitions = global.Transitions = Class.create({
                     }
                 });
                 this.maze.group.position
-                    .add( Utils.speed( Player.phys.inertia ) )
-                    .add( Utils.speed( this.maze.inertia ) );
+                    .add( Bub.Utils.speed( Bub.player.phys.inertia ) )
+                    .add( Bub.Utils.speed( this.maze.inertia ) );
 
                 this.updateCamera();
 
-                if( this.maze.group.position.z > Player.build.radius - 100 ) {
+                if( this.maze.group.position.z > Bub.player.build.radius - 100 ) {
                     this.maze.inertia.z = 0;
                     this.maze.inertia.y = -160;
                     this.replaceFn( 'loop', this.playLoop );
@@ -220,11 +225,11 @@ var Transitions = global.Transitions = Class.create({
             },
             playLoop: function() {
                 this.maze.inertia.y -= 0.2;
-                var originPoint = Player.mesh.position.clone(),
+                var originPoint = Bub.player.mesh.position.clone(),
                     bottomHit, bottomDist, backHit, i, vertex, directionVector, ray, collisionResults;
 
-                for( i = 0; vertex = Player.vertices.bottom[ i++ ]; ) {
-                    directionVector = vertex.clone().applyMatrix4( Player.mesh.matrix ).sub( Player.mesh.position );
+                for( i = 0; vertex = Bub.player.vertices.bottom[ i++ ]; ) {
+                    directionVector = vertex.clone().applyMatrix4( Bub.player.mesh.matrix ).sub( Bub.player.mesh.position );
                     
                     ray = new THREE.Raycaster( originPoint, directionVector.clone().normalize() );
                     collisionResults = ray.intersectObjects( this.maze.tops );
@@ -237,8 +242,8 @@ var Transitions = global.Transitions = Class.create({
                     }
                 }
 
-                for( i = 0; vertex = Player.vertices.back[ i++ ]; ) {
-                    directionVector = vertex.clone().applyMatrix4( Player.mesh.matrix ).sub( Player.mesh.position );
+                for( i = 0; vertex = Bub.player.vertices.back[ i++ ]; ) {
+                    directionVector = vertex.clone().applyMatrix4( Bub.player.mesh.matrix ).sub( Bub.player.mesh.position );
                     
                     ray = new THREE.Raycaster( originPoint, directionVector.clone().normalize() );
                     collisionResults = ray.intersectObjects( this.maze.sides );
@@ -250,45 +255,45 @@ var Transitions = global.Transitions = Class.create({
 
                 if( bottomHit ) {
                     this.maze.inertia.z = 0;
-                    this.maze.group.position.z -= ( Player.build.radius - bottomDist );
+                    this.maze.group.position.z -= ( Bub.player.build.radius - bottomDist );
                 } else {
                     this.maze.inertia.z += 13;
                 }
 
                 if( this.maze.group.position.z > 2000 &&  this.maze.inertia.z > 100 ) {
-                    Level.advance();
+                    Bub.Level.advance();
                 }
 
                 if( new Date() - this.lastBottomHit < 500 ) {
-                    Player.mesh.position.y += Utils.speed( this.maze.inertia.y );
+                    Bub.player.mesh.position.y += Bub.Utils.speed( this.maze.inertia.y );
                 }
 
-                if( backHit && Player.phys.inertia.y < 0 ) {
-                    Player.phys.inertia.y = 0;
+                if( backHit && Bub.player.phys.inertia.y < 0 ) {
+                    Bub.player.phys.inertia.y = 0;
                 }
-                this.maze.group.position.add( Utils.speed( this.maze.inertia ) );
+                this.maze.group.position.add( Bub.Utils.speed( this.maze.inertia ) );
 
                 this.updateCamera();
             },
 
             updateCamera: function() {
-                if( Player.mesh.position.x < Camera.main.position.x - 50 && Player.phys.inertia.x < 0 ) {
-                    this.cameraInertia.x = Utils.speed( Player.phys.inertia.x );
-                } else if( Player.mesh.position.x > Camera.main.position.x + 50 && Player.phys.inertia.x > 0) {
-                    this.cameraInertia.x = Utils.speed( Player.phys.inertia.x );
+                if( Bub.player.mesh.position.x < Bub.camera.main.position.x - 50 && Bub.player.phys.inertia.x < 0 ) {
+                    this.cameraInertia.x = Bub.Utils.speed( Bub.player.phys.inertia.x );
+                } else if( Bub.player.mesh.position.x > Bub.camera.main.position.x + 50 && Bub.player.phys.inertia.x > 0) {
+                    this.cameraInertia.x = Bub.Utils.speed( Bub.player.phys.inertia.x );
                 } else if( this.cameraInertia.x ) {
-                    this.cameraInertia.x += -Utils.sign( this.cameraInertia.x ) * 0.1;
+                    this.cameraInertia.x += -Bub.Utils.sign( this.cameraInertia.x ) * 0.1;
 
                     if( Math.abs( this.cameraInertia.x ) <= 0.1 ) {
                         this.cameraInertia.x = 0;
                     }
                 }
 
-                //Utils.cap( this.cameraInertia, Player.phys.max );
-                Camera.pan( this.cameraInertia );
+                //Bub.Utils.cap( this.cameraInertia, Bub.player.phys.max );
+                Bub.camera.pan( this.cameraInertia );
             }
         })
     }
-});
+};
 
-}(this));
+}());

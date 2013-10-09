@@ -1,80 +1,80 @@
-(function( global ) {
+(function() {
 
-var World = global.World = Mixin.Doodad.create({
-    keysDown: {},
+var World = function() {
+    Bub.Mixin.Doodad.call( this );
 
-    scene: new THREE.Scene(),
+    this.keysDown = {};
+    this.scene = new THREE.Scene();
 
-    defaults: {
-        size: new THREE.Vector2( 300, 500 ),
-    },
+    this.renderer = new THREE.WebGLRenderer({ autoClear: false, antialias: true });
+    this.renderer.shadowMapEnabled = true;
 
-    calculateAspect: function() {
-        return ( this.aspect = this.size.x / this.size.y );
-    },
+    this.$container = $('#game');
+    this.setSize( this.size );
 
-    grow: function( dim ) {
-        this.growTarget = this.size.clone().add( dim );
-    },
+    this.$container.append( this.renderer.domElement );
 
-    setSize: function( dim ) {
-        this.size.copy( dim );
-        this.calculateAspect();
+    this.reset();
+};
 
-        this.renderer.setSize( dim.x, dim.y );
-        this.$container.css({
-            width: dim.x + 'px',
-            height: dim.y  + 'px'
-        });
+World.prototype = Object.create( Bub.Mixin.Doodad.prototype );
 
-        Game.trigger( 'resize', dim );
-    },
+World.prototype.defaults = {
+    size: new THREE.Vector2( 300, 500 ),
+};
 
-    init: function() {
-        this._super();
+World.prototype.calculateAspect = function() {
+    return ( this.aspect = this.size.x / this.size.y );
+};
 
-        this.renderer = new THREE.WebGLRenderer( { autoClear: false, antialias: true } );
-        this.renderer.shadowMapEnabled = true;
+World.prototype.grow = function( dim ) {
+    this.growTarget = this.size.clone().add( dim );
+};
 
-        this.$container = $('#game');
-        this.setSize( this.size );
+World.prototype.setSize = function( dim ) {
+    this.size.copy( dim );
+    this.calculateAspect();
 
-        this.$container.append( this.renderer.domElement );
+    this.renderer.setSize( dim.x, dim.y );
+    this.$container.css({
+        width: dim.x + 'px',
+        height: dim.y  + 'px'
+    });
 
-        this.reset();
-    },
+    Bub.trigger( 'resize', dim );
+};
 
-    reset: function() {
-        this.bgColor = new THREE.Color( 0x002462 );
-        this.resetDefaults();
-        this.setSize( this.size );
-    },
+World.prototype.reset = function() {
+    this.bgColor = new THREE.Color( 0x002462 );
+    this.resetDefaults();
+    this.setSize( this.size );
+};
 
-    populate: function() {
-        var skyBox = this.skyBox = Mixin.Entity.create({
-            mesh: Factory.makeGradientCube(
-                Camera.data.frustrum.height * 10, 0x2185C5
-            )
-        });
-        skyBox.mesh.visible = false;
-        this.scene.add( skyBox.mesh );
-    },
+World.prototype.populate = function() {
+    var skyBox = this.skyBox = new Bub.Mixin.Entity();
+    skyBox.mesh = Bub.Factory.makeGradientCube(
+        Bub.camera.data.frustrum.height * 10, 0x2185C5
+    );
+    skyBox.mesh.visible = false;
+    this.scene.add( skyBox.mesh );
+};
 
-    update: function() {
+World.prototype.update = function() {
 
-        if( this.growTarget ) {
-            var delta = this.growTarget.clone().sub( World.size );
+    if( this.growTarget ) {
+        var delta = this.growTarget.clone().sub( Bub.World.size );
 
-            if( Math.abs( delta.x ) > 0.1 || Math.abs( delta.y ) > 0.1 ) {
-                this.newSize = new THREE.Vector2(
-                    this.size.x + ( delta.x / 6 ) + 0.01,
-                    this.size.y + ( delta.y / 6 ) + 0.01
-                );
-            } else {
-                delete this.growTarget;
-            }
+        if( Math.abs( delta.x ) > 0.1 || Math.abs( delta.y ) > 0.1 ) {
+            this.newSize = new THREE.Vector2(
+                this.size.x + ( delta.x / 6 ) + 0.01,
+                this.size.y + ( delta.y / 6 ) + 0.01
+            );
+        } else {
+            delete this.growTarget;
         }
     }
-});
+};
 
-}(this));
+Bub.World = new World();
+
+}());

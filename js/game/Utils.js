@@ -1,13 +1,13 @@
-(function( global ) {
+(function() {
 
 var speed = function( val ) {
     if( val instanceof THREE.Vector3 || val instanceof THREE.Vector2 ) {
-        return val.clone().multiplyScalar( Game.time.delta );
+        return val.clone().multiplyScalar( Bub.Game.time.delta );
     }
-    return val * Game.time.delta;
+    return val * Bub.Game.time.delta;
 };
 
-var Utils = global.Utils = {
+Bub.Utils = {
 
     textures: {},
 
@@ -41,7 +41,7 @@ var Utils = global.Utils = {
         var mesh = this.mesh = new THREE.Mesh( geometry, material );
 
         mesh.position.copy( vec );
-        (parent || World.scene).add( mesh );
+        (parent || Bub.World.scene).add( mesh );
     },
 
     relativeToWorld: function( pos, vec ) {
@@ -50,16 +50,6 @@ var Utils = global.Utils = {
 
     worldToRelative: function( pos, vec ) {
         return new THREE.Vector3().subVectors( vec, pos );
-    },
-
-    create: function( obj ) {
-        var made = {};
-
-        for( var key in obj ) {
-            made[ key ] = $.isPlainObject( obj[ key ] ) ? Utils.create( obj[ key ] ) : obj[ key ];
-        }
-
-        return made;
     },
 
     randFloat: function( min, max ) {
@@ -85,7 +75,7 @@ var Utils = global.Utils = {
     },
 
     vecSpeedOffset: function( vec1, vec2, speed ) {
-        return Utils.vecMoveOffset( vec1, vec2, speed(speed) );
+        return Bub.Utils.vecMoveOffset( vec1, vec2, speed(speed) );
     },
 
     speed: speed,
@@ -100,20 +90,11 @@ var Utils = global.Utils = {
     },
 
     sphereCollision: function( position1, position2, radius1, radius2 ) {
-        return Utils.distance3d( position1, position2 ) < radius1 + radius2;
-    },
-
-    extend: function( mixin, obj ) {
-        if( Game.initted ) {
-            return this._extend( mixin, obj );
-        } else {
-            Game.mixers.push({ mixin: mixin, obj: obj });
-            return obj;
-        }
+        return Bub.Utils.distance3d( position1, position2 ) < radius1 + radius2;
     },
 
     _extend: function( mixin, obj ) {
-        var extended = $.extend( obj, Game.mixins[ mixin ] );
+        var extended = $.extend( obj, Bub.Game.mixins[ mixin ] );
 
         if( extended._init ) {
             extended._init.call( extended );
@@ -124,10 +105,10 @@ var Utils = global.Utils = {
 
     keyListen: function(key) {
         Mousetrap.bind(key, function() {
-            World.keysDown[key] = true;
+            Bub.World.keysDown[key] = true;
         });
         Mousetrap.bind(key, function() {
-            delete World.keysDown[key];
+            delete Bub.World.keysDown[key];
         }, 'keyup');
     },
 
@@ -140,4 +121,4 @@ var Utils = global.Utils = {
     }
 };
 
-}(this));
+}());

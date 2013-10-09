@@ -1,4 +1,4 @@
-_.each(Shader.shaders, function( _fn, shader ) {
+_.each(Bub.Shader.shaders, function( _fn, shader ) {
      $.ajax({
          url: 'shaders/' + shader + '.html',
          success: function( result ) {

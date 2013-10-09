@@ -7,9 +7,15 @@
 // sonar https://glsl.heroku.com/e#10201.0
 // spirals spinning https://glsl.heroku.com/e#10207.0
 // beautiful cloud-like surface https://glsl.heroku.com/e#10647.1
-(function( global ) {
+(function() {
 
-var Shader = global.Shader = Class.create({
+var Shader = function() {
+    this.cache = [];
+};
+
+Shader.prototype = {
+
+    constructor: Shader,
 
     load: function() {
         var me = this;
@@ -22,7 +28,7 @@ var Shader = global.Shader = Class.create({
                 };
 
             if( !(shader.fragment && shader.vertex) ) {
-                throw 'Shader ' + shaderName + ' could not be loaded! Please makre sure it is in the DOM.';
+                throw 'Bub.Shader ' + shaderName + ' could not be loaded! Please makre sure it is in the DOM.';
             }
 
             shader.src = shader.fragment + '\n' + shader.vertex;
@@ -49,8 +55,6 @@ var Shader = global.Shader = Class.create({
             };
         });
     },
-
-    cache: [],
 
     umap: {
         float: { type: 'f', value: 0 },
@@ -84,7 +88,7 @@ var Shader = global.Shader = Class.create({
 
         // Defaults
         members.uniforms.resolution = {
-            value: World.size.clone(),
+            value: Bub.World.size.clone(),
             type:'v2'
         };
         members.uniforms.mouse = {
@@ -101,7 +105,7 @@ var Shader = global.Shader = Class.create({
             members = members || {};
 
             // Set default values
-            shader.uniforms.tCube.value = Camera.mirror.renderTarget;
+            shader.uniforms.tCube.value = Bub.camera.mirror.renderTarget;
             // Anything lower than this seems to cause a black artifact on
             // the bubble
             shader.uniforms.c.value = 1.01;
@@ -172,7 +176,7 @@ var Shader = global.Shader = Class.create({
 
             shader.uniforms.beamSpeed.value = 0.26;
             shader.uniforms.beamColor.value = new THREE.Vector3( 0.1, 0.2, 0.8 );
-            shader.uniforms.bgColor.value = World.bgColor;
+            shader.uniforms.bgColor.value = Bub.World.bgColor;
             shader.uniforms.dModifier.value = 0;
             shader.uniforms.brightness.value = 0.8;
             shader.uniforms.slantBrightness.value = 0.2;
@@ -189,6 +193,8 @@ var Shader = global.Shader = Class.create({
             });
         }
     }
-});
+};
 
-}(this));
+Bub.Shader = new Shader();
+
+}());

@@ -1,4 +1,5 @@
 // uniform types https://github.com/mrdoob/three.js/wiki/Uniforms-types
+// fireball shader http://www.webgl.com/2012/03/webgl-demo-fireball/
 // www.flickr.com/photos/chorando/sets/72157607835630011/
 // textures! www.textureking.com
 // 3d fireball https://www.shadertoy.com/view/4ssGzn
@@ -116,7 +117,7 @@ Shader.prototype = {
             shader.uniforms.mFresnelPower.value = 2.0;
             shader.uniforms.mFresnelScale.value = 2.0;
             shader.uniforms.amplitude.value = 0;
-            shader.uniforms.frequency.value = 0.4;
+            shader.uniforms.frequency.value = 200;
             shader.uniforms.speed.value = 20.0;
 
             var mat = new THREE.ShaderMaterial({

@@ -37,7 +37,7 @@ Bub.Mine.prototype.load = function( options ) {
         0, -100 - ( Math.random() ), 0
     );
 
-    this.scaleTo( radius );
+    this.scaleTo( radius * 2 );
 
     this.mesh.geometry.computeBoundingSphere();
     var bounding = this.mesh.geometry.boundingSphere;

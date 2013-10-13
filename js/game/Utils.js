@@ -37,7 +37,7 @@ Bub.Utils = {
         var material = new THREE.MeshLambertMaterial({
             color: color || 0xff0000
         });
-        var geometry = new THREE.SphereGeometry( 4, 4, 4 );
+        var geometry = new THREE.SphereGeometry( 2, 4, 4 );
         var mesh = this.mesh = new THREE.Mesh( geometry, material );
 
         mesh.position.copy( vec );
@@ -90,7 +90,7 @@ Bub.Utils = {
     },
 
     sphereCollision: function( position1, position2, radius1, radius2 ) {
-        return Bub.Utils.distance3d( position1, position2 ) < radius1 + radius2;
+        return Bub.Utils.distance3d( position1, position2 ) <= radius1 + radius2;
     },
 
     _extend: function( mixin, obj ) {

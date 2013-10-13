@@ -9,6 +9,9 @@ Level.prototype.levels = [{
         var text = new Bub.Text3d('Big Bubble!');
         text.introduce();
         Bub.Transitions.run('descend');
+        //setInterval(function() {
+            //Bub.player.ripple( Bub.player, 10 );
+        //}, 1000);
     }
 }, {
     next: 30,

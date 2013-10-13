@@ -1,4 +1,5 @@
 Bub.Player = function() {
+
     this.id = 0;
     Bub.Mixin.Entity.call( this );
 };
@@ -28,7 +29,7 @@ Bub.Player.prototype.vertices = {
 
 Bub.Player.prototype.load = function() {
     var build = this.build,
-        geometry = this.geometry = new THREE.SphereGeometry( this.build.radius, this.build.segments, this.build.segments ),
+        geometry = this.geometry = new THREE.SphereGeometry( 0.5, this.build.segments, this.build.segments ),
         mesh = this.mesh = new THREE.Mesh( geometry, Bub.Shader.shaders.fresnel() ),
         vertexIndex = mesh.geometry.vertices.length - 1,
         v;
@@ -56,11 +57,9 @@ Bub.Player.prototype.load = function() {
 
 Bub.Player.prototype.reset = function() {
     this.resetDefaults();
-    this.build.origRadius = this.build.targetRadius = this.build.radius;
+    this.build.targetRadius = this.build.radius;
 
-    this.mesh.position.x = 0;
-    this.mesh.position.y = 0;
-    this.mesh.position.z = 0;
+    this.mesh.position.set( 0, 0, 0 );
     this.scale( this.build.radius );
 };
 
@@ -155,11 +154,11 @@ Bub.Player.prototype.constrain = function() {
 
 Bub.Player.prototype.ripple = function( target, amplitude ) {
     if( this.phys.amplitude <= 3 ) {
-        amplitude = 4 + ( amplitude * 0.05 );
+        amplitude = 10 + ( amplitude * 0.05 );
         this.phys.amplitude = amplitude;
 
         if( 'amplitude' in this.mesh.material.uniforms ) {
-            this.mesh.material.uniforms.frequency.value = Bub.Utils.randFloat( 0.3, 3 );
+            this.mesh.material.uniforms.frequency.value = Bub.Utils.randFloat( 100, 200 );
         }
 
         if( target ) {
@@ -176,7 +175,8 @@ Bub.Player.prototype.grow = function( amount ) {
 
 Bub.Player.prototype.scale = function( radius ) {
     this.build.radius = radius;
-    var scale = this.build.scale = radius / this.build.origRadius;
+    var scale = this.build.scale = radius * 2;
+
     this.mesh.scale.set( scale, scale, scale );
 
     this.phys.acceleration = 11.0 + ( 0.054 * radius );
@@ -184,7 +184,7 @@ Bub.Player.prototype.scale = function( radius ) {
     this.phys.max = 190 + ( 3 * radius );
 
     if( 'diameter' in this.mesh.material.uniforms ) {
-        this.mesh.material.uniforms.diameter.value = this.build.radius * 2;
+        this.mesh.material.uniforms.diameter.value = this.build.scale;
         this.mesh.material.uniforms.scale.value = this.build.scale;
     }
 };

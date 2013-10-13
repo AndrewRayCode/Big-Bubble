@@ -19,7 +19,7 @@ Bub.Fireball.prototype.material = function() {
     return Bub.Shader.shaders.fireball();
 };
 
-Bub.Fireball.prototype.geometry = new THREE.SphereGeometry( 10, 32, 32 );
+Bub.Fireball.prototype.geometry = new THREE.SphereGeometry( 1, 32, 32 );
 
 Bub.Fireball.prototype.loadGeometry = function() {
     return this.mesh = new THREE.Mesh( this.geometry, this.material() );
@@ -27,7 +27,6 @@ Bub.Fireball.prototype.loadGeometry = function() {
 
 Bub.Fireball.prototype.load = function( options ) {
     options = options || {};
-    this.build.origRadius = this.build.radius;
 
     var radius = options.radius || 10 + 5 * Math.random(),
         frustrum = Bub.camera.data.frustrum;
@@ -92,6 +91,6 @@ Bub.Fireball.prototype.updateFns = {
 
 Bub.Fireball.prototype.scale = function( radius ) {
     this.build.radius = radius;
-    var scale = this.build.scale = radius / this.build.origRadius;
+    var scale = this.build.scale = radius;
     this.mesh.scale.set( scale, scale, scale );
 };

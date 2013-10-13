@@ -13,7 +13,7 @@ Bub.Floater.prototype.material = function() {
     return Bub.Shader.shaders.bubble();
 };
 
-Bub.Floater.prototype.geometry = new THREE.SphereGeometry( 1, 32, 32 );
+Bub.Floater.prototype.geometry = new THREE.SphereGeometry( 0.5, 32, 32 );
 
 Bub.Floater.prototype.loadGeometry = function() {
     return this.mesh = new THREE.Mesh( this.geometry );
@@ -35,7 +35,7 @@ Bub.Floater.prototype.load = function( options ) {
         0, -100 - ( Math.random() ), 0
     );
 
-    this.scaleTo( 1 + radius );
+    this.scaleTo( radius * 2 );
     this.r = radius;
 
     Bub.trigger( 'initted', this );

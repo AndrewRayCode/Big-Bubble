@@ -7,7 +7,7 @@ Bub.Fireball = function() {
     // for everything?
     this.build = {
         scale: 1,
-        radius: 10
+        radius: 80
     };
 
     Bub.Mixin.Entity.call( this );
@@ -19,12 +19,13 @@ Bub.Fireball.prototype.material = function() {
     return Bub.Shader.shaders.fireball();
 };
 
-Bub.Fireball.prototype.geometry = new THREE.SphereGeometry( 1, 32, 32 );
+Bub.Fireball.prototype.geometry = new THREE.SphereGeometry( 0.5, 32, 32 );
 
 Bub.Fireball.prototype.loadGeometry = function() {
     return this.mesh = new THREE.Mesh( this.geometry, this.material() );
 };
 
+// todo: load is a dumb thing along with init and loadgeometry
 Bub.Fireball.prototype.load = function( options ) {
     options = options || {};
 
@@ -50,6 +51,8 @@ Bub.Fireball.prototype.load = function( options ) {
 Bub.Fireball.prototype.updateFns = {
     move: function() {
         this.move( this.inertia );
+
+        this.mesh.rotation.x -= Bub.Utils.speed( 1.1 );
 
         if ( this.mesh.position.y + this.r * 2 < Bub.camera.data.frustrum.min.y ) {
             Bub.trigger( 'free', this );
@@ -81,7 +84,10 @@ Bub.Fireball.prototype.updateFns = {
                 Bub.unbind( 'initted', initBind );
             }, 6000);
 
-            var text = new Bub.Text3d('Fire Bubble!');
+            var text = new Bub.Text3d({
+                text: 'Fire Bubble!',
+                material: Bub.Shader.shaders.fireball()
+            });
             text.introduce();
             Bub.trigger( 'free', this );
             Bub.player.mesh.material = Bub.Shader.shaders.fireball();
@@ -91,6 +97,10 @@ Bub.Fireball.prototype.updateFns = {
 
 Bub.Fireball.prototype.scale = function( radius ) {
     this.build.radius = radius;
-    var scale = this.build.scale = radius;
+    var scale = this.build.scale = radius * 2;
     this.mesh.scale.set( scale, scale, scale );
+
+    if( 'diameter' in this.mesh.material.uniforms ) {
+        this.mesh.material.uniforms.diameter.value = this.build.scale;
+    }
 };

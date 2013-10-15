@@ -185,6 +185,5 @@ Bub.Player.prototype.scale = function( radius ) {
 
     if( 'diameter' in this.mesh.material.uniforms ) {
         this.mesh.material.uniforms.diameter.value = this.build.scale;
-        this.mesh.material.uniforms.scale.value = this.build.scale;
     }
 };

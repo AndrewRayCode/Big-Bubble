@@ -6,18 +6,19 @@ Level.prototype.levels = [{
     next: 13,
     zoom: 500,
     start: function() {
-        var text = new Bub.Text3d('Big Bubble!');
+        var text = new Bub.Text3d({
+            text: 'Big Bubble!'
+        });
         text.introduce();
         Bub.Transitions.run('descend');
-        //setInterval(function() {
-            //Bub.player.ripple( Bub.player, 10 );
-        //}, 1000);
     }
 }, {
     next: 30,
     zoom: 700,
     start: function() {
-        var text = new Bub.Text3d('Zoom out!');
+        var text = new Bub.Text3d({
+            text: 'Zoom out!'
+        });
         text.introduce();
     },
     size: new THREE.Vector2( 400, 500 )
@@ -25,7 +26,9 @@ Level.prototype.levels = [{
     next: 80,
     zoom: 700,
     start: function() {
-        var text = new Bub.Text3d('Bubble Madness!');
+        var text = new Bub.Text3d({
+            text: 'Bubble Madness!'
+        });
         text.introduce();
         Bub.Transitions.run('maze');
     }

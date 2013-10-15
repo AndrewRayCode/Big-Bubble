@@ -8,6 +8,7 @@
 // sonar https://glsl.heroku.com/e#10201.0
 // spirals spinning https://glsl.heroku.com/e#10207.0
 // beautiful cloud-like surface https://glsl.heroku.com/e#10647.1
+// broccoli fireball http://clicktorelease.com/code/perlin/green.html
 (function() {
 
 var Shader = function() {
@@ -29,7 +30,7 @@ Shader.prototype = {
                 };
 
             if( !(shader.fragment && shader.vertex) ) {
-                throw 'Bub.Shader ' + shaderName + ' could not be loaded! Please makre sure it is in the DOM.';
+                throw 'Bub.Shader ' + shaderName + ' could not be loaded! Please make sure it is in the DOM.';
             }
 
             shader.src = shader.fragment + '\n' + shader.vertex;
@@ -160,9 +161,11 @@ Shader.prototype = {
 
             // Set default values
             shader.uniforms.tExplosion.value = THREE.ImageUtils.loadTexture( 'media/explosion.png' );
-            shader.uniforms.brightness.value = 0.6;
-            shader.uniforms.fireSpeed.value = 0.6;
-            shader.uniforms.noiseHeight.value = 1.0;
+            shader.uniforms.brightness.value = 1.0;
+            shader.uniforms.fireSpeed.value = 0.15;
+            shader.uniforms.noiseHeight.value = 0.01;
+            shader.uniforms.displacementHeight.value = 0.2;
+            shader.uniforms.turbulenceDetail.value = 0.7;
 
             return new THREE.ShaderMaterial({
                 uniforms: $.extend( {}, shader.uniforms, members.uniforms ),

@@ -1,12 +1,12 @@
-Bub.Letter = function( letter, options ) {
+Bub.Letter = function( options ) {
 
-    var material = new THREE.MeshPhongMaterial({
+    var material = options.material || new THREE.MeshPhongMaterial({
         transparent: true,
         color: 0xc4feff
     });
     //material.color.g += Bub.Utils.randFloat( -0.05, 0.05 );
     //material.color.b += Bub.Utils.randFloat( -0.05, 0.05 );
-    var textGeom = new THREE.TextGeometry( letter, {
+    var textGeom = new THREE.TextGeometry( options.letter, {
         height: 10, curveSegments: 3,
         //size: 20, font: 'janda manatee solid', weight: 'normal',
         //size: 20, font: 'pleasantly plump', weight: 'normal',

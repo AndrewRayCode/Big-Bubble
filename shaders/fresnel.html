@@ -1,7 +1,6 @@
 <script type="x-shader/x-vertex">
 // search lights https://glsl.heroku.com/e#9751.3
 uniform float diameter;
-uniform float scale;
 uniform float mRefractionRatio;
 uniform float mFresnelBias;
 uniform float mFresnelScale;
@@ -26,8 +25,8 @@ varying float intensity;
 void main() {
 
     // These values need to be tweaked and documented
-    vec3 scaledPosition = position * scale;
-    vec3 wave = ( vec3(sin( ( time * speed ) + ( position.y * frequency ) )) * amplitude * normal ) / scale;
+    vec3 scaledPosition = position * diameter;
+    vec3 wave = ( vec3(sin( ( time * speed ) + ( position.y * frequency ) )) * amplitude * normal ) / diameter;
     tapered = wave * ( ( scaledPosition.y + ( diameter / 2.0 ) ) / 300.0 );
 
     newPosition = position + ( normal * tapered );

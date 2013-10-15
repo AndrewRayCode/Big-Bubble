@@ -1,9 +1,10 @@
-Bub.Text3d = function( text ) {
+Bub.Text3d = function( options ) {
     this.group = new THREE.Object3D();
     this.letters = [];
     this.offset = 0;
 
     var l = 0,
+        text = options.text,
         kearning = 5,
         tally = 0,
         letter, char;
@@ -13,7 +14,9 @@ Bub.Text3d = function( text ) {
             tally += kearning * 5;
             continue;
         }
-        letter = new Bub.Letter( char );
+        letter = new Bub.Letter(_.extend( options, {
+            letter: char
+        }));
         this.letters.push( letter );
         this.group.add( letter.mesh );
         letter.offset = Bub.Utils.randInt( 2, 12 );

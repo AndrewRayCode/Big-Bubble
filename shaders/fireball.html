@@ -1,26 +1,3 @@
-<script type="x-shader/x-fragment">
-varying vec2 vUv;
-varying float noise;
-uniform sampler2D tExplosion;
-uniform float brightness;
-
-float random( vec3 scale, float seed ){
-  return fract( sin( dot( gl_FragCoord.xyz + seed, scale ) ) * 43758.5453 + seed ) ;
-}
-
-void main() {
-
-    // get a random offset
-    float r = .01 * random( vec3( 12.9898, 78.233, 151.7182 ), 0.0 );
-
-    // lookup vertically in the texture, using noise and offset
-    // to get the right RGB colour
-    vec2 tPos = vec2( 0, brightness - 1.3 * noise + r );
-    vec4 color = texture2D( tExplosion, tPos );
-    gl_FragColor = vec4( color.rgb, 1.0 );
-
-}</script>
-
 <script type="x-shader/x-vertex">
 //
 // GLSL textureless classic 3D noise "cnoise",
@@ -36,23 +13,19 @@ void main() {
 // https://github.com/ashima/webgl-noise
 //
 
-vec3 mod289(vec3 x)
-{
+vec3 mod289(vec3 x) {
   return x - floor(x * (1.0 / 289.0)) * 289.0;
 }
 
-vec4 mod289(vec4 x)
-{
+vec4 mod289(vec4 x) {
   return x - floor(x * (1.0 / 289.0)) * 289.0;
 }
 
-vec4 permute(vec4 x)
-{
+vec4 permute(vec4 x) {
   return mod289(((x*34.0)+1.0)*x);
 }
 
-vec4 taylorInvSqrt(vec4 r)
-{
+vec4 taylorInvSqrt(vec4 r) {
   return 1.79284291400159 - 0.85373472095314 * r;
 }
 
@@ -61,8 +34,7 @@ vec3 fade(vec3 t) {
 }
 
 // Classic Perlin noise
-float cnoise(vec3 P)
-{
+float cnoise(vec3 P) {
   vec3 Pi0 = floor(P); // Integer part for indexing
   vec3 Pi1 = Pi0 + vec3(1.0); // Integer part + 1
   Pi0 = mod289(Pi0);
@@ -126,13 +98,12 @@ float cnoise(vec3 P)
   vec3 fade_xyz = fade(Pf0);
   vec4 n_z = mix(vec4(n000, n100, n010, n110), vec4(n001, n101, n011, n111), fade_xyz.z);
   vec2 n_yz = mix(n_z.xy, n_z.zw, fade_xyz.y);
-  float n_xyz = mix(n_yz.x, n_yz.y, fade_xyz.x); 
+  float n_xyz = mix(n_yz.x, n_yz.y, fade_xyz.x);
   return 2.2 * n_xyz;
 }
 
 // Classic Perlin noise, periodic variant
-float pnoise(vec3 P, vec3 rep)
-{
+float pnoise(vec3 P, vec3 rep) {
   vec3 Pi0 = mod(floor(P), rep); // Integer part, modulo period
   vec3 Pi1 = mod(Pi0 + vec3(1.0), rep); // Integer part + 1, mod period
   Pi0 = mod289(Pi0);
@@ -207,29 +178,61 @@ varying float noise;
 uniform float time;
 uniform float fireSpeed;
 uniform float noiseHeight;
+uniform float displacementHeight;
+uniform float turbulenceDetail;
+uniform float diameter;
 
 float turbulence( vec3 p ) {
-  float w = 100.0;
-  float t = -.5;
-  for (float f = 1.0 ; f <= 10.0 ; f++ ){
-    float power = pow( 2.0, f );
-    t += abs( noiseHeight * pnoise( vec3( power * p ), vec3( 10.0, 10.0, 10.0 ) ) / power );
-  }
-  return t;
+    float t = -0.5;
+    for (float f = 1.0 ; f <= 10.0 ; f++ ){
+        float power = pow( 2.0, f );
+        t += abs( pnoise( vec3( power * p ), vec3( 10.0, 10.0, 10.0 ) ) / power );
+    }
+    return t;
 }
 
 void main() {
 
-  vUv = uv;
+    vUv = uv;
 
-  noise = 10.0 *  -.10 * turbulence( .5 * normal + ( time * fireSpeed ) );
-  float b = noiseHeight * pnoise( 0.05 * position + vec3( 1.0 * time ), vec3( 100.0 ) );
-  float displacement = - 10. * noise + b;
-  
-  vec3 newPosition = position + normal * displacement;
-  gl_Position = projectionMatrix * modelViewMatrix * vec4( newPosition, 1.0 );
+    noise = -1.1 * turbulence( turbulenceDetail * normal + ( time * fireSpeed ) );
+
+    float b = noiseHeight * pnoise(
+        0.05 * position + vec3( 1.0 * time ), vec3( 100.0 )
+    );
+    float displacement = ( 0.0 - displacementHeight ) * noise + b;
+
+    vec3 newPosition = position + normal * displacement;
+    gl_Position = projectionMatrix * modelViewMatrix * vec4( newPosition, 1.0 );
 
 }
 
-
 </script>
+
+<script type="x-shader/x-fragment">
+varying vec2 vUv;
+varying float noise;
+uniform sampler2D tExplosion;
+uniform float brightness;
+
+float random( vec3 scale, float seed ){
+  return fract( sin( dot( gl_FragCoord.xyz + seed, scale ) ) * 43758.5453 + seed ) ;
+}
+
+void main() {
+
+    // get a random offset
+    float offset = .01 * random( vec3( 12.9898, 78.233, 0151.7182 ), 0.0 );
+
+    // not quite depth, but how bright the sphere is (higher is dimmer)
+    float depth = 0.25;
+
+    // lookup vertically in the texture, using noise and offset
+    // to get the right RGB colour
+    vec2 tPos = vec2( 0, ( 1.0 + depth ) * noise + offset );
+    vec4 color = texture2D( tExplosion, ( 1.0 - depth ) - tPos );
+    gl_FragColor = vec4( color.rgb, 1.0 );
+
+}
+</script>
+

@@ -60,6 +60,10 @@ Bub.Utils = {
         return Math.floor( Math.random() * ( max - min + 1 ) + min );
     },
 
+    randArr: function( arr ) {
+        return arr[ this.randInt( 0, arr.length - 1) ];
+    },
+
     midPoint: function( a, b ) {
         return new THREE.Vector3().addVectors( a, b ).multiplyScalar( 0.5 );
     },

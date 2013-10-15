@@ -57,17 +57,17 @@ Bub.Transitions = {
             loop: function() {
                 var rand = Math.random();
 
-                if( rand > 0.998 ) {
+                if( rand > 0.997 ) {
                     Bub.Cache.birth( Bub.Mine, {
                         radius: 0.5 + Math.random() * 0.1
                     });
-                } else if( rand > 0.94 ) {
+                } else if( rand > 0.93 ) {
                     Bub.Cache.birth( Bub.Floater, {
                         radius: Bub.Utils.randInt(Bub.player.build.radius / 10, Bub.player.build.radius / 2)
                     });
                 }
 
-                if( rand > 0.998 ) {
+                if( rand > 0.996 ) {
                     Bub.Cache.birth( Bub.Fireball, {
                         radius: Bub.player.build.radius
                     });

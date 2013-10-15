@@ -9,6 +9,7 @@ global.Bub = {
         var args = [ arguments[0] ];
         args = args.concat( [ Array.prototype.slice.call(arguments, 1) ] );
         this.binder.trigger.apply( this.binder, args );
+        return this;
     },
 
     bind: function( evt, fn ) {
@@ -23,6 +24,8 @@ global.Bub = {
         }
         evts.push( { orig: fn, bound: newFn } );
         this.binder.bind( evt, newFn );
+
+        return this;
     },
 
     unbind: function( evt, fn ) {
@@ -36,6 +39,8 @@ global.Bub = {
                 }
             }
         }
+
+        return this;
     }
 
 };

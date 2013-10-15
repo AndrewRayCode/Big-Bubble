@@ -66,6 +66,11 @@ Entity.prototype.replaceUpdater = function( key, fn ) {
     this.updateFns[ key ] = fn;
 };
 
+Entity.prototype.resetUpdater = function( key ) {
+    this.replaced = this.replaced || {};
+    this.updateFns[ key ] = this.replaced[ key ];
+};
+
 Entity.prototype.undoUpdaters = function() {
     for( var key in this.replaced ) {
         this.updateFns[ key ] = this.replaced[ key ];

@@ -21,6 +21,8 @@ Bub.Fireball.prototype.material = function() {
 
 Bub.Fireball.prototype.geometry = new THREE.SphereGeometry( 0.5, 32, 32 );
 
+Bub.Fireball.prototype.duration = 10000;
+
 Bub.Fireball.prototype.loadGeometry = function() {
     return this.mesh = new THREE.Mesh( this.geometry, this.material() );
 };
@@ -59,38 +61,13 @@ Bub.Fireball.prototype.updateFns = {
         }
     },
     collision: function() {
-        var initBind = function( thing ) {
-            if( thing instanceof Bub.Floater ) {
-                thing.mesh.material = Bub.Shader.shaders.fireball();
-                thing.replaceUpdater( 'collision', function() {
-                    if( Bub.player.isCollidingWith( this ) ) {
-                        Bub.trigger( 'free', this );
-
-                        Bub.player.grow( this.r );
-
-                        if( Bub.player.build.radius > Bub.Level.level.next ) {
-                            Bub.Level.advance();
-                        }
-                    }
-                });
-            }
-        };
-
         if( Bub.player.isCollidingWith( this ) ) {
-            Bub.bind( 'initted', initBind );
-
-            setTimeout( function() {
-                Bub.player.mesh.material = Bub.Shader.shaders.fresnel();
-                Bub.unbind( 'initted', initBind );
-            }, 6000);
-
             var text = new Bub.Text3d({
                 text: 'Fire Bubble!',
                 material: Bub.Shader.shaders.fireball()
             });
             text.introduce();
-            Bub.trigger( 'free', this );
-            Bub.player.mesh.material = Bub.Shader.shaders.fireball();
+            Bub.trigger( 'fireup', this ).trigger( 'free', this );
         }
     }
 };

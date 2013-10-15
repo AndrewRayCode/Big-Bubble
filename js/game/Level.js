@@ -3,7 +3,7 @@
 var Level = function() {};
 
 Level.prototype.levels = [{
-    next: 13,
+    next: 30,
     zoom: 500,
     start: function() {
         var text = new Bub.Text3d({

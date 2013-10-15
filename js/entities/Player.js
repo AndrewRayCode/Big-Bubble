@@ -1,7 +1,49 @@
 Bub.Player = function() {
+    var me = this;
 
     this.id = 0;
     Bub.Mixin.Entity.call( this );
+
+    Bub.bind( 'fireup', function( powerup ) {
+
+        var collide = function() {
+            if( me.isCollidingWith( this ) ) {
+                Bub.trigger( 'free', this );
+
+                Bub.player.grow( this.r );
+
+                if( Bub.player.build.radius > Bub.Level.level.next ) {
+                    Bub.Level.advance();
+                }
+            }
+        };
+
+        var initBind = function( thing ) {
+            // Remove ripple on collision with floater
+            if( thing instanceof Bub.Floater ) {
+                thing.mesh.material = Bub.Shader.shaders.fireball();
+                thing.replaceUpdater( 'collision', collide );
+            }
+        };
+
+        Bub.bind( 'initted', initBind );
+
+        setTimeout(function() {
+            me.mesh.material = Bub.Shader.shaders.fresnel();
+            Bub.unbind( 'initted', initBind );
+            me.resetUpdater( 'shader' );
+        }, powerup.duration );
+
+        me.mesh.material = Bub.Shader.shaders.fireball();
+
+        Bub.Cache.each(function( thing ) {
+            thing.replaceUpdater( 'collision', collide );
+        });
+
+        me.replaceUpdater('shader', function() {
+            this.mesh.rotation.x -= Bub.Utils.speed( 1.1 );
+        });
+    });
 };
 
 Bub.Player.prototype = Object.create( Bub.Mixin.Entity.prototype );

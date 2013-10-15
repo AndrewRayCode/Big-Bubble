@@ -4,6 +4,7 @@ Bub.Player = function() {
     this.id = 0;
     Bub.Mixin.Entity.call( this );
 
+    // Fireball powerup binder
     Bub.bind( 'fireup', function( powerup ) {
 
         var collide = function() {

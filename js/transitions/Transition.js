@@ -1,5 +1,14 @@
 (function() {
 
+var powerups = [{
+    type: Bub.Fireball,
+    options: function() {
+        return {
+            radius: Bub.player.build.radius
+        };
+    }
+}];
+
 Bub.Transition = function( props ) {
     $.extend( this, props );
 };
@@ -25,7 +34,29 @@ Bub.Transition.prototype = {
 Bub.Transitions = {
 
     run: function( id ) {
-        var trans = this.transitions[ id ];
+        var trans = this.transitions[ id ],
+            timeouts = [];
+
+        _.each( trans.entities, function( entity ) {
+
+            var timeout = function() {
+                entity.timeout = setTimeout(function() {
+
+                    var actual = _.isArray( entity.type ) ? Bub.Utils.randArr( entity.type ) : entity;
+
+                    var opts = actual.options ? ( actual.options.call ?
+                        actual.options() : actual.options
+                    ) : {};
+                    Bub.Cache.birth( actual.type, opts );
+
+                    timeout();
+
+                }, entity.offset + ( Math.random() * entity.frequency ));
+            };
+
+            timeout();
+
+        });
 
         Bub.World.transition = function() {
             trans.loop();
@@ -34,13 +65,43 @@ Bub.Transitions = {
     },
 
     end: function( id ) {
-        var trans =  this.transitions[ id ];
+        var trans = this.transitions[ id ];
+
+        _.each( trans.entities, function( entity ) {
+            if( entity.timeout ) {
+                clearTimeout( entity.timeout );
+            }
+        });
+
         delete Bub.World.transition;
         trans.end();
     },
 
     transitions: {
         descend: new Bub.Transition({
+
+            entities: [{
+                type: Bub.Mine,
+                options: { radius: 0.5 },
+                frequency: 3000,
+                offset: 1000
+            }, {
+                type: Bub.Floater,
+                options: function() {
+                    return {
+                        radius: Bub.Utils.randInt(
+                            Bub.player.build.radius / 10, Bub.player.build.radius / 2
+                        )
+                    };
+                },
+                frequency: 100,
+                offset: 100
+            }, {
+                type: powerups,
+                frequency: 10000,
+                offset: 3000
+            }],
+
             start: function() {
             },
             end: function() {
@@ -54,25 +115,7 @@ Bub.Transitions = {
                     }
                 });
             },
-            loop: function() {
-                var rand = Math.random();
-
-                if( rand > 0.997 ) {
-                    Bub.Cache.birth( Bub.Mine, {
-                        radius: 0.5 + Math.random() * 0.1
-                    });
-                } else if( rand > 0.93 ) {
-                    Bub.Cache.birth( Bub.Floater, {
-                        radius: Bub.Utils.randInt(Bub.player.build.radius / 10, Bub.player.build.radius / 2)
-                    });
-                }
-
-                if( rand > 0.996 ) {
-                    Bub.Cache.birth( Bub.Fireball, {
-                        radius: Bub.player.build.radius
-                    });
-                }
-            }
+            loop: function() {}
         }),
 
         forward: new Bub.Transition({

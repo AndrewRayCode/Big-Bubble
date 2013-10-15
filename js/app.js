@@ -18,6 +18,10 @@ bubbleApp.controller('body', function($scope) {
     });
 });
 
+$(function() {
+
+$('.meta').removeClass('hide');
+
 Bub.camera = new Bub.Camera();
 Bub.player = new Bub.Player();
 
@@ -29,5 +33,7 @@ Bub.player.load();
 Bub.World.populate();
 Bub.camera.zoom( Bub.camera.data.zoom );
 Bub.Game.activate();
+
+});
 
 }());

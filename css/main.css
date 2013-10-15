@@ -1,18 +1,1 @@
-body {
-    background:#092b5a;
-    padding:0;
-    margin:0;
-    font-weight:bold;
-    overflow:hidden;
-}
-
-#game {
-    border-radius:10px;
-    box-shadow:inset 1px 1px 20px #04152c;
-    margin:20px auto 40px;
-    border:10px solid #0e4188;
-}
-
-a {
-    color:#ffffff;
-}
+body{font-size:14px;background:#fafafa;padding:0;margin:0;font-weight:bold;font-family:sans-serif;overflow:hidden}h1{font-size:22px;color:#202a43;margin:0 0 10px;padding:0}.hide{display:none}.play-area{width:540px;min-height:540px;background:#fff;margin:20px auto 40px;padding:10px;position:relative;border-radius:4px}.meta{float:left;margin:0 0 0 20px;width:200px}.meta label{color:#202a43;font-weight:bold}.meta-info{margin:20px 0 0;border-top:1px solid #ddd;padding:10px 0 0}.score{border-radius:10px;background:#202a43;color:#fff;padding:8px 20px;float:left;clear:both}#game{float:left;min-width:400;min-height:600;border:5px solid #e6e6e6;border-radius:4px}a{color:#15a2e9;text-decoration:underline}

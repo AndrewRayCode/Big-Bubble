@@ -1,19 +1,71 @@
-$bgColor: #092B5A;
+$playBgColor:#fff;
+$bgColor:#fafafa;
+$playPad:10px;
 
 body {
+    font-size:14px;
     background:$bgColor;
     padding:0;
     margin:0;
-    font-weight: bold;
+    font-weight:bold;
+    font-family:sans-serif;
     overflow:hidden;
 }
 
+h1 {
+    font-size:22px;
+    color:#202a43;
+    margin:0 0 10px;
+    padding:0;
+}
+
+.hide { display:none; }
+
+.play-area {
+    width:540px;
+    min-height:540px;
+    background:$playBgColor;
+    margin:20px auto 40px;
+    padding:10px;
+    position:relative;
+    border-radius:4px;
+}
+
+.meta {
+    float:left;
+    margin:0 0 0 20px;
+    width:200px;
+
+    label {
+        color:#202a43;
+        font-weight:bold
+
+    }
+}
+
+.meta-info {
+    margin:20px 0 0;
+    border-top:1px solid #ddd;
+    padding:10px 0 0;
+}
+
+.score {
+    border-radius:10px;
+    background:#202a43;
+    color:#fff;
+    padding:8px 20px;
+    float:left;
+    clear:both;
+}
+
 #game {
+    float:left;
     min-width:400;
     min-height:600;
-    border-radius:10px;
-    box-shadow:inset 1px 1px 20px darken( $bgColor, 10% );
-    margin:20px auto 40px;
-    border:10px solid lighten( $bgColor, 10% );
+    border:5px solid darken( $playBgColor, 10% );
+    border-radius:4px;
 }
-a { color: #ffffff; }
+a {
+    color:#15a2e9;
+    text-decoration:underline;
+}

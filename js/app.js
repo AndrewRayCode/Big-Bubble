@@ -6,6 +6,18 @@ if ( !window.Detector.webgl ) {
 
 (function() {
 
+var bubbleApp = angular.module( 'bubbleApp', [] );
+
+bubbleApp.controller('body', function($scope) {
+    $scope.score = 0;
+
+    Bub.bind( 'points', function( radius ) {
+        $scope.$apply(function() {
+            $scope.score += Math.round( radius );
+        });
+    });
+});
+
 Bub.camera = new Bub.Camera();
 Bub.player = new Bub.Player();
 

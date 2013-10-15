@@ -23,6 +23,8 @@ Bub.Fireball.prototype.geometry = new THREE.SphereGeometry( 0.5, 32, 32 );
 
 Bub.Fireball.prototype.duration = 10000;
 
+Bub.Fireball.prototype.points = 100;
+
 Bub.Fireball.prototype.loadGeometry = function() {
     return this.mesh = new THREE.Mesh( this.geometry, this.material() );
 };
@@ -67,7 +69,10 @@ Bub.Fireball.prototype.updateFns = {
                 material: Bub.Shader.shaders.fireball()
             });
             text.introduce();
-            Bub.trigger( 'fireup', this ).trigger( 'free', this );
+            Bub
+                .trigger( 'fireup', this )
+                .trigger( 'free', this )
+                .trigger( 'points', this.points );
         }
     }
 };

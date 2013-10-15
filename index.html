@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" ng-app="bubbleApp">
     <head>
         <title>Big Bubble!</title>
         <meta charset="utf-8">
@@ -8,7 +8,27 @@
     </head>
 
     <body>
-        <div id="game"></div>
+        <div class="play-area" ng-controller="body">
+            <div id="game"></div>
+
+            <div class="meta" ng-cloak>
+                <h1>Big Bubble</h1>
+                <div class="meta-info">
+                    By Andrew Ray
+
+                    <br />
+                    <a href="https://twitter.com/andrewray" target="_blank">@andrewray</a>
+                    <br />
+                    <a href="http://delvarworld.github.io/" target="_blank">blog</a>
+                    <br />
+                    <a href="http://andrewray.me" target="_blank">homepage</a>
+                </div>
+
+                <div class="meta-info">
+                    <div class="score">{{score}} points</div>
+                </div>
+            </div>
+        </div>
 
         <script src="js/deps/underscore-min.js"></script>
         <script src="js/deps/q.min.js"></script>
@@ -17,6 +37,7 @@
         <script src="js/deps/jquery-2.0.0.min.js"></script>
         <script src="js/deps/mousetrap.min.js"></script>
         <script src="js/deps/Detector.js"></script>
+        <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.0.8/angular.min.js"></script>
 
         <script src="fonts/janda_manatee_solid_regular.typeface.js"></script>
         <script src="fonts/pleasantly_plump_normal.typeface.js"></script>

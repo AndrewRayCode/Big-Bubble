@@ -10,6 +10,7 @@ var World = function() {
     this.renderer.shadowMapEnabled = true;
 
     this.$container = $('#game');
+    this.$wrapper = this.$container.parent();
     this.setSize( this.size );
 
     this.$container.append( this.renderer.domElement );
@@ -29,6 +30,7 @@ World.prototype.calculateAspect = function() {
 
 World.prototype.grow = function( dim ) {
     this.growTarget = this.size.clone().add( dim );
+
 };
 
 World.prototype.setSize = function( dim ) {
@@ -39,6 +41,9 @@ World.prototype.setSize = function( dim ) {
     this.$container.css({
         width: dim.x + 'px',
         height: dim.y  + 'px'
+    });
+    this.$wrapper.css({
+        width: ( 240 + dim.x ) + 'px',
     });
 
     Bub.trigger( 'resize', dim );

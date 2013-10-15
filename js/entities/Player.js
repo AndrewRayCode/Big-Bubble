@@ -214,6 +214,8 @@ Bub.Player.prototype.ripple = function( target, amplitude ) {
 
 Bub.Player.prototype.grow = function( amount ) {
     this.build.targetRadius += amount / 10;
+
+    Bub.trigger( 'points', amount );
 };
 
 Bub.Player.prototype.scale = function( radius ) {

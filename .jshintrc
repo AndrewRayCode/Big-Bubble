@@ -27,6 +27,7 @@
         "google",
 
         // deps
+        "angular",
         "TWEEN",
         "Bub",
         "_",

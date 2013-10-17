@@ -173,6 +173,10 @@ Entity.prototype.updateLocks = function() {
 };
 
 Entity.prototype.scaleTo = function( scale ) {
+    if( this.dimensions ) {
+        scale = scale / this.dimensions.x;
+    }
+
     this.mesh.scale.set( scale, scale, scale );
 };
 

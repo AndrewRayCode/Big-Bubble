@@ -82,7 +82,11 @@ Bub.Transitions = {
 
             entities: [{
                 type: Bub.Mine,
-                options: { radius: 0.5 },
+                options: function() {
+                    return {
+                        radius: Bub.player.build.radius
+                    };
+                },
                 frequency: 3000,
                 offset: 1000
             }, {
@@ -102,8 +106,7 @@ Bub.Transitions = {
                 offset: 3000
             }],
 
-            start: function() {
-            },
+            start: function() {},
             end: function() {
                 Bub.Cache.each(function( thing ) {
                     if( thing.inertia.y !== 0 ) {

@@ -9,6 +9,7 @@
 // spirals spinning https://glsl.heroku.com/e#10207.0
 // beautiful cloud-like surface https://glsl.heroku.com/e#10647.1
 // broccoli fireball http://clicktorelease.com/code/perlin/green.html
+// fire bg https://glsl.heroku.com/e#11554.0
 
 // game assets
 // http://www.blendswap.com/

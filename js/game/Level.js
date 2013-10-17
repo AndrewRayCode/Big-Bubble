@@ -11,6 +11,7 @@ Level.prototype.levels = [{
         });
         text.introduce();
         Bub.Transitions.run('descend');
+        //Bub.trigger( 'fireup', new Bub.Fireball() );
     }
 }, {
     next: 100,

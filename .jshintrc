@@ -28,6 +28,8 @@
 
         // deps
         "angular",
+        "ShaderParticleGroup",
+        "ShaderParticleEmitter",
         "TWEEN",
         "Bub",
         "_",

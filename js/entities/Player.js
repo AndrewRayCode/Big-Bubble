@@ -9,6 +9,8 @@ Bub.Player = function() {
 
         clearTimeout( player.deactivateTimeout );
 
+        var baseBrightness = 0.7;
+
         var collide = function() {
             var bubble = this;
             if( player.isCollidingWith( bubble ) ) {
@@ -38,7 +40,7 @@ Bub.Player = function() {
         var initBind = function( thing ) {
             // Remove ripple on collision with floater
             if( thing instanceof Bub.Floater ) {
-                thing.mesh.material = Bub.Shader.shaders.fireball();
+                //thing.mesh.material = Bub.Shader.shaders.fireball();
                 thing.state = 'fire';
                 thing.replaceUpdater( 'collision', collide );
             }
@@ -47,14 +49,35 @@ Bub.Player = function() {
         Bub.bind( 'initted', initBind );
 
         player.deactivateTimeout = setTimeout(function() {
+            Bub.Particle.destroy( player.particleId );
             player.resetUpdater( 'shader' );
             player.mesh.material = Bub.Shader.shaders.fresnel();
             Bub.unbind( 'initted', initBind );
         }, powerup.duration );
 
         player.mesh.material = Bub.Shader.shaders.fireball();
-        player.targetBrightness = player.mesh.material.uniforms.brightness.value = 0.2;
+        player.targetBrightness = player.mesh.material.uniforms.brightness.value = baseBrightness;
         player.mesh.material.uniforms.displacementHeight.value = 0.1;
+
+        player.particleId = Bub.Particle.register({
+            update: Bub.Particle.lockTo( player )
+        }, {
+            texture: THREE.ImageUtils.loadTexture('media/flame-1.png'),
+            maxAge: 5
+        }, {
+            type: 'sphere',
+            //position: new THREE.Vector3(0, 0, 0),
+            positionSpread:new THREE.Vector3(10, 10, 0),
+            //acceleration: new THREE.Vector3(0, 10, 0),
+            velocity: new THREE.Vector3(0, 15, 0),
+            speed: 7,
+            sizeSpread: 10,
+            particlesPerSecond: 4,
+            sizeStart: player.build.radius,
+            sizeEnd: player.build.radius + 300,
+            opacityStart: 1,
+            opacityEnd: 0
+        });
 
         Bub.Cache.each(function( thing ) {
             thing.replaceUpdater( 'collision', collide );
@@ -70,7 +93,7 @@ Bub.Player = function() {
             }
 
             player.targetBrightness -= Bub.Utils.speed( 0.15 );
-            player.targetBrightness = Bub.Utils.cap( player.targetBrightness, 0.2, 1.3 );
+            player.targetBrightness = Bub.Utils.cap( player.targetBrightness, baseBrightness, 1.3 );
         });
     });
 };

@@ -47,7 +47,7 @@ Game.prototype.activate = function() {
 Game.prototype.restart = function() {
     this.running = true;
 
-    Bub.World.shark.position.set( 50, 50, -100 );
+    Bub.World.shark.position.set( 50, 50, -300 );
 
     this.time = {
         start: Date.now(),
@@ -97,8 +97,10 @@ Game.prototype.loop = function() {
             shader.uniforms.viewVector.value = Bub.camera.main.position.clone();
         }
     });
+    
 
     TWEEN.update();
+    Bub.Particle.update();
     Bub.TextManager.update();
     Bub.World.update();
     Bub.player.update();

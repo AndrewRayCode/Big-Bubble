@@ -4,7 +4,7 @@ var Level = function() {};
 
 Level.prototype.levels = [{
     next: 30,
-    zoom: 500,
+    zoom: 300,
     start: function() {
         var text = new Bub.Text3d({
             text: 'Big Bubble!'
@@ -13,7 +13,7 @@ Level.prototype.levels = [{
         Bub.Transitions.run('descend');
     }
 }, {
-    next: 30,
+    next: 100,
     zoom: 700,
     start: function() {
         var text = new Bub.Text3d({
@@ -23,7 +23,7 @@ Level.prototype.levels = [{
     },
     size: new THREE.Vector2( 400, 500 )
 }, {
-    next: 80,
+    next: 200,
     zoom: 700,
     start: function() {
         var text = new Bub.Text3d({
@@ -33,7 +33,7 @@ Level.prototype.levels = [{
         Bub.Transitions.run('maze');
     }
 }, {
-    next: 90,
+    next: 300,
     zoom: 800,
     start: function() {
         Bub.Transitions.end('forward');

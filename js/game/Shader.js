@@ -146,6 +146,7 @@ Shader.prototype = {
             shader.uniforms.p.value = 2.4;
             shader.uniforms.opacity.value = 1.0;
             shader.uniforms.glowColor.value = new THREE.Color( 0x69D2E7 );
+            shader.uniforms.addColor.value = new THREE.Color( 0x000000 );
 
             var mat = new THREE.ShaderMaterial({
                 fragmentShader: shader.fragment,

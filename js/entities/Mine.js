@@ -26,6 +26,7 @@ Bub.Mine.prototype.loadGeometry = function() {
         var material = new THREE.MeshLambertMaterial({
             shading: THREE.FlatShading,
             map: Bub.Utils.textures.metal,
+            transparent: true
         });
         me.mesh = new THREE.Mesh( geometry, material );
     });

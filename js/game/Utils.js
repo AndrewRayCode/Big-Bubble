@@ -11,25 +11,46 @@ Bub.Utils = {
 
     textures: {},
 
-    cap: function( vector, cap ) {
-        if( vector.x > cap ) {
-            vector.x = cap;
+    vcap: function( vector, min, max ) {
+        if( max === undefined ) {
+            min = -min;
+            max = -min;
         }
-        if( vector.x < -cap ) {
-            vector.x = -cap;
+
+        if( vector.x > max ) {
+            vector.x = max;
         }
-        if( vector.y > cap ) {
-            vector.y = cap;
+        if( vector.x < min ) {
+            vector.x = min;
         }
-        if( vector.y < -cap ) {
-            vector.y = -cap;
+        if( vector.y > max ) {
+            vector.y = max;
         }
-        if( vector.z > cap ) {
-            vector.z = cap;
+        if( vector.y < min ) {
+            vector.y = min;
         }
-        if( vector.z < -cap ) {
-            vector.z = -cap;
+        if( vector.z > max ) {
+            vector.z = max;
         }
+        if( vector.z < min ) {
+            vector.z = min;
+        }
+    },
+
+    cap: function( val, min, max ) {
+        if( max === undefined ) {
+            min = max;
+            max = -min;
+        }
+
+        if( val > max ) {
+            return max;
+        }
+        if( val < min ) {
+            return min;
+        }
+
+        return val;
     },
 
     dot: function( vec, color, parent ) {

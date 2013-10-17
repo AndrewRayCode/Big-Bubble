@@ -6,7 +6,8 @@ Bub.Floater.prototype = Object.create( Bub.Mixin.Entity.prototype );
 
 Bub.Floater.prototype.defaults = {
     fadeSpeed: 0.9,
-    opacity: 0.5
+    opacity: 0.5,
+    state: null
 };
 
 Bub.Floater.prototype.material = function() {

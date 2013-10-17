@@ -229,8 +229,8 @@ void main() {
 
     // lookup vertically in the texture, using noise and offset
     // to get the right RGB colour
-    vec2 tPos = vec2( 0, ( 1.0 + depth ) * noise + offset );
-    vec4 color = texture2D( tExplosion, ( 1.0 - depth ) - tPos );
+    vec2 tPos = vec2( 0, ( brightness + depth ) * noise + offset );
+    vec4 color = texture2D( tExplosion, ( brightness - depth ) - tPos );
     gl_FragColor = vec4( color.rgb, 1.0 );
 
 }

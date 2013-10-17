@@ -1,5 +1,5 @@
 Bub.Player = function() {
-    var me = this;
+    var player = this;
 
     this.id = 0;
     Bub.Mixin.Entity.call( this );
@@ -7,15 +7,31 @@ Bub.Player = function() {
     // Fireball powerup binder
     Bub.bind( 'fireup', function( powerup ) {
 
+        clearTimeout( player.deactivateTimeout );
+
         var collide = function() {
-            if( me.isCollidingWith( this ) ) {
-                Bub.trigger( 'free', this );
+            var bubble = this;
+            if( player.isCollidingWith( bubble ) ) {
 
-                Bub.player.grow( this.r );
+                if( bubble.state === 'fire' ) {
+                    player.grow( bubble.r );
+                    player.targetBrightness += 0.1;
 
-                if( Bub.player.build.radius > Bub.Level.level.next ) {
-                    Bub.Level.advance();
+                    if( player.build.radius > Bub.Level.level.next ) {
+                        Bub.Level.advance();
+                    }
+                    Bub.trigger( 'free', bubble );
+
+                // This could be an explosion or something
+                } else if( bubble.state !== 'dying' ) {
+                    bubble.state = 'dying';
+                    bubble.mesh.material.uniforms.addColor.value = new THREE.Color( 0xffbb11 );
+                    bubble.inertia = new THREE.Vector3( 0, 0, 0 );
+                    setTimeout(function() {
+                        Bub.trigger( 'free', bubble );
+                    }, 500);
                 }
+
             }
         };
 
@@ -23,26 +39,38 @@ Bub.Player = function() {
             // Remove ripple on collision with floater
             if( thing instanceof Bub.Floater ) {
                 thing.mesh.material = Bub.Shader.shaders.fireball();
+                thing.state = 'fire';
                 thing.replaceUpdater( 'collision', collide );
             }
         };
 
         Bub.bind( 'initted', initBind );
 
-        setTimeout(function() {
-            me.mesh.material = Bub.Shader.shaders.fresnel();
+        player.deactivateTimeout = setTimeout(function() {
+            player.resetUpdater( 'shader' );
+            player.mesh.material = Bub.Shader.shaders.fresnel();
             Bub.unbind( 'initted', initBind );
-            me.resetUpdater( 'shader' );
         }, powerup.duration );
 
-        me.mesh.material = Bub.Shader.shaders.fireball();
+        player.mesh.material = Bub.Shader.shaders.fireball();
+        player.targetBrightness = player.mesh.material.uniforms.brightness.value = 0.2;
+        player.mesh.material.uniforms.displacementHeight.value = 0.1;
 
         Bub.Cache.each(function( thing ) {
             thing.replaceUpdater( 'collision', collide );
         });
 
-        me.replaceUpdater('shader', function() {
-            this.mesh.rotation.x -= Bub.Utils.speed( 1.1 );
+        player.replaceUpdater('shader', function() {
+            player.mesh.rotation.x -= Bub.Utils.speed( 1.1 );
+
+            var delta = player.targetBrightness - player.mesh.material.uniforms.brightness.value;
+            if( Math.abs( delta ) > 0.01 ) {
+                player.mesh.material.uniforms.brightness.value += delta / 4;
+                player.mesh.material.uniforms.displacementHeight.value += delta / 30;
+            }
+
+            player.targetBrightness -= Bub.Utils.speed( 0.15 );
+            player.targetBrightness = Bub.Utils.cap( player.targetBrightness, 0.2, 1.3 );
         });
     });
 };
@@ -76,6 +104,8 @@ Bub.Player.prototype.load = function() {
         mesh = this.mesh = new THREE.Mesh( geometry, Bub.Shader.shaders.fresnel() ),
         vertexIndex = mesh.geometry.vertices.length - 1,
         v;
+
+    //mesh.material = Bub.Shader.shaders.fireball();
 
     // Force player bubble drawing over all other bubbles to avoid
     // z-fighting during bubble intersection
@@ -134,7 +164,7 @@ Bub.Player.prototype.keyCheck = function() {
         }
     }
 
-    Bub.Utils.cap( inertia, phys.max );
+    Bub.Utils.vcap( inertia, phys.max );
 };
 
 Bub.Player.prototype.updateFns = {

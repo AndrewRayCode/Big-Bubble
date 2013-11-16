@@ -31,9 +31,14 @@ Entity.prototype.tween = function( to, duration ) {
     var tweener = {},
         me = this,
         update = function() {},
-        sendTo;
+        key, sendTo;
 
-    if( 'position' in to ) {
+    if( 'material' in to ) {
+        key =  Object.keys( to.material )[0];
+        tweener = this.mesh.material.map[ key ];
+        sendTo = to.material[ key ];
+
+    } else if( 'position' in to ) {
         tweener = this.mesh.position;
         sendTo = to.position;
 

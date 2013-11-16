@@ -183,6 +183,12 @@ Bub.Factory = {
         metal.wrapS = THREE.RepeatWrapping;
         metal.wrapT = THREE.RepeatWrapping;
 
+        var caustic = Bub.Utils.textures.caustic = THREE.ImageUtils.loadTexture( 'media/caustic.jpg' );
+        caustic.wrapS = THREE.RepeatWrapping;
+        caustic.wrapT = THREE.RepeatWrapping;
+        caustic.repeat.set( 0.006, 0.006 );
+        caustic.mapping = THREE.SphericalRefractionMapping();
+
         var uvtest = Bub.Utils.textures.uvtest = THREE.ImageUtils.loadTexture( 'media/uvtest.jpg' );
         uvtest.wrapS = THREE.RepeatWrapping;
         uvtest.wrapT = THREE.RepeatWrapping;

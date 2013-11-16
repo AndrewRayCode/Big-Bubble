@@ -64,13 +64,17 @@ Bub.Text3d.prototype.introduce = function() {
         fadeTime = 300,
         duration = 3000,
         distance = 100,
-        me = this;
+        me = this,
+        totalTime = duration + ( ( me.letters.length + 1 ) * delay ) + animateTime;
         
     _.each( this.letters, function( letter, index ) {
         letter.material.opacity = 0;
         letter.mesh.position.y += distance;
+        letter.mesh.material.map.offset = new THREE.Vector2( 0, Bub.Utils.randFloat(0.1, -0.1) );
 
         setTimeout( function() {
+            letter.tween({ material: { offset: { x: 0, y: -0.5 }} }, totalTime );
+
             letter.tween({ opacity: 1 }, fadeTime);
             letter.tween({
                 position: {
@@ -107,7 +111,7 @@ Bub.Text3d.prototype.introduce = function() {
             Bub.Offset.free( letter );
         });
         Bub.trigger( 'textFree', me );
-    }, duration + ( ( this.letters.length + 1 ) * delay ) + animateTime );
+    }, totalTime );
 
     Bub.World.scene.add( this.group );
 

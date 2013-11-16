@@ -4,6 +4,14 @@ Bub.Letter = function( options ) {
         transparent: true,
         color: 0xc4feff
     });
+    material = new THREE.MeshPhongMaterial({
+        map: Bub.Utils.textures.caustic,
+        color: 0xc4feff,
+        emissive: 0x48694c,
+        transparent: true,
+        opacity:0.5
+    });
+
     //material.color.g += Bub.Utils.randFloat( -0.05, 0.05 );
     //material.color.b += Bub.Utils.randFloat( -0.05, 0.05 );
     var textGeom = new THREE.TextGeometry( options.letter, {
@@ -16,7 +24,7 @@ Bub.Letter = function( options ) {
     });
     // font: helvetiker, gentilis, droid sans, droid serif, optimer
     // weight: normal, bold
-    
+
     var textMesh = new THREE.Mesh( textGeom, material );
     
     textGeom.computeBoundingBox();

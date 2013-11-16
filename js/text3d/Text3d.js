@@ -70,10 +70,15 @@ Bub.Text3d.prototype.introduce = function() {
     _.each( this.letters, function( letter, index ) {
         letter.material.opacity = 0;
         letter.mesh.position.y += distance;
-        letter.mesh.material.map.offset = new THREE.Vector2( 0, Bub.Utils.randFloat(0.1, -0.1) );
+
+        if( 'map' in letter.mesh.material ) {
+            letter.mesh.material.map.offset = new THREE.Vector2( 0, Bub.Utils.randFloat(0.1, -0.1) );
+        }
 
         setTimeout( function() {
-            letter.tween({ material: { offset: { x: 0, y: -0.5 }} }, totalTime );
+            if( 'map' in letter.mesh.material ) {
+                letter.tween({ material: { offset: { x: 0, y: -0.5 }} }, totalTime );
+            }
 
             letter.tween({ opacity: 1 }, fadeTime);
             letter.tween({

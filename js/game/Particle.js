@@ -33,8 +33,8 @@ Bub.Particle = {
     },
 
     destroy: function( id ) {
-        //Bub.World.scene.add( this.emitters[ this.id ].mesh );
-        //delete this.emitters[ this.id ];
+        Bub.World.scene.remove( this.emitters[ id ].group.mesh );
+        delete this.emitters[ id ];
     },
 
     update: function( delta ) {

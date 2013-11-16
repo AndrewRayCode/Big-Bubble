@@ -47,13 +47,17 @@ Bub.Player = function() {
         };
 
         Bub.bind( 'initted', initBind );
+        Bub.Cache.each( initBind );
 
-        player.deactivateTimeout = setTimeout(function() {
+        player.resetShader = function() {
             Bub.Particle.destroy( player.particleId );
+            player.particleId = null;
             player.resetUpdater( 'shader' );
             player.mesh.material = Bub.Shader.shaders.fresnel();
             Bub.unbind( 'initted', initBind );
-        }, powerup.duration );
+        };
+
+        player.deactivateTimeout = setTimeout( player.resetShader, powerup.duration );
 
         player.mesh.material = Bub.Shader.shaders.fireball();
         player.targetBrightness = player.mesh.material.uniforms.brightness.value = baseBrightness;
@@ -66,9 +70,7 @@ Bub.Player = function() {
             maxAge: 5
         }, {
             type: 'sphere',
-            //position: new THREE.Vector3(0, 0, 0),
-            positionSpread:new THREE.Vector3(10, 10, 0),
-            //acceleration: new THREE.Vector3(0, 10, 0),
+            positionSpread: new THREE.Vector3(10, 10, 0),
             velocity: new THREE.Vector3(0, 15, 0),
             speed: 7,
             sizeSpread: 10,
@@ -77,10 +79,6 @@ Bub.Player = function() {
             sizeEnd: player.build.radius + 300,
             opacityStart: 1,
             opacityEnd: 0
-        });
-
-        Bub.Cache.each(function( thing ) {
-            thing.replaceUpdater( 'collision', collide );
         });
 
         player.replaceUpdater('shader', function() {
@@ -152,7 +150,9 @@ Bub.Player.prototype.load = function() {
 };
 
 Bub.Player.prototype.reset = function() {
+    this.resetShader && this.resetShader();
     this.resetDefaults();
+    this.undoUpdaters();
     this.build.targetRadius = this.build.radius;
 
     this.mesh.position.set( 0, 0, 0 );

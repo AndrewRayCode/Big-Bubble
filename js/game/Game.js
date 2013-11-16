@@ -56,6 +56,7 @@ Game.prototype.restart = function() {
 
     Bub.Level.reset();
     Bub.Level.advance();
+    Bub.camera.reset();
     Bub.Cache.reset();
     Bub.player.reset();
 };

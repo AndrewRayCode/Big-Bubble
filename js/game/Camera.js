@@ -19,12 +19,12 @@ Bub.Camera.prototype.defaults = {
         target: new THREE.Vector3( 0, 0, 0 ),
         offset: new THREE.Vector3( 0, 0, 0 ),
         fov: 60,
-        frustrum: {}
+        frustrum: {},
+        zoom: 300
     }
 };
 
 Bub.Camera.prototype.activate = function() {
-    this.data.zoom = this.defaults.zoom = Bub.Level.levels[0].zoom;
 
     // PerspectiveBub.Camera( fov, aspect, near, far )
     this.main = new THREE.PerspectiveCamera(
@@ -58,6 +58,11 @@ Bub.Camera.prototype.getFrustrumAt = function( distanceFromCamera ) {
         frustumHeight * Bub.World.aspect,
         frustumHeight
     ));
+};
+
+Bub.Camera.prototype.reset = function() {
+    this.resetDefaults();
+    this.calculateFrustrum();
 };
 
 Bub.Camera.prototype.calculateFrustrum = function() {

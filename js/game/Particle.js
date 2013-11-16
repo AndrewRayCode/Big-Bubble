@@ -1,3 +1,5 @@
+// https://github.com/squarefeet/ShaderParticleEngine
+// http://squarefeet.github.io/ShaderParticleEngine/
 Bub.Particle = {
 
     emitters: {},

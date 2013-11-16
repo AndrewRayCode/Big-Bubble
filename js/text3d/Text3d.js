@@ -2,6 +2,7 @@ Bub.Text3d = function( options ) {
     this.group = new THREE.Object3D();
     this.letters = [];
     this.offset = 0;
+    this.scale = 1;
 
     var l = 0,
         text = options.text,
@@ -28,14 +29,34 @@ Bub.Text3d = function( options ) {
     }
 
     this.group.width = tally - kearning;
-    this.group.position.x -= this.group.width / 2.0;
     this.group.position.y = Bub.camera.data.frustrum.max.y - 60;
+
+    this.center();
 
     Bub.Mixin.Entity.call( this );
     Bub.trigger( 'textCreated', this );
 };
 
 Bub.Text3d.prototype = Object.create( Bub.Mixin.Entity.prototype );
+
+Bub.Text3d.prototype.center = function() {
+    this.group.position.x = -( this.scale * ( this.group.width / 2.0 ) );
+    return this;
+};
+
+Bub.Text3d.prototype.fitToScreen = function( options ) {
+    options = options || {};
+
+    // The padding calcluation is not accurate and works by chance
+    var padding = options.padding || 50,
+        scale = this.scale = Bub.World.size.x / ( this.group.width + ( padding * 2 ) );
+
+    this.group.scale = new THREE.Vector3( scale, scale, scale );
+
+    this.center();
+
+    return this;
+};
 
 Bub.Text3d.prototype.introduce = function() {
     var delay = 90,
@@ -89,6 +110,8 @@ Bub.Text3d.prototype.introduce = function() {
     }, duration + ( ( this.letters.length + 1 ) * delay ) + animateTime );
 
     Bub.World.scene.add( this.group );
+
+    return this.fitToScreen();
 };
 
 Bub.Text3d.prototype.updateFns = {

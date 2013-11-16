@@ -8,8 +8,7 @@ Level.prototype.levels = [{
     start: function() {
         var text = new Bub.Text3d({
             text: 'Big Bubble!'
-        });
-        text.introduce();
+        }).introduce();
         Bub.Transitions.run('descend');
         //Bub.trigger( 'fireup', new Bub.Fireball() );
     }

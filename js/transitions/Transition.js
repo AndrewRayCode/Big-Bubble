@@ -33,9 +33,22 @@ Bub.Transition.prototype = {
 
 Bub.Transitions = {
 
+    reset: function() {
+        if( this.current ) {
+            _.each( this.current.entities, function( entity ) {
+                if( entity.timeout ) {
+                    clearTimeout( entity.timeout );
+                }
+            });
+        }
+    },
+
     run: function( id ) {
         var trans = this.transitions[ id ],
-            timeouts = [];
+            timeouts = [],
+            me = this;
+
+        this.current = trans;
 
         _.each( trans.entities, function( entity ) {
 

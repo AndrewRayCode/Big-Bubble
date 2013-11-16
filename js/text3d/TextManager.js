@@ -21,6 +21,13 @@ TextManager.prototype.update = function() {
     });
 };
 
+TextManager.prototype.reset = function() {
+    _.each( this.strings, function( text ) {
+        text.destroy();
+    });
+};
+
+
 Bub.TextManager = new TextManager();
 
 }());

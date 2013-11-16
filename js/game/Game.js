@@ -54,6 +54,8 @@ Game.prototype.restart = function() {
         then: Date.now()
     };
 
+    Bub.TextManager.reset();
+    Bub.Transitions.reset();
     Bub.Level.reset();
     Bub.Level.advance();
     Bub.camera.reset();

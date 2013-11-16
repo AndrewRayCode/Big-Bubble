@@ -111,16 +111,20 @@ Bub.Text3d.prototype.introduce = function() {
     });
 
     setTimeout( function() {
-        Bub.World.scene.remove( me.group );
-        _.each( this.letters, function( letter ) {
-            Bub.Offset.free( letter );
-        });
-        Bub.trigger( 'textFree', me );
+        me.destroy();
     }, totalTime );
 
     Bub.World.scene.add( this.group );
 
     return this.fitToScreen();
+};
+
+Bub.Text3d.prototype.destroy = function() {
+    Bub.World.scene.remove( this.group );
+    _.each( this.letters, function( letter, index ) {
+        Bub.Offset.free( letter );
+    });
+    Bub.trigger( 'textFree', this );
 };
 
 Bub.Text3d.prototype.updateFns = {

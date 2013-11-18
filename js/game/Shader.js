@@ -108,6 +108,28 @@ Shader.prototype = {
 
     shaders: {
 
+        displacement: function( shader, members ) {
+            members = members || {};
+
+            // http://www.goodboydigital.com/pixijs/examples/15/indexAll.html
+            // http://www.goodboydigital.com/pixijs/docs/files/src_pixi_filters_DisplacementFilter.js.html#l6
+            shader.uniforms.displacementMap.value = THREE.ImageUtils.loadTexture( 'media/caustic.jpg' );
+            shader.uniforms.scale.value = new THREE.Vector2( 30, 30 );
+            shader.uniforms.offset.value = new THREE.Vector2( 0, 0 );
+            shader.uniforms.mapDimensions.value = new THREE.Vector2( 512, 512 );
+            shader.uniforms.dimensions.value = new THREE.Vector4( 0, 0, 0, 0 );
+
+            var mat = new THREE.ShaderMaterial({
+                fragmentShader: shader.fragment,
+                vertexShader: shader.vertex,
+                uniforms: $.extend( {}, shader.uniforms, members.uniforms ),
+                attributes: $.extend( {}, shader.attributes, members.attributes ),
+                transparent: true
+            });
+
+            return mat;
+        },
+
         fresnel: function( shader, members ) {
             members = members || {};
 

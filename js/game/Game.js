@@ -104,8 +104,8 @@ GameClass.prototype.activate = function() {
         Bub.trigger( ( me.running ? 'un' : '' ) + 'pause' );
     });
 
-    Bub.bind( 'pause', me.pause );
-    Bub.bind( 'unpause', me.unpause );
+    Bub.bind( 'pause', _.bind( me.pause, me ) );
+    Bub.bind( 'unpause', _.bind( me.unpause, me ) );
 
     // set its position
     pointLight1.position.z = 1060;

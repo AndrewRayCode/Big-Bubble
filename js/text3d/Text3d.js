@@ -75,7 +75,7 @@ Bub.Text3d.prototype.introduce = function() {
             letter.mesh.material.map.offset = new THREE.Vector2( 0, Bub.Utils.randFloat(0.1, -0.1) );
         }
 
-        setTimeout( function() {
+        Bub.Game.timeout( index * delay, function() {
             if( 'map' in letter.mesh.material ) {
                 letter.tween({ material: { offset: { x: 0, y: -0.5 }} }, totalTime );
             }
@@ -92,9 +92,9 @@ Bub.Text3d.prototype.introduce = function() {
                     z: letter.mesh.rotation.z - Math.PI * 2,
                 }
             }, animateTime).easing( TWEEN.Easing.Cubic.Out );
-        }, index * delay);
+        });
 
-        setTimeout( function() {
+        Bub.Game.timeout( duration + ( index * delay ), function() {
             letter.tween({ opacity: 0 }, fadeTime);
             letter.tween({
                 position: {
@@ -107,12 +107,12 @@ Bub.Text3d.prototype.introduce = function() {
                     z: letter.mesh.rotation.z + Math.PI * 2,
                 }
             }, animateTime).easing( TWEEN.Easing.Cubic.Out );
-        }, duration + ( index * delay ));
+        });
     });
 
-    setTimeout( function() {
+    Bub.Game.timeout( totalTime, function() {
         me.destroy();
-    }, totalTime );
+    });
 
     Bub.World.scene.add( this.group );
 

@@ -14,9 +14,9 @@ Level.prototype.levels = [{
             //Bub.trigger( 'fireup', new Bub.Fireball() );
         //}, 10);
 
-        var geometry = this.geometry = new THREE.SphereGeometry( 100, 32, 32 );
-        var mesh = this.mesh = new THREE.Mesh( geometry, Bub.Shader.shaders.fresnel() );
-        Bub.World.scene.add( mesh );
+        //var geometry = new THREE.SphereGeometry( 70, 32, 32 );
+        //var mesh = new THREE.Mesh( geometry, Bub.Shader.shaders.fresnel() );
+        //Bub.World.scene.add( mesh );
         //Bub.Game.running = false;
     }
 }, {

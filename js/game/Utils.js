@@ -137,4 +137,13 @@ Bub.Utils = {
     }
 };
 
+// Default a now() function to use window performance API if we have it. This
+// is currently mainly to match what Tween.js uses so our Tween.update( time )
+// call is passed the correct time type
+Bub.Utils.now = window.performance ? function() {
+    return window.performance.now();
+} : function() {
+    return Date.now();
+};
+
 }());

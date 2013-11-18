@@ -13,7 +13,7 @@ Bub.KeyActions = {
     down: {
         keys: ['down', 's']
     },
-    pause: {
+    pauseToggle: {
         keys: ['space', 'p', 'esc'],
         once: true
     }

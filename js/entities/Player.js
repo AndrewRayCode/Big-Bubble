@@ -7,13 +7,22 @@ Bub.Player = function() {
     // Fireball powerup binder
     Bub.bind( 'fireup', function( powerup ) {
 
+        player.resetShader = function() {
+            player.resetShader = null;
+            Bub.Particle.destroy( player.particleId );
+            player.particleId = null;
+            player.resetUpdater( 'shader' );
+            player.mesh.material = Bub.Shader.shaders.fresnel();
+            Bub.Game.clearTimeout( player.deactivateTimeout );
+            player.deactivateTimeout = null;
+            Bub.unbind( 'initted', initFireBind );
+        };
+
         if( player.deactivateTimeout ) {
-            clearTimeout( player.deactivateTimeout );
-            player.deactivateTimeout = setTimeout( player.resetShader, powerup.duration );
+            Bub.Game.clearTimeout( player.deactivateTimeout );
+            player.deactivateTimeout = Bub.Game.timeout( powerup.duration, player.resetShader );
             return;
         }
-
-        player.deactivateTimeout = setTimeout( player.resetShader, powerup.duration );
 
         var baseBrightness = 0.6;
 
@@ -35,9 +44,9 @@ Bub.Player = function() {
                     bubble.state = 'dying';
                     bubble.mesh.material.uniforms.addColor.value = new THREE.Color( 0xffbb11 );
                     bubble.inertia = new THREE.Vector3( 0, 0, 0 );
-                    setTimeout(function() {
+                    Bub.Game.timeout(500, function() {
                         Bub.trigger( 'free', bubble );
-                    }, 500);
+                    });
                 }
 
             }
@@ -59,17 +68,7 @@ Bub.Player = function() {
             }
         });
 
-        player.resetShader = function() {
-            player.resetShader = null;
-            Bub.Particle.destroy( player.particleId );
-            player.particleId = null;
-            player.resetUpdater( 'shader' );
-            player.mesh.material = Bub.Shader.shaders.fresnel();
-            player.deactivateTimeout = null;
-            Bub.unbind( 'initted', initFireBind );
-        };
-
-        player.deactivateTimeout = setTimeout( player.resetShader, powerup.duration );
+        player.deactivateTimeout = Bub.Game.timeout( powerup.duration, player.resetShader );
 
         player.mesh.material = Bub.Shader.shaders.fireball();
         player.targetBrightness = player.mesh.material.uniforms.brightness.value = baseBrightness;

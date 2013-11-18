@@ -37,7 +37,7 @@ Bub.Transitions = {
         if( this.current ) {
             _.each( this.current.entities, function( entity ) {
                 if( entity.timeout ) {
-                    clearTimeout( entity.timeout );
+                    Bub.Game.clearTimeout( entity.timeout );
                 }
             });
         }
@@ -53,7 +53,7 @@ Bub.Transitions = {
         _.each( trans.entities, function( entity ) {
 
             var timeout = function() {
-                entity.timeout = setTimeout(function() {
+                entity.timeout = Bub.Game.timeout( entity.offset + ( Math.random() * entity.frequency ), function() {
 
                     var actual = _.isArray( entity.type ) ? Bub.Utils.randArr( entity.type ) : entity;
 
@@ -64,7 +64,7 @@ Bub.Transitions = {
 
                     timeout();
 
-                }, entity.offset + ( Math.random() * entity.frequency ));
+                });
             };
 
             timeout();
@@ -82,7 +82,7 @@ Bub.Transitions = {
 
         _.each( trans.entities, function( entity ) {
             if( entity.timeout ) {
-                clearTimeout( entity.timeout );
+                Bub.Game.clearTimeout( entity.timeout );
             }
         });
 

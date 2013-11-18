@@ -4,6 +4,7 @@ global.Bub = {
 
     binder: $( {} ),
     bounds: {},
+    timeouts: {},
 
     trigger: function() {
         var args = [ arguments[0] ];
@@ -41,7 +42,7 @@ global.Bub = {
         }
 
         return this;
-    }
+    },
 
 };
 

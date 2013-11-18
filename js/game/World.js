@@ -3,7 +3,6 @@
 var World = function() {
     Bub.Mixin.Doodad.call( this );
 
-    this.keysDown = {};
     this.scene = new THREE.Scene();
 
     this.renderer = new THREE.WebGLRenderer({ autoClear: false, antialias: true });

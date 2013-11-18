@@ -5,19 +5,66 @@ pointLight1.shadowDarkness = 0.5;
 pointLight1.intensity = 1;
 pointLight1.castShadow = true;
 
-var Game = function() {};
+var GameClass = function() {};
 
-Game.prototype.activate = function() {
+// This assumes there is only one game running at a time, so maybe this class
+// should be refactored into a plain old object?
+GameClass.prototype.triggers = {};
+
+GameClass.prototype.releaseKeys = function() {
+    Bub.Game.triggers = {};
+    Bub.Game.keysDown = {};
+};
+
+GameClass.prototype.unbindKeys = function() {
+    _.each( Bub.KeyActions, function( group ) {
+        Mousetrap.unbind( group.keys );
+    });
+};
+
+GameClass.prototype.bindKeys = function() {
+    this.releaseKeys();
+
+    _.each( Bub.KeyActions, function( keys, trigger ) {
+        var group = Bub.KeyActions[ trigger ];
+
+        if( group.once ) {
+            Mousetrap.bind(group.keys, function() {
+                if( !Bub.Game.keysDown[ trigger ] ) {
+                    Bub.Game.keysDown[ trigger ] = true;
+                    Bub.trigger( trigger );
+                }
+            });
+            Mousetrap.bind(group.keys, function() {
+                Bub.Game.keysDown[ trigger ] = null;
+            }, 'keyup');
+        } else {
+            Mousetrap.bind(group.keys, function() {
+                Bub.Game.triggers[ trigger ] = true;
+            });
+            Mousetrap.bind(group.keys, function() {
+                Bub.Game.triggers[ trigger ] = null;
+            }, 'keyup');
+        }
+    });
+};
+
+GameClass.prototype.activate = function() {
+    var me = this;
     Bub.Factory.loadAssets();
 
     this.initted = true;
 
-    ['right', 'left', 'up', 'down'].forEach(function(key) {
-        Bub.Utils.keyListen(key);
+    $( window ).blur(function() {
+        me.releaseKeys();
     });
 
-    $( window ).blur(function() {
-        Bub.World.keysDown = {};
+    this.releaseKeys();
+    this.unbindKeys();
+    this.bindKeys();
+
+    Bub.bind( 'pause', function() {
+        Bub.Game.running = !Bub.Game.running;
     });
 
     // set its position
@@ -44,7 +91,7 @@ Game.prototype.activate = function() {
     this.reqFrame();
 };
 
-Game.prototype.restart = function() {
+GameClass.prototype.restart = function() {
     this.running = true;
 
     Bub.World.shark.position.set( 50, 50, -300 );
@@ -63,22 +110,20 @@ Game.prototype.restart = function() {
     Bub.player.reset();
 };
 
-Game.prototype.reqFrame = function() {
+GameClass.prototype.reqFrame = function() {
     window.requestAnimationFrame( this.reqFrame.bind( this ) );
 
-    if( this.running ) {
-        if( Bub.World.newSize ) {
-            Bub.World.setSize( Bub.World.newSize );
+    if( Bub.World.newSize ) {
+        Bub.World.setSize( Bub.World.newSize );
 
-            _.each( Bub.Shader.cache, function( shader, name ) {
-                shader.uniforms.resolution.value = Bub.World.size.clone();
-            });
-        }
-        this.loop();
+        _.each( Bub.Shader.cache, function( shader, name ) {
+            shader.uniforms.resolution.value = Bub.World.size.clone();
+        });
     }
+    this.loop();
 };
 
-Game.prototype.loop = function() {
+GameClass.prototype.loop = function() {
     var timer = 0.0001 * Date.now(),
         me = this;
 
@@ -86,10 +131,6 @@ Game.prototype.loop = function() {
     this.time.delta = (this.time.now - this.time.then) / 1000;
     this.time.then = this.time.now;
     this.time.total = ( Date.now() - this.time.start ) / 1000;
-
-    if( Bub.World.transition ) {
-        Bub.World.transition();
-    }
 
     // Update global shader uniform values
     _.each( Bub.Shader.cache, function( shader, name ) {
@@ -100,28 +141,33 @@ Game.prototype.loop = function() {
             shader.uniforms.viewVector.value = Bub.camera.main.position.clone();
         }
     });
-    
 
-    TWEEN.update();
-    Bub.Particle.update();
-    Bub.TextManager.update();
-    Bub.World.update();
-    Bub.player.update();
+    if( this.running ) {
+        if( Bub.World.transition ) {
+            Bub.World.transition();
+        }
+        
+        TWEEN.update();
+        Bub.Particle.update();
+        Bub.TextManager.update();
+        Bub.World.update();
+        Bub.player.update();
 
-    pointLight1.position.x = Bub.player.mesh.position.x;
-    pointLight1.position.y = Bub.player.mesh.position.y;
+        pointLight1.position.x = Bub.player.mesh.position.x;
+        pointLight1.position.y = Bub.player.mesh.position.y;
 
-    Bub.Cache.updateThings();
+        Bub.Cache.updateThings();
 
-    Bub.World.shark.rotation.x += Math.sin( 50 * ( timer % 1 ) ) / 100;
-    Bub.World.shark.position.x += Math.sin( 50 * ( timer % 1 ) );
-    Bub.World.shark.position.y -= 0.4;
+        Bub.World.shark.rotation.x += Math.sin( 50 * ( timer % 1 ) ) / 100;
+        Bub.World.shark.position.x += Math.sin( 50 * ( timer % 1 ) );
+        Bub.World.shark.position.y -= 0.4;
+    }
 
     Bub.Offset.offset();
     Bub.camera.update();
     Bub.Offset.reset();
 };
 
-Bub.Game = new Game();
+Bub.Game = new GameClass();
 
 }(this));

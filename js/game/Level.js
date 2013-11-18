@@ -10,7 +10,14 @@ Level.prototype.levels = [{
             text: 'Big Bubble!'
         }).introduce();
         Bub.Transitions.run('descend');
-        //Bub.trigger( 'fireup', new Bub.Fireball() );
+        //setTimeout(function() {
+            //Bub.trigger( 'fireup', new Bub.Fireball() );
+        //}, 10);
+
+        var geometry = this.geometry = new THREE.SphereGeometry( 100, 32, 32 );
+        var mesh = this.mesh = new THREE.Mesh( geometry, Bub.Shader.shaders.fresnel() );
+        Bub.World.scene.add( mesh );
+        //Bub.Game.running = false;
     }
 }, {
     next: 100,

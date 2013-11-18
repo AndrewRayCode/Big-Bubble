@@ -4,8 +4,7 @@ Bub.Letter = function( options ) {
         map: Bub.Utils.textures.caustic,
         color: 0xc4feff,
         emissive: 0x48694c,
-        transparent: true,
-        opacity:0.5
+        transparent: true
     });
 
     //material.color.g += Bub.Utils.randFloat( -0.05, 0.05 );

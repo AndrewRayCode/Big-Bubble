@@ -80,7 +80,7 @@ Bub.Text3d.prototype.introduce = function() {
                 letter.tween({ material: { offset: { x: 0, y: -0.5 }} }, totalTime );
             }
 
-            letter.tween({ opacity: 1 }, fadeTime);
+            letter.tween({ opacity: 0.8 }, fadeTime);
             letter.tween({
                 position: {
                     z: letter.mesh.position.z - distance,

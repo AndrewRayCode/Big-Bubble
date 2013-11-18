@@ -12,6 +12,7 @@ var resetDefaults = function() {
 
 var Entity = function() {
     this.resetDefaults();
+    this.replaced = {};
 
     if( this.updateFns ) {
         // Copy update functions so we aren't replacing updaters on the
@@ -66,21 +67,21 @@ Entity.prototype.tween = function( to, duration ) {
 };
 
 Entity.prototype.replaceUpdater = function( key, fn ) {
-    this.replaced = this.replaced || {};
     this.replaced[ key ] = this.updateFns[ key ];
     this.updateFns[ key ] = fn;
 };
 
 Entity.prototype.resetUpdater = function( key ) {
-    this.replaced = this.replaced || {};
-    this.updateFns[ key ] = this.replaced[ key ];
+    if( this.replaced[ key ] ) {
+        this.updateFns[ key ] = this.replaced[ key ];
+        delete this.replaced[ key ];
+    }
 };
 
 Entity.prototype.undoUpdaters = function() {
     for( var key in this.replaced ) {
-        this.updateFns[ key ] = this.replaced[ key ];
+        this.resetUpdater( key );
     }
-    delete this.replaced;
 },
 
 Entity.prototype.resetDefaults = resetDefaults;

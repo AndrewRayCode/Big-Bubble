@@ -128,15 +128,6 @@ Bub.Utils = {
         return extended;
     },
 
-    keyListen: function(key) {
-        Mousetrap.bind(key, function() {
-            Bub.World.keysDown[key] = true;
-        });
-        Mousetrap.bind(key, function() {
-            delete Bub.World.keysDown[key];
-        }, 'keyup');
-    },
-
     loader: new THREE.JSONLoader(),
 
     loadModel: function( data ) {

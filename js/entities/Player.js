@@ -7,9 +7,15 @@ Bub.Player = function() {
     // Fireball powerup binder
     Bub.bind( 'fireup', function( powerup ) {
 
-        clearTimeout( player.deactivateTimeout );
+        if( player.deactivateTimeout ) {
+            clearTimeout( player.deactivateTimeout );
+            player.deactivateTimeout = setTimeout( player.resetShader, powerup.duration );
+            return;
+        }
 
-        var baseBrightness = 0.7;
+        player.deactivateTimeout = setTimeout( player.resetShader, powerup.duration );
+
+        var baseBrightness = 0.6;
 
         var collide = function() {
             var bubble = this;
@@ -37,7 +43,7 @@ Bub.Player = function() {
             }
         };
 
-        var initBind = function( thing ) {
+        var initFireBind = function( thing ) {
             // Remove ripple on collision with floater
             if( thing instanceof Bub.Floater ) {
                 //thing.mesh.material = Bub.Shader.shaders.fireball();
@@ -46,15 +52,21 @@ Bub.Player = function() {
             }
         };
 
-        Bub.bind( 'initted', initBind );
-        Bub.Cache.each( initBind );
+        Bub.bind( 'initted', initFireBind );
+        Bub.Cache.each( function( thing ) {
+            if( thing instanceof Bub.Floater ) {
+                thing.replaceUpdater( 'collision', collide );
+            }
+        });
 
         player.resetShader = function() {
+            player.resetShader = null;
             Bub.Particle.destroy( player.particleId );
             player.particleId = null;
             player.resetUpdater( 'shader' );
             player.mesh.material = Bub.Shader.shaders.fresnel();
-            Bub.unbind( 'initted', initBind );
+            player.deactivateTimeout = null;
+            Bub.unbind( 'initted', initFireBind );
         };
 
         player.deactivateTimeout = setTimeout( player.resetShader, powerup.duration );
@@ -67,7 +79,7 @@ Bub.Player = function() {
             update: Bub.Particle.lockTo( player )
         }, {
             texture: THREE.ImageUtils.loadTexture('media/flame-1.png'),
-            maxAge: 5
+            maxAge: 4
         }, {
             type: 'sphere',
             positionSpread: new THREE.Vector3(10, 10, 0),
@@ -76,7 +88,7 @@ Bub.Player = function() {
             sizeSpread: 10,
             particlesPerSecond: 4,
             sizeStart: player.build.radius,
-            sizeEnd: player.build.radius + 300,
+            sizeEnd: player.build.radius * 10,
             opacityStart: 1,
             opacityEnd: 0
         });
@@ -151,8 +163,8 @@ Bub.Player.prototype.load = function() {
 
 Bub.Player.prototype.reset = function() {
     this.resetShader && this.resetShader();
-    this.resetDefaults();
     this.undoUpdaters();
+    this.resetDefaults();
     this.build.targetRadius = this.build.radius;
 
     this.mesh.position.set( 0, 0, 0 );
@@ -163,9 +175,9 @@ Bub.Player.prototype.keyCheck = function() {
     var phys = this.phys,
         inertia = this.phys.inertia;
 
-    if( Bub.World.keysDown.right ) {
+    if( Bub.Game.triggers.right ) {
         inertia.x += phys.acceleration;
-    } else if( Bub.World.keysDown.left ) {
+    } else if( Bub.Game.triggers.left ) {
         inertia.x -= phys.acceleration;
     } else if ( inertia.x ) {
         inertia.x -= Bub.Utils.sign( inertia.x ) * phys.deceleration;
@@ -175,9 +187,9 @@ Bub.Player.prototype.keyCheck = function() {
         }
     }
 
-    if( Bub.World.keysDown.up ) {
+    if( Bub.Game.triggers.up ) {
         inertia.y += phys.acceleration;
-    } else if( Bub.World.keysDown.down ) {
+    } else if( Bub.Game.triggers.down ) {
         inertia.y -= phys.acceleration;
     } else if ( inertia.y ) {
         inertia.y -= Bub.Utils.sign( inertia.y ) * phys.deceleration;

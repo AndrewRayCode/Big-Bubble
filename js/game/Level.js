@@ -6,8 +6,9 @@ Level.prototype.levels = [{
     next: 30,
     zoom: 300,
     start: function() {
-        var text = new Bub.Text3d({
-            text: 'Big Bubble!'
+        new Bub.Text3d({
+            text: 'Big Bubble!',
+            material: Bub.Shader.shaders.caustic()
         }).introduce();
         Bub.Transitions.run('descend');
         //setTimeout(function() {

@@ -38,7 +38,12 @@ Entity.prototype.tween = function( to, duration ) {
         key =  Object.keys( to.material )[0];
         tweener = this.mesh.material.map[ key ];
         sendTo = to.material[ key ];
-
+    } else if( 'shader' in to ) {
+        key =  Object.keys( to.shader )[0];
+        tweener = this.mesh.material.uniforms[ key ];
+        sendTo = {
+            value: to.shader[ key ]
+        };
     } else if( 'position' in to ) {
         tweener = this.mesh.position;
         sendTo = to.position;

@@ -10,6 +10,10 @@
 // beautiful cloud-like surface https://glsl.heroku.com/e#10647.1
 // broccoli fireball http://clicktorelease.com/code/perlin/green.html
 // fire bg https://glsl.heroku.com/e#11554.0
+// cell noise (ice?) https://glsl.heroku.com/e#12216.0
+// gooey globs https://glsl.heroku.com/e#12123.0
+// sandy whores of time https://www.shadertoy.com/view/4dlGDN
+// blood vessel? https://www.shadertoy.com/view/lsj3zW
 
 // game assets
 // http://www.blendswap.com/
@@ -46,6 +50,9 @@ Shader.prototype = {
                     material;
 
                 shader.uniforms = THREE.UniformsUtils.clone( shader.uniforms );
+
+                // Defaults
+                shader.uniforms.opacity = { type: 'f', value: 1 };
 
                 args = [ shader ].concat( args );
                 material = _fn.apply( me, args );
@@ -107,6 +114,23 @@ Shader.prototype = {
     },
 
     shaders: {
+
+        caustic: function( shader, members ) {
+            members = members || {};
+
+            // http://www.goodboydigital.com/pixijs/examples/15/indexAll.html
+            // http://www.goodboydigital.com/pixijs/docs/files/src_pixi_filters_DisplacementFilter.js.html#l6
+            shader.uniforms.opacity.value = 1.0;
+            var mat = new THREE.ShaderMaterial({
+                fragmentShader: shader.fragment,
+                vertexShader: shader.vertex,
+                uniforms: $.extend( {}, shader.uniforms, members.uniforms ),
+                attributes: $.extend( {}, shader.attributes, members.attributes ),
+                transparent: true
+            });
+
+            return mat;
+        },
 
         displacement: function( shader, members ) {
             members = members || {};
@@ -200,6 +224,7 @@ Shader.prototype = {
                 attributes: $.extend( {}, shader.attributes, members.attributes ),
                 fragmentShader: shader.fragment,
                 vertexShader: shader.vertex,
+                transparent: true
             });
         },
 

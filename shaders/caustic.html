@@ -1,0 +1,42 @@
+<script type="x-shader/x-vertex">
+varying vec4 surfacePosition;
+varying vec3 vNormal;
+
+void main() {
+    surfacePosition = 0.003 * modelViewMatrix * vec4( position * 3.0, 1.0 );
+    vNormal = position * normal;
+
+    gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+}
+</script>
+
+<script type="x-shader/x-fragment">
+uniform float time;
+uniform vec2 resolution;
+varying vec4 surfacePosition;
+varying vec3 vNormal;
+uniform float opacity;
+#define MAX_ITER 6
+void main( void ) {
+    vec2 p = vec2( surfacePosition.x, surfacePosition.y ) * 10.0 - vec2( 15.0 );
+    vec2 i = p;
+    float c = 1.0;
+    float inten = .05;
+
+    for (int n = 0; n < 5; n++) {
+        float t = time * 0.4 * (1.0 - (3.0 / float(n + 1)));
+        i = p + vec2(cos(t - i.x) + sin(t + i.y), sin(t - i.y) + cos(t + i.x));
+        c += 1.0 / length( vec2( p.x / ( 2.0 * sin(i.x + t) / inten ), p.y / ( cos( i.y + t ) / inten ) ) );
+    }
+    c /= float(MAX_ITER);
+    c = 1.5 - sqrt( pow( c, 3.0 ) );
+
+    gl_FragColor = vec4(
+        vec3( 0.41, 0.58, 0.67 ) +
+        vec3( c*c*c*c*0.3, c*c*c*c*0.5, c*c*c*c*0.925 ) +
+        0.007 * dot( vec3(0.0, 10.0, 0.0), vNormal
+    ), opacity);
+
+}
+</script>
+

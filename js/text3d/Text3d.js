@@ -68,11 +68,15 @@ Bub.Text3d.prototype.introduce = function() {
         totalTime = duration + ( ( me.letters.length + 1 ) * delay ) + animateTime;
         
     _.each( this.letters, function( letter, index ) {
-        letter.material.opacity = 0;
         letter.mesh.position.y += distance;
 
         if( 'map' in letter.mesh.material ) {
             letter.mesh.material.map.offset = new THREE.Vector2( 0, Bub.Utils.randFloat(0.1, -0.1) );
+        }
+        if( letter.mesh.material instanceof THREE.ShaderMaterial ) {
+            letter.material.uniforms.opacity.value = 0;
+        } else {
+            letter.material.opacity = 0;
         }
 
         Bub.Game.timeout( index * delay, function() {
@@ -80,7 +84,11 @@ Bub.Text3d.prototype.introduce = function() {
                 letter.tween({ material: { offset: { x: 0, y: -0.5 }} }, totalTime );
             }
 
-            letter.tween({ opacity: 0.8 }, fadeTime);
+            if( letter.mesh.material instanceof THREE.ShaderMaterial ) {
+                letter.tween({ shader: { opacity: 0.8 } }, fadeTime);
+            } else {
+                letter.tween({ opacity: 0.8 }, fadeTime);
+            }
             letter.tween({
                 position: {
                     z: letter.mesh.position.z - distance,
@@ -95,7 +103,11 @@ Bub.Text3d.prototype.introduce = function() {
         });
 
         Bub.Game.timeout( duration + ( index * delay ), function() {
-            letter.tween({ opacity: 0 }, fadeTime);
+            if( letter.mesh.material instanceof THREE.ShaderMaterial ) {
+                letter.tween({ shader: { opacity: 0 } }, fadeTime);
+            } else {
+                letter.tween({ opacity: 0 }, fadeTime);
+            }
             letter.tween({
                 position: {
                     z: letter.mesh.position.z - distance,

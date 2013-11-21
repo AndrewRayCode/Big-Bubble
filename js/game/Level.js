@@ -11,12 +11,12 @@ Level.prototype.levels = [{
             material: Bub.Shader.shaders.caustic()
         }).introduce();
         Bub.Transitions.run('descend');
-        //setTimeout(function() {
-            //Bub.trigger( 'fireup', new Bub.Fireball() );
-        //}, 10);
+        setTimeout(function() {
+            Bub.trigger( 'fireup', new Bub.Fireball() );
+        }, 10);
 
         //var geometry = new THREE.SphereGeometry( 70, 32, 32 );
-        //var mesh = new THREE.Mesh( geometry, Bub.Shader.shaders.fresnel() );
+        //var mesh = new THREE.Mesh( geometry, Bub.Shader.shaders.lava() );
         //Bub.World.scene.add( mesh );
         //Bub.Game.running = false;
     }

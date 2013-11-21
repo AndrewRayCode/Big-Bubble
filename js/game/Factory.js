@@ -193,6 +193,14 @@ Bub.Factory = {
         uvtest.wrapS = THREE.RepeatWrapping;
         uvtest.wrapT = THREE.RepeatWrapping;
 
+        var lava = Bub.Utils.textures.lava = THREE.ImageUtils.loadTexture( 'media/lavatile.jpg' );
+        lava.wrapS = THREE.RepeatWrapping;
+        lava.wrapT = THREE.RepeatWrapping;
+
+        var cloud = Bub.Utils.textures.cloud = THREE.ImageUtils.loadTexture( 'media/cloud.png' );
+        cloud.wrapS = THREE.RepeatWrapping;
+        cloud.wrapT = THREE.RepeatWrapping;
+
         Bub.Utils.textures.shark = THREE.ImageUtils.loadTexture( 'media/shark.png' );
     }
 

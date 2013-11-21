@@ -1,0 +1,67 @@
+<script type="x-shader/x-vertex">
+
+uniform vec3 viewVector;
+uniform vec2 uvScale;
+varying vec2 vUv;
+varying float glowIntensity;
+
+void main() {
+    vUv = uvScale * uv;
+    vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );
+    gl_Position = projectionMatrix * mvPosition;
+
+    // Caculate the opacity of our bubble (fresnel rim)
+    vec3 vNormal = normalize( normalMatrix * normal );
+    vec3 vNormel = normalize( normalMatrix * viewVector );
+    glowIntensity = pow( 1.0 - dot(vNormal, vNormel), 0.8 );
+}
+
+</script>
+
+<script type="x-shader/x-fragment">
+
+uniform float time;
+uniform vec2 resolution;
+
+uniform float fog;
+uniform float opacity;
+uniform float offset;
+uniform float speed;
+uniform vec3 fogColor;
+uniform vec3 glowColor;
+varying float glowIntensity;
+
+uniform sampler2D texture1;
+uniform sampler2D texture2;
+
+varying vec2 vUv;
+
+void main( void ) {
+    vec2 position = -1.0 + 2.0 * vUv;
+
+    vec4 noise = texture2D( texture1, vUv );
+    vec2 T1 = vUv + vec2( 1.5, -1.5 ) * (offset + time) * 0.05;
+    vec2 T2 = vUv + vec2( -0.5, 2.0 ) * (offset + time) * speed * -0.03;
+
+    T1.x += noise.x * 2.0;
+    T1.y += noise.y * 2.0;
+    T2.x -= noise.y * 0.2;
+    T2.y += noise.z * 0.2;
+
+    float p = texture2D( texture1, T1 * 2.0 ).a;
+
+    vec4 color = texture2D( texture2, T2 * 2.0 );
+    vec4 temp = color * ( vec4( p, p, p, p ) * 2.0 ) + ( color * color - 0.1 );
+
+    vec4 glowRim = vec4( glowColor * clamp( glowIntensity, 0.0, 1.0 ), 1.0 );
+
+    if( temp.r > 1.0 ){ temp.bg += clamp( temp.r - 2.0, 0.0, 100.0 ); }
+    if( temp.g > 1.0 ){ temp.rb += temp.g - 1.0; }
+    if( temp.b > 1.0 ){ temp.rg += temp.b - 1.0; }
+
+    gl_FragColor = temp + 1.5 * glowRim;
+    gl_FragColor = mix( gl_FragColor, vec4( fogColor, gl_FragColor.w ), fog );
+
+}
+
+</script>

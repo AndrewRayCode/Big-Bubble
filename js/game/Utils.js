@@ -109,9 +109,14 @@ Bub.Utils = {
         return num ? num < 0 ? -1 : 1 : 0;
     },
 
+    // This should probably just be distanceTo?
     distance3d: function( a, b ) {
         // this uses sqrt internally, fyi
         return a.clone().sub( b ).length();
+    },
+
+    roughDistance: function( a, b ) {
+        return a.clone().sub( b ).lengthManhattan();
     },
 
     sphereCollision: function( position1, position2, radius1, radius2 ) {

@@ -26,7 +26,7 @@ Bub.Player = function() {
 
         var baseBrightness = 0.6;
 
-        var collide = function() {
+        var floaterCollide = function() {
             var bubble = this;
             if( player.isCollidingWith( bubble ) ) {
 
@@ -52,19 +52,31 @@ Bub.Player = function() {
             }
         };
 
+        var mineCollide = function() {
+            var mine = this;
+            if( player.isCollidingWith( mine ) ) {
+                Bub.trigger( 'free', mine );
+            }
+        };
+
         var initFireBind = function( thing ) {
             // Remove ripple on collision with floater
             if( thing instanceof Bub.Floater ) {
-                //thing.mesh.material = Bub.Shader.shaders.fireball();
+                thing.mesh.material = Bub.Shader.shaders.lava();
                 thing.state = 'fire';
-                thing.replaceUpdater( 'collision', collide );
+                thing.replaceUpdater( 'collision', floaterCollide );
+
+            } else if( thing instanceof Bub.Mine ) {
+                thing.replaceUpdater( 'collision', mineCollide );
             }
         };
 
         Bub.bind( 'initted', initFireBind );
         Bub.Cache.each( function( thing ) {
             if( thing instanceof Bub.Floater ) {
-                thing.replaceUpdater( 'collision', collide );
+                thing.replaceUpdater( 'collision', floaterCollide );
+            } else if( thing instanceof Bub.Mine ) {
+                thing.replaceUpdater( 'collision', mineCollide );
             }
         });
 

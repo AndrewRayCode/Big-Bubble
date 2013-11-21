@@ -115,6 +115,29 @@ Shader.prototype = {
 
     shaders: {
 
+        lava: function( shader, members ) {
+            members = members || {};
+
+            shader.uniforms.texture1.value = Bub.Utils.textures.cloud;
+            shader.uniforms.texture2.value = Bub.Utils.textures.lava;
+            shader.uniforms.fog.value = 0.1;
+            shader.uniforms.offset.value = Bub.Utils.randInt( -100, 100 );
+            shader.uniforms.speed.value = Bub.Utils.randFloat( 0.2, 2.2 );
+            shader.uniforms.fogColor.value = new THREE.Color( 0x000000 );
+            shader.uniforms.glowColor.value = new THREE.Color( 0xffcda3 );
+            shader.uniforms.uvScale.value = new THREE.Vector2( 3.0, 1.0 );
+
+            var mat = new THREE.ShaderMaterial({
+                fragmentShader: shader.fragment,
+                vertexShader: shader.vertex,
+                uniforms: $.extend( {}, shader.uniforms, members.uniforms ),
+                attributes: $.extend( {}, shader.attributes, members.attributes ),
+                transparent: true
+            });
+
+            return mat;
+        },
+
         caustic: function( shader, members ) {
             members = members || {};
 

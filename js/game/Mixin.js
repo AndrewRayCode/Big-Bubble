@@ -1,10 +1,14 @@
 (function() {
 
 var resetDefaults = function() {
-    for( var key in this.defaults ) {
-        this[ key ] = $.isPlainObject( this.defaults[ key ] ) ?
-            $.extend({}, this.defaults[ key ]) :
-            this.defaults[ key ];
+    if( _.isFunction( this.defaults ) ) {
+        _.extend( this, this.defaults() );
+    } else {
+        for( var key in this.defaults ) {
+            this[ key ] = _.isObject( this.defaults[ key ] ) ?
+                _.clone( this.defaults[ key ] ) :
+                this.defaults[ key ];
+        }
     }
 };
 
@@ -25,6 +29,43 @@ var Entity = function() {
                 }
             }
         };
+    }
+};
+
+Entity.prototype.applyForce = function( forceVector ) {
+    this.phys.acceleration.add( forceVector );
+};
+
+Entity.prototype.drag = function() {
+
+    var velocity = this.phys.velocity.clone(),
+        speed = velocity.length(),
+        dragMagnitude = -Bub.World.phys.dragCoefficient * speed * speed;
+ 
+    velocity.normalize().multiplyScalar( dragMagnitude );
+ 
+    //Apply the force.
+    this.applyForce( velocity );
+};
+
+Entity.updateFns = {
+    phys: function() {
+        if( !this.noGravity ) {
+            this.applyForce( Bub.World.phys.gravity );
+        }
+
+        this.applyForce(
+            this.phys.velocity.clone().normalize().multiplyScalar( -1 * this.phys.friction )
+        );
+
+        this.drag();
+        this.mesh.position.add(
+            this.phys.velocity.add(
+                this.phys.acceleration.multiplyScalar( Bub.Game.time.delta )
+            ).clone().multiplyScalar( Bub.Game.time.delta )
+        );
+
+        this.phys.acceleration.set( 0, 0, 0 );
     }
 };
 
@@ -128,17 +169,7 @@ Entity.prototype.isCollidingWith = function( sphere ) {
     );
 };
 
-Entity.prototype.pos = function( xyz ) {
-    xyz.x && ( this.mesh.position.x = xyz.x );
-    xyz.y && ( this.mesh.position.y = xyz.y );
-    xyz.z && ( this.mesh.position.z = xyz.z );
-
-    this.updateLocks();
-};
-
 Entity.prototype.move = function( vec ) {
-    this.mesh.position.add( Bub.Utils.speed( vec ) );
-
     this.updateLocks();
 };
 
@@ -186,6 +217,9 @@ Entity.prototype.updateLocks = function() {
 Entity.prototype.scaleTo = function( scale ) {
     if( this.dimensions ) {
         scale = scale / this.dimensions.x;
+    }
+    if( this.phys ) {
+        this.phys.mass = scale;
     }
 
     this.mesh.scale.set( scale, scale, scale );

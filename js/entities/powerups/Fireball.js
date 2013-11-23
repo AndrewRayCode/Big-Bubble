@@ -14,6 +14,7 @@ Bub.Fireball = function() {
 };
     
 Bub.Fireball.prototype = Object.create( Bub.Mixin.Entity.prototype );
+Bub.Fireball.constructor = Bub.Fireball;
 
 Bub.Fireball.prototype.material = function() {
     return Bub.Shader.shaders.fireball();
@@ -86,3 +87,5 @@ Bub.Fireball.prototype.scale = function( radius ) {
         this.mesh.material.uniforms.diameter.value = this.build.scale;
     }
 };
+
+Bub.Fireball.floaterScale = 3.5;

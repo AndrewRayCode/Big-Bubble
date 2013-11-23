@@ -4,10 +4,18 @@ Bub.Floater = function() {
 
 Bub.Floater.prototype = Object.create( Bub.Mixin.Entity.prototype );
 
-Bub.Floater.prototype.defaults = {
-    fadeSpeed: 0.9,
-    opacity: 0.5,
-    state: null
+Bub.Floater.prototype.defaults = function() {
+    return {
+        fadeSpeed: 0.9,
+        opacity: 0.5,
+        state: null,
+        phys: {
+            friction: 0.01,
+            mass: 10,
+            velocity: new THREE.Vector3( 0, 0, 0 ),
+            acceleration: new THREE.Vector3( 0, 0, 0 )
+        }
+    };
 };
 
 Bub.Floater.prototype.material = function() {
@@ -43,8 +51,9 @@ Bub.Floater.prototype.load = function( options ) {
 };
 
 Bub.Floater.prototype.updateFns = {
+    phys: Bub.Mixin.Entity.updateFns.phys,
     move: function() {
-        this.move( this.inertia );
+        //this.move( this.inertia );
         this.updateLocks();
         this.mesh.lookAt( Bub.camera.main.position );
 
@@ -55,6 +64,7 @@ Bub.Floater.prototype.updateFns = {
     fade: function() {
         if( this.mesh.material.opacity < this.opacity ) {
             this.mesh.material.opacity += Bub.Utils.speed( this.fadeSpeed );
+            console.log('mat:',this.mesh.material.opacity);
         }
     },
     collision: function() {

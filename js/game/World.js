@@ -18,6 +18,12 @@ var World = function() {
 };
 
 World.prototype = Object.create( Bub.Mixin.Doodad.prototype );
+World.prototype.constructor = World;
+
+World.prototype.phys = {
+    gravity: new THREE.Vector3( 0, -100, 0 ),
+    dragCoefficient: 0.1
+};
 
 World.prototype.defaults = {
     size: new THREE.Vector2( 300, 500 ),

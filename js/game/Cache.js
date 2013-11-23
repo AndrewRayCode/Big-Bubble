@@ -45,9 +45,11 @@ Cache.prototype.birth = function( ChildClass, options ) {
         madeThing.id = me.id;
         madeThing.load( options );
         madeThing.mesh.renderDepth = 500 + madeThing.id;
+        madeThing.mesh.material.uniforms.opacity.value = 1; // deletem
 
         me.active[ madeThing.id ] = madeThing;
 
+        window.butt = madeThing;
         Bub.World.scene.add( madeThing.mesh );
 
         me.id++;

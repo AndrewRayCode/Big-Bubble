@@ -2,6 +2,7 @@ Bub.Player = function() {
     var player = this;
 
     this.id = 0;
+    this.noGravity = true;
     Bub.Mixin.Entity.call( this );
 
     // Fireball powerup binder
@@ -31,7 +32,7 @@ Bub.Player = function() {
             if( player.isCollidingWith( bubble ) ) {
 
                 if( bubble.state === 'fire' ) {
-                    player.grow( bubble.r );
+                    player.grow( bubble.r / Bub.Fireball.scaleValue );
                     player.targetBrightness += 0.1;
 
                     if( player.build.radius > Bub.Level.level.next ) {
@@ -65,6 +66,7 @@ Bub.Player = function() {
                 thing.mesh.material = Bub.Shader.shaders.lava();
                 thing.state = 'fire';
                 thing.replaceUpdater( 'collision', floaterCollide );
+                thing.scaleTo( thing.r * Bub.Fireball.floaterScale );
 
             } else if( thing instanceof Bub.Mine ) {
                 thing.replaceUpdater( 'collision', mineCollide );
@@ -121,20 +123,24 @@ Bub.Player = function() {
 
 Bub.Player.prototype = Object.create( Bub.Mixin.Entity.prototype );
 
-Bub.Player.prototype.defaults = {
-    build: {
-        radius: 10,
-        scale: 1,
-        segments: 36
-    },
-    phys: {
-        inertia: new THREE.Vector3( 0, 0, 0 ),
-        acceleration: 27,
-        deceleration: 15,
-        max: 400,
-        amplitude: 0,
-        friction: 2
-    }
+Bub.Player.prototype.defaults = function() {
+    return {
+        build: {
+            radius: 10,
+            scale: 1,
+            segments: 36
+        },
+        phys: {
+            friction: 0.01,
+            mass: 100,
+            velocity: new THREE.Vector3( 0, 0, 0 ),
+            acceleration: new THREE.Vector3( 0, 0, 0 ),
+            max: 400,
+            speed: 1000,
+            amplitude: 0,
+            waveFriction: 2
+        }
+    };
 };
 
 Bub.Player.prototype.vertices = {
@@ -184,49 +190,38 @@ Bub.Player.prototype.reset = function() {
 
 Bub.Player.prototype.keyCheck = function() {
     var phys = this.phys,
-        inertia = this.phys.inertia;
+        triggers= Bub.Game.triggers;
 
-    if( Bub.Game.triggers.right ) {
-        inertia.x += phys.acceleration;
-    } else if( Bub.Game.triggers.left ) {
-        inertia.x -= phys.acceleration;
-    } else if ( inertia.x ) {
-        inertia.x -= Bub.Utils.sign( inertia.x ) * phys.deceleration;
-
-        if( Math.abs( inertia.x ) <= phys.deceleration ) {
-            inertia.x = 0;
-        }
+    if( triggers.right ) {
+        this.applyForce( new THREE.Vector3( phys.speed, 0, 0 ) );
+    } else if( triggers.left ) {
+        this.applyForce( new THREE.Vector3( -phys.speed, 0, 0 ) );
     }
 
-    if( Bub.Game.triggers.up ) {
-        inertia.y += phys.acceleration;
-    } else if( Bub.Game.triggers.down ) {
-        inertia.y -= phys.acceleration;
-    } else if ( inertia.y ) {
-        inertia.y -= Bub.Utils.sign( inertia.y ) * phys.deceleration;
-
-        if( Math.abs( inertia.y ) <= phys.deceleration ) {
-            inertia.y = 0;
-        }
+    if( triggers.up ) {
+        this.applyForce( new THREE.Vector3( 0, phys.speed, 0 ) );
+    } else if( triggers.down ) {
+        this.applyForce( new THREE.Vector3( 0, -phys.speed, 0 ) );
     }
 
-    Bub.Utils.vcap( inertia, phys.max );
+    //Bub.Utils.vcap( inertia, phys.max );
 };
 
 Bub.Player.prototype.updateFns = {
+    phys: Bub.Mixin.Entity.updateFns.phys,
     move: function() {
         var delta = this.build.targetRadius - this.build.radius;
         if( Math.abs( delta ) > 0.1 ) {
             this.scale( this.build.radius + ( delta / 5 ) + 0.01);
         }
-        this.move( this.phys.inertia );
+        this.updateLocks();
         this.constrain();
     },
     shader: function() {
         this.mesh.lookAt( Bub.camera.main.position );
 
         if( this.phys.amplitude > 0 ) {
-            this.phys.amplitude -= Bub.Utils.speed( this.phys.friction );
+            this.phys.amplitude -= Bub.Utils.speed( this.phys.waveFriction );
             if( this.phys.amplitude < 0 ) {
                 this.phys.amplitude = 0;
             }
@@ -245,29 +240,29 @@ Bub.Player.prototype.updateFns = {
 Bub.Player.prototype.constrain = function() {
     var min = Bub.camera.data.frustrum.min,
         max = Bub.camera.data.frustrum.max,
-        inertia = this.phys.inertia,
+        velocity = this.phys.velocity,
         mesh = this.mesh,
         radius = this.build.radius;
 
     if( mesh.position.y > max.y - radius ) {
         mesh.position.y = max.y - radius;
-        if( inertia.y > 0 ) {
-            inertia.y = 0;
+        if( velocity.y > 0 ) {
+            velocity.y = 0;
         }
     }
     if( mesh.position.y < min.y + radius ) {
         mesh.position.y = min.y + radius;
-        if( inertia.y < 0 ) {
-            inertia.y = 0;
+        if( velocity.y < 0 ) {
+            velocity.y = 0;
         }
     }
     if( mesh.position.x > max.x - radius ) {
         mesh.position.x = max.x - radius;
-        inertia.x = 0;
+        velocity.x = 0;
     }
     if( mesh.position.x < min.x + radius ) {
         mesh.position.x = min.x + radius;
-        inertia.x = 0;
+        velocity.x = 0;
     }
 };
 
@@ -300,9 +295,9 @@ Bub.Player.prototype.scale = function( radius ) {
 
     this.mesh.scale.set( scale, scale, scale );
 
-    this.phys.acceleration = 11.0 + ( 0.054 * radius );
-    this.phys.deceleration = 2.9 + ( 0.04 * radius );
-    this.phys.max = 190 + ( 3 * radius );
+    //this.phys.acceleration = 11.0 + ( 0.054 * radius );
+    //this.phys.deceleration = 2.9 + ( 0.04 * radius );
+    //this.phys.max = 190 + ( 3 * radius );
 
     if( 'diameter' in this.mesh.material.uniforms ) {
         this.mesh.material.uniforms.diameter.value = this.build.scale;

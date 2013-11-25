@@ -3,6 +3,7 @@ Bub.Floater = function() {
 };
 
 Bub.Floater.prototype = Object.create( Bub.Mixin.Entity.prototype );
+Bub.Floater.prototype.constructor = Bub.Floater;
 
 Bub.Floater.prototype.defaults = function() {
     return {
@@ -64,7 +65,6 @@ Bub.Floater.prototype.updateFns = {
     fade: function() {
         if( this.mesh.material.opacity < this.opacity ) {
             this.mesh.material.opacity += Bub.Utils.speed( this.fadeSpeed );
-            console.log('mat:',this.mesh.material.opacity);
         }
     },
     collision: function() {
@@ -91,6 +91,7 @@ Bub.Floater.prototype.updateFns = {
                 }
             });
             this.replaceUpdater( 'collision', function() {});
+            this.replaceUpdater( 'phys', function() {});
         }
     }
 };

@@ -22,7 +22,8 @@ World.prototype.constructor = World;
 
 World.prototype.phys = {
     gravity: new THREE.Vector3( 0, -100, 0 ),
-    dragCoefficient: 0.1
+    dragCoefficient: 0.02,
+    minCap: 9
 };
 
 World.prototype.defaults = {

@@ -11,6 +11,12 @@ Bub.Utils = {
 
     textures: {},
 
+    limit: function( vector, cap ) {
+        if( vector.length() > cap ) {
+            vector.normalize().multiplyScalar( cap );
+        }
+    },
+
     vcap: function( vector, min, max ) {
         if( max === undefined ) {
             min = -min;

@@ -122,6 +122,7 @@ Bub.Player = function() {
 };
 
 Bub.Player.prototype = Object.create( Bub.Mixin.Entity.prototype );
+Bub.Player.prototype.constructor = Bub.Player;
 
 Bub.Player.prototype.defaults = function() {
     return {
@@ -131,12 +132,13 @@ Bub.Player.prototype.defaults = function() {
             segments: 36
         },
         phys: {
-            friction: 0.01,
+            friction: 20,
+            minCap: Bub.World.phys.minCap,
             mass: 100,
             velocity: new THREE.Vector3( 0, 0, 0 ),
             acceleration: new THREE.Vector3( 0, 0, 0 ),
-            max: 400,
-            speed: 1000,
+            max: 800,
+            speed: 5000,
             amplitude: 0,
             waveFriction: 2
         }
@@ -204,7 +206,7 @@ Bub.Player.prototype.keyCheck = function() {
         this.applyForce( new THREE.Vector3( 0, -phys.speed, 0 ) );
     }
 
-    //Bub.Utils.vcap( inertia, phys.max );
+    Bub.Utils.limit( phys.acceleration, phys.max );
 };
 
 Bub.Player.prototype.updateFns = {

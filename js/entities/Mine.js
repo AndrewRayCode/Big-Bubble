@@ -3,12 +3,21 @@ Bub.Mine = function() {
 };
 
 Bub.Mine.prototype = Object.create( Bub.Mixin.Entity.prototype );
+Bub.Mine.prototype.constructor = Bub.Mine;
 
 Bub.Mine.prototype.collision = [ Bub.player ],
 
-Bub.Mine.prototype.defaults = {
-    fadeSpeed: 0.9,
-    opacity: 0.5
+Bub.Mine.prototype.defaults = function() {
+    return {
+        fadeSpeed: 0.9,
+        opacity: 0.5,
+        phys: {
+            friction: 0,
+            mass: 100,
+            velocity: new THREE.Vector3( 0, 0, 0 ),
+            acceleration: new THREE.Vector3( 0, 0, 0 )
+        }
+    };
 };
 
 Bub.Mine.prototype.loadGeometry = function() {
@@ -41,9 +50,6 @@ Bub.Mine.prototype.load = function( options ) {
     this.mesh.position.x = options.x || Bub.Utils.randFloat( Bub.camera.data.frustrum.min.x, Bub.camera.data.frustrum.max.x );
     this.mesh.position.y = options.y || Bub.camera.data.frustrum.max.y + ( radius * 2 );
     this.mesh.position.z = 0;
-    this.inertia = options.inertia || new THREE.Vector3(
-        0, -100 - ( Math.random() ), 0
-    );
 
     this.scaleTo( radius * 2 );
 
@@ -53,8 +59,8 @@ Bub.Mine.prototype.load = function( options ) {
 };
 
 Bub.Mine.prototype.updateFns = {
+    phys: Bub.Mixin.Entity.updateFns.phys,
     main: function() {
-        this.move( this.inertia );
         this.updateLocks();
     },
     fade: function() {

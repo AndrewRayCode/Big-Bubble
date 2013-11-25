@@ -1,20 +1,27 @@
 Bub.Fireball = function() {
-
-    this.defaults = {};
-
-    // todo: player and this use this silly scale system, divided by orig
-    // radius. We should just set starting radius to 1 and go from there
-    // for everything?
-    this.build = {
-        scale: 1,
-        radius: 80
-    };
-
     Bub.Mixin.Entity.call( this );
 };
-    
+
 Bub.Fireball.prototype = Object.create( Bub.Mixin.Entity.prototype );
-Bub.Fireball.constructor = Bub.Fireball;
+Bub.Fireball.prototype.constructor = Bub.Fireball;
+
+Bub.Fireball.prototype.defaults = function() {
+    return {
+        // todo: player and this use this silly scale system, divided by orig
+        // radius. We should just set starting radius to 1 and go from there
+        // for everything?
+        build: {
+            scale: 1,
+            radius: 80
+        },
+        phys: {
+            friction: 0,
+            mass: 100,
+            velocity: new THREE.Vector3( 0, 0, 0 ),
+            acceleration: new THREE.Vector3( 0, 0, 0 )
+        }
+    };
+};
 
 Bub.Fireball.prototype.material = function() {
     return Bub.Shader.shaders.fireball();
@@ -54,9 +61,8 @@ Bub.Fireball.prototype.load = function( options ) {
 };
 
 Bub.Fireball.prototype.updateFns = {
+    phys: Bub.Mixin.Entity.updateFns.phys,
     move: function() {
-        this.move( this.inertia );
-
         this.mesh.rotation.x -= Bub.Utils.speed( 1.1 );
 
         if ( this.mesh.position.y + this.r * 2 < Bub.camera.data.frustrum.min.y ) {

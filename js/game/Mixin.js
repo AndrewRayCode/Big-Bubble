@@ -21,7 +21,7 @@ var Entity = function() {
     if( this.updateFns ) {
         // Copy update functions so we aren't replacing updaters on the
         // object's prototype, affecting all instances of this object
-        this.updateFns = $.extend( {}, this.updateFns );
+        this.updateFns = _.clone( this.updateFns );
         this.update = function() {
             for( var key in this.updateFns ) {
                 if( 'id' in this ) {
@@ -54,16 +54,24 @@ Entity.updateFns = {
             this.applyForce( Bub.World.phys.gravity );
         }
 
+        // Friciton force
         this.applyForce(
             this.phys.velocity.clone().normalize().multiplyScalar( -1 * this.phys.friction )
         );
 
         this.drag();
+
+        var elapsed = Bub.Game.time.delta;
+
         this.mesh.position.add(
             this.phys.velocity.add(
-                this.phys.acceleration.multiplyScalar( Bub.Game.time.delta )
-            ).clone().multiplyScalar( Bub.Game.time.delta )
+                this.phys.acceleration.multiplyScalar( elapsed )
+            ).clone().multiplyScalar( elapsed )
         );
+
+        if( this.phys.minCap && this.phys.velocity.length() < this.phys.minCap ) {
+            this.phys.velocity.set( 0, 0, 0 );
+        }
 
         this.phys.acceleration.set( 0, 0, 0 );
     }
@@ -83,7 +91,7 @@ Entity.prototype.tween = function( to, duration ) {
         key =  Object.keys( to.shader )[0];
         tweener = this.mesh.material.uniforms[ key ];
         sendTo = {
-            value: to.shader[ key ]
+                value: to.shader[ key ]
         };
     } else if( 'position' in to ) {
         tweener = this.mesh.position;
@@ -136,11 +144,7 @@ Entity.prototype.lockTo = function( master, offset ) {
     this.locking = true;
     this.lockTime = new Date();
 
-    this.lockOffset = offset || {
-        x: this.mesh.position.x - master.mesh.position.x,
-        y: this.mesh.position.y - master.mesh.position.y,
-        z: this.mesh.position.z - master.mesh.position.z
-    };
+    this.lockOffset = offset || this.mesh.position.clone().sub( master.mesh.position );
 
     master.locks = master.locks || [];
     master.locks.push( this );
@@ -174,42 +178,28 @@ Entity.prototype.move = function( vec ) {
 };
 
 Entity.prototype.speedLockTowards = function( entity, speed ) {
-    var computed = Bub.Utils.vecMoveOffset( this.mesh.position, entity.mesh.position, Bub.Utils.speed( speed ) ),
-        me = this;
-
-    this.lockOffset = {
-        x: computed.x - me.master.mesh.position.x,
-        y: computed.y - me.master.mesh.position.y
-    };
-
+    var computed = Bub.Utils.vecMoveOffset( this.mesh.position, entity.mesh.position, Bub.Utils.speed( speed ) );
+    this.lockOffset = computed.sub( this.master.mesh.position );
 };
 
 Entity.prototype.setLockDistance = function( entity, distance ) {
-    var computed = Bub.Utils.vecMoveOffset( this.mesh.position, entity.mesh.position, distance ),
-        me = this;
-
-    this.lockOffset = {
-        x: computed.x - me.master.mesh.position.x,
-        y: computed.y - me.master.mesh.position.y
-    };
+    var computed = Bub.Utils.vecMoveOffset( this.mesh.position, entity.mesh.position, distance );
+    this.lockOffset = computed.sub( this.master.mesh.position );
 
 };
 
 Entity.prototype.moveTowards = function( entity, speed ) {
     var computed = Bub.Utils.vecMoveOffset( this.mesh.position, entity.mesh.position, speed );
-
-    this.mesh.position.x = computed.x;
-    this.mesh.position.y = computed.y;
-
+    this.mesh.position.copy( computed );
 };
 
 Entity.prototype.updateLocks = function() {
-    var me = this,
-        locks = this.locks;
+    var locks = this.locks;
 
     if( locks ) {
         for( var x = 0; x < locks.length; x++ ) {
-            locks[x].pos( new THREE.Vector3().addVectors( me.mesh.position, locks[x].lockOffset ) );
+            locks[x].mesh.position = new THREE.Vector3().addVectors( this.mesh.position, locks[x].lockOffset );
+            locks[x].updateLocks();
         }
     }
 };

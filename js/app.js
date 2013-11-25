@@ -8,7 +8,7 @@ if ( !window.Detector.webgl ) {
 
 var bubbleApp = angular.module( 'bubbleApp', [] );
 
-bubbleApp.controller('body', function($scope) {
+bubbleApp.controller('body', function( $scope ) {
     $scope.score = 0;
 
     Bub.bind( 'points', function( radius ) {

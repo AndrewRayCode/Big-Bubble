@@ -6,18 +6,19 @@ Level.prototype.levels = [{
     next: 30,
     zoom: 300,
     start: function() {
-        //new Bub.Text3d({
-            //text: 'Big Bubble!',
-            //material: Bub.Shader.shaders.caustic()
-        //}).introduce();
-        //Bub.Transitions.run('descend');
-        setTimeout(function() {
+        new Bub.Text3d({
+            text: 'Big Bubble!',
+            material: Bub.Shader.shaders.caustic()
+        }).introduce();
+        Bub.Transitions.run('descend');
+
+        //setTimeout(function() {
             //Bub.trigger( 'fireup', new Bub.Fireball() );
 
-            Bub.Cache.birth( Bub.Floater, {
-                radius: 20
-            });
-        }, 10);
+            //Bub.Cache.birth( Bub.Floater, {
+                //radius: 20
+            //});
+        //}, 10);
 
         //var geometry = new THREE.SphereGeometry( 70, 32, 32 );
         //var mesh = new THREE.Mesh( geometry, Bub.Shader.shaders.lava() );

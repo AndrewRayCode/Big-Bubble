@@ -201,6 +201,8 @@ Bub.Factory = {
         cloud.wrapS = THREE.RepeatWrapping;
         cloud.wrapT = THREE.RepeatWrapping;
 
+        var flame = Bub.Utils.textures.flame = THREE.ImageUtils.loadTexture('media/flame-1.png');
+
         Bub.Utils.textures.shark = THREE.ImageUtils.loadTexture( 'media/shark.png' );
     }
 

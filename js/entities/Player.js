@@ -62,10 +62,28 @@ Bub.Player = function() {
                             distance = force.length();
 
                         //strength = (G * mass * m.mass) / (distance * distance);
-                        // Boom!
                         thing.applyForce( force.normalize().multiplyScalar( Math.max( 50000 - ( distance * distance ), 0 ) ) );
                     }
 
+                });
+
+                mine.particleId = Bub.Particle.register( {}, {
+                    texture: Bub.Utils.textures.flame,
+                    maxAge: 0.7
+                }, {
+                    type: 'sphere',
+                    position: mine.mesh.position,
+                    speed: 80,
+                    sizeSpread: 20,
+                    particlesPerSecond: 500,
+                    sizeStart: Bub.player.build.radius * 20,
+                    sizeEnd: Bub.player.build.radius * 30,
+                    opacityStart: 1,
+                    opacityEnd: 0,
+                    emitterDuration: 0.08
+                });
+                Bub.Game.timeout( 1000, function() {
+                    Bub.Particle.destroy( mine.particleId );
                 });
                 Bub.trigger( 'free', mine );
             }
@@ -102,7 +120,7 @@ Bub.Player = function() {
         player.particleId = Bub.Particle.register({
             update: Bub.Particle.lockTo( player )
         }, {
-            texture: THREE.ImageUtils.loadTexture('media/flame-1.png'),
+            texture: Bub.Utils.textures.flame,
             maxAge: 4
         }, {
             type: 'sphere',

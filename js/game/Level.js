@@ -15,7 +15,7 @@ Level.prototype.levels = [{
         //setTimeout(function() {
             //Bub.trigger( 'fireup', new Bub.Fireball() );
 
-            //Bub.Cache.birth( Bub.Floater, {
+            //Bub.Cache.birth( Bub.Mine, {
                 //radius: 20
             //});
         //}, 10);

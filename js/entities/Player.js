@@ -56,6 +56,17 @@ Bub.Player = function() {
         var mineCollide = function() {
             var mine = this;
             if( player.isCollidingWith( mine ) ) {
+                Bub.Cache.each( function( thing ) {
+                    if( thing.applyForce ) {
+                        var force = thing.mesh.position.clone().sub( mine.mesh.position ),
+                            distance = force.length();
+
+                        //strength = (G * mass * m.mass) / (distance * distance);
+                        // Boom!
+                        thing.applyForce( force.normalize().multiplyScalar( Math.max( 50000 - ( distance * distance ), 0 ) ) );
+                    }
+
+                });
                 Bub.trigger( 'free', mine );
             }
         };

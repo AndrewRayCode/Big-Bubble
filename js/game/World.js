@@ -1,7 +1,7 @@
 (function() {
 
 var World = function() {
-    Bub.Mixin.Doodad.call( this );
+    this.resetDefaults();
 
     this.scene = new THREE.Scene();
 
@@ -17,8 +17,7 @@ var World = function() {
     this.reset();
 };
 
-World.prototype = Object.create( Bub.Mixin.Doodad.prototype );
-World.prototype.constructor = World;
+_.extend( World.prototype, Bub.Mixins.defaultable );
 
 World.prototype.phys = {
     gravity: new THREE.Vector3( 0, -100, 0 ),
@@ -62,7 +61,7 @@ World.prototype.reset = function() {
 };
 
 World.prototype.populate = function() {
-    var skyBox = this.skyBox = new Bub.Mixin.Entity();
+    var skyBox = this.skyBox = new Bub.GenericEntity();
     skyBox.mesh = Bub.Factory.makeGradientCube(
         Bub.camera.data.frustrum.height * 10, 0x2185C5
     );

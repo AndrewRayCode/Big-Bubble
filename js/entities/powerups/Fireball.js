@@ -1,9 +1,8 @@
 Bub.Fireball = function() {
-    Bub.Mixin.Entity.call( this );
+    this.entityify();
 };
 
-Bub.Fireball.prototype = Object.create( Bub.Mixin.Entity.prototype );
-Bub.Fireball.prototype.constructor = Bub.Fireball;
+_.extend( Bub.Fireball.prototype, Bub.Mixins.entity );
 
 Bub.Fireball.prototype.defaults = function() {
     return {
@@ -60,16 +59,18 @@ Bub.Fireball.prototype.load = function( options ) {
     Bub.trigger( 'initted', this );
 };
 
-Bub.Fireball.prototype.updateFns = {
-    phys: Bub.Mixin.Entity.updateFns.phys,
-    move: function() {
+Bub.Fireball.prototype.updateFns = [{
+    name: 'move',
+    fn: function() {
         this.mesh.rotation.x -= Bub.Utils.speed( 1.1 );
 
         if ( this.mesh.position.y + this.r * 2 < Bub.camera.data.frustrum.min.y ) {
             Bub.trigger( 'free', this );
         }
-    },
-    collision: function() {
+    }
+}, {
+    name: 'collision',
+    fn: function() {
         if( Bub.player.isCollidingWith( this ) ) {
             var text = new Bub.Text3d({
                 text: 'Fire Bubble!',
@@ -82,7 +83,7 @@ Bub.Fireball.prototype.updateFns = {
                 .trigger( 'points', this.points );
         }
     }
-};
+}];
 
 Bub.Fireball.prototype.scale = function( radius ) {
     this.build.radius = radius;

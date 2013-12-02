@@ -1,9 +1,8 @@
 Bub.Mine = function() {
-    Bub.Mixin.Entity.call( this );
+    this.entityify();
 };
 
-Bub.Mine.prototype = Object.create( Bub.Mixin.Entity.prototype );
-Bub.Mine.prototype.constructor = Bub.Mine;
+_.extend( Bub.Mine.prototype, Bub.Mixins.entity );
 
 Bub.Mine.prototype.collision = [ Bub.player ],
 
@@ -58,19 +57,23 @@ Bub.Mine.prototype.load = function( options ) {
     Bub.trigger( 'initted', this );
 };
 
-Bub.Mine.prototype.updateFns = {
-    phys: Bub.Mixin.Entity.updateFns.phys,
-    main: function() {
+Bub.Mine.prototype.updateFns = [{
+    name: 'main',
+    fn: function() {
         this.updateLocks();
-    },
-    fade: function() {
+    }
+}, {
+    name: 'fade',
+    fn: function() {
         if( this.mesh.material.opacity < 1 ) {
             this.mesh.material.opacity += Bub.Utils.speed( this.fadeSpeed );
         }
-    },
-    collision: function() {
+    }
+}, {
+    name: 'collision',
+    fn: function() {
         if( Bub.player.isCollidingWith( this ) ) {
             Bub.trigger( 'mineCollision' );
         }
     }
-};
+}];

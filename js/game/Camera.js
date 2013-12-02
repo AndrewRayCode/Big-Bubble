@@ -1,5 +1,5 @@
 Bub.Camera = function() {
-    Bub.Mixin.Doodad.call( this );
+    this.resetDefaults();
 
     var me = this;
 
@@ -11,8 +11,8 @@ Bub.Camera = function() {
         }
     });
 };
-    
-Bub.Camera.prototype = Object.create( Bub.Mixin.Doodad.prototype );
+
+_.extend( Bub.Camera.prototype, Bub.Mixins.defaultable );
 
 Bub.Camera.prototype.defaults = {
     data: {

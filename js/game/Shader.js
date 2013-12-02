@@ -14,6 +14,7 @@
 // gooey globs https://glsl.heroku.com/e#12123.0
 // sandy whores of time https://www.shadertoy.com/view/4dlGDN
 // blood vessel? https://www.shadertoy.com/view/lsj3zW
+// water caustic-ish https://glsl.heroku.com/e#12412.0 https://glsl.heroku.com/e#12010.0 https://glsl.heroku.com/e#12002.2
 
 // game assets
 // http://www.blendswap.com/

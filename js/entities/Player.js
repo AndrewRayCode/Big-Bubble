@@ -1,9 +1,9 @@
 Bub.Player = function() {
     var player = this;
 
+    this.entityify();
     this.id = 0;
     this.noGravity = true;
-    Bub.Mixin.Entity.call( this );
 
     // Fireball powerup binder
     Bub.bind( 'fireup', function( powerup ) {
@@ -150,8 +150,7 @@ Bub.Player = function() {
     });
 };
 
-Bub.Player.prototype = Object.create( Bub.Mixin.Entity.prototype );
-Bub.Player.prototype.constructor = Bub.Player;
+_.extend( Bub.Player.prototype, Bub.Mixins.entity );
 
 Bub.Player.prototype.defaults = function() {
     return {
@@ -238,17 +237,19 @@ Bub.Player.prototype.keyCheck = function() {
     Bub.Utils.limit( phys.acceleration, phys.max );
 };
 
-Bub.Player.prototype.updateFns = {
-    phys: Bub.Mixin.Entity.updateFns.phys,
-    move: function() {
+Bub.Player.prototype.updateFns = [{
+    name: 'move',
+    fn: function() {
         var delta = this.build.targetRadius - this.build.radius;
         if( Math.abs( delta ) > 0.1 ) {
             this.scale( this.build.radius + ( delta / 5 ) + 0.01);
         }
         this.updateLocks();
         this.constrain();
-    },
-    shader: function() {
+    }
+}, {
+    name: 'shader',
+    fn: function() {
         this.mesh.lookAt( Bub.camera.main.position );
 
         if( this.phys.amplitude > 0 ) {
@@ -262,11 +263,13 @@ Bub.Player.prototype.updateFns = {
             this.mesh.rotation.z = this.build.zrot;
         }
 
-    },
-    keyCheck: function() {
+    }
+}, {
+    name: 'keyCheck',
+    fn: function() {
         this.keyCheck();
     }
-};
+}];
     
 Bub.Player.prototype.constrain = function() {
     var min = Bub.camera.data.frustrum.min,

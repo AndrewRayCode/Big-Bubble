@@ -142,7 +142,7 @@ GameClass.prototype.restart = function() {
     };
 
     Bub.TextManager.reset();
-    Bub.Transitions.reset();
+    Bub.ModeManager.reset();
     Bub.Level.reset();
     Bub.Level.advance();
     Bub.camera.reset();
@@ -184,9 +184,7 @@ GameClass.prototype.loop = function() {
 
     // Only update certain things if the game is unpaused
     if( this.running ) {
-        if( Bub.World.transition ) {
-            Bub.World.transition();
-        }
+        Bub.ModeManager.update();
         
         //TWEEN.update( this.time.now - this.pauseTime );
         TWEEN.update();

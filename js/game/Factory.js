@@ -161,7 +161,7 @@ Bub.Factory = {
         );
 
         var mizer = Bub.camera.data.frustrum.width * 0.01;
-        var plane = new Bub.Mixin.Entity();
+        var plane = new Bub.GenericEntity();
         plane.mesh = new THREE.Mesh(
             //new THREE.PlaneGeometry( Bub.camera.data.frustrum.width * 1.5, Bub.camera.data.frustrum.height * 1.5, 1, 1),
             new THREE.CubeGeometry( mizer, mizer, mizer, 1, 1, 1 ),

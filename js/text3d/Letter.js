@@ -28,8 +28,6 @@ Bub.Letter = function( options ) {
     this.geom = textGeom;
     this.mesh = textMesh;
     this.textWidth = textGeom.boundingBox.max.x - textGeom.boundingBox.min.x;
-
-    Bub.Mixin.Entity.call( this );
 };
 
-Bub.Letter.prototype = Object.create( Bub.Mixin.Entity.prototype );
+_.extend( Bub.Letter.prototype, Bub.Mixins.tweenable );

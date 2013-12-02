@@ -1,4 +1,6 @@
 Bub.Text3d = function( options ) {
+    this.initUpdaters();
+
     this.group = new THREE.Object3D();
     this.letters = [];
     this.offset = 0;
@@ -33,11 +35,10 @@ Bub.Text3d = function( options ) {
 
     this.center();
 
-    Bub.Mixin.Entity.call( this );
     Bub.trigger( 'textCreated', this );
 };
 
-Bub.Text3d.prototype = Object.create( Bub.Mixin.Entity.prototype );
+_.extend( Bub.Text3d.prototype, Bub.Mixins.tweenable, Bub.Mixins.updatable );
 
 Bub.Text3d.prototype.center = function() {
     this.group.position.x = -( this.scale * ( this.group.width / 2.0 ) );
@@ -139,8 +140,9 @@ Bub.Text3d.prototype.destroy = function() {
     Bub.trigger( 'textFree', this );
 };
 
-Bub.Text3d.prototype.updateFns = {
-    main: function() {
+Bub.Text3d.prototype.updateFns = [{
+    name: 'main',
+    fn: function() {
         _.each( this.letters, function( letter, index ) {
             Bub.Offset.set( letter.mesh, new THREE.Vector3(
                 letter.amplitude * Math.sin( new Date().getTime() / 400 + letter.offset ),
@@ -149,4 +151,4 @@ Bub.Text3d.prototype.updateFns = {
             ));
         });
     }
-};
+}];

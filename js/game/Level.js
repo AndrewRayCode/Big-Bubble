@@ -10,13 +10,13 @@ Level.prototype.levels = [{
             text: 'Big Bubble!',
             material: Bub.Shader.shaders.caustic()
         }).introduce();
-        Bub.Transitions.run('descend');
+        Bub.ModeManager.run('descend');
 
         //setTimeout(function() {
-            //Bub.trigger( 'fireup', new Bub.Fireball() );
+            ////Bub.trigger( 'fireup', new Bub.Fireball() );
 
-            //Bub.Cache.birth( Bub.Mine, {
-                //radius: 20
+            //Bub.Cache.birth( Bub.Floater, {
+                //radius: 40
             //});
         //}, 10);
 
@@ -43,13 +43,13 @@ Level.prototype.levels = [{
             text: 'Bubble Madness!'
         });
         text.introduce();
-        Bub.Transitions.run('maze');
+        Bub.ModeManager.run('maze');
     }
 }, {
     next: 300,
     zoom: 800,
     start: function() {
-        Bub.Transitions.end('forward');
+        Bub.ModeManager.end('forward');
     }
 }],
 

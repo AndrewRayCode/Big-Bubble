@@ -1,9 +1,8 @@
 Bub.Floater = function() {
-    Bub.Mixin.Entity.call( this );
+    this.entityify();
 };
 
-Bub.Floater.prototype = Object.create( Bub.Mixin.Entity.prototype );
-Bub.Floater.prototype.constructor = Bub.Floater;
+_.extend( Bub.Floater.prototype, Bub.Mixins.entity );
 
 Bub.Floater.prototype.defaults = function() {
     return {
@@ -51,23 +50,26 @@ Bub.Floater.prototype.load = function( options ) {
     Bub.trigger( 'initted', this );
 };
 
-Bub.Floater.prototype.updateFns = {
-    phys: Bub.Mixin.Entity.updateFns.phys,
-    move: function() {
-        //this.move( this.inertia );
+Bub.Floater.prototype.updateFns = [{
+    name: 'move',
+    fn: function() {
         this.updateLocks();
         this.mesh.lookAt( Bub.camera.main.position );
 
         if ( this.mesh.position.y + this.r * 2 < Bub.camera.data.frustrum.min.y ) {
             Bub.trigger( 'free', this );
         }
-    },
-    fade: function() {
+    }
+}, {
+    name: 'fade',
+    fn: function() {
         if( this.mesh.material.opacity < this.opacity ) {
             this.mesh.material.opacity += Bub.Utils.speed( this.fadeSpeed );
         }
-    },
-    collision: function() {
+    }
+}, {
+    name: 'collision',
+    fn: function() {
         if( Bub.player.isCollidingWith( this ) ) {
             this.lockTo( Bub.player );
 
@@ -90,8 +92,8 @@ Bub.Floater.prototype.updateFns = {
                     }
                 }
             });
-            this.replaceUpdater( 'collision', function() {});
-            this.replaceUpdater( 'phys', function() {});
+            this.replaceUpdater( 'collision', function() {} );
+            this.replaceUpdater( 'phys', function() {} );
         }
     }
-};
+}];

@@ -46,10 +46,7 @@ Bub.Mine.prototype.load = function( options ) {
     var radius = options.radius || 10;
 
     this.mesh.material.opacity = 0;
-    this.mesh.position.x = options.x || Bub.Utils.randFloat( Bub.camera.data.frustrum.min.x, Bub.camera.data.frustrum.max.x );
-    this.mesh.position.y = options.y || Bub.camera.data.frustrum.max.y + ( radius * 2 );
-    this.mesh.position.z = 0;
-
+    this.mesh.position = options.position;
     this.scaleTo( radius * 2 );
 
     this.r = radius;

@@ -99,6 +99,7 @@ Bub.Camera.prototype.zoom = function( level ) {
 Bub.Camera.prototype.update = function() {
     if( this.data.zoom < Bub.Level.level.zoom ) {
         this.zoom( this.data.zoom + 10 );
+        Bub.ModeManager.current.updateSpawner();
     }
 
     this.mirror.position.x = Bub.player.mesh.position.x * (Bub.World.dickx || 1.0);

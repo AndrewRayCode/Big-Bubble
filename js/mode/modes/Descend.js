@@ -1,4 +1,12 @@
 Bub.ModeManager.modes.descend = new Bub.Mode({
+
+    updateSpawner: function() {
+        var frustrum = Bub.camera.data.frustrum;
+
+        this.spawner.position.set( 0, -frustrum.min.y + 100, 0 );
+        this.spawner.scale.set( frustrum.max.x - frustrum.min.x, 0, 0 );
+        this.spawner.update();
+    },
     entities: [{
         type: Bub.Mine,
         options: function() {

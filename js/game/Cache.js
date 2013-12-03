@@ -39,6 +39,7 @@ Cache.prototype.reset = function() {
 Cache.prototype.birth = function( ChildClass, options ) {
     var me = this,
         cache = this.groupFor( ChildClass ),
+        deferred = Q.defer(),
         madeThing;
 
     var complete = function() {
@@ -51,6 +52,8 @@ Cache.prototype.birth = function( ChildClass, options ) {
         Bub.World.scene.add( madeThing.mesh );
 
         me.id++;
+
+        deferred.resolve( madeThing );
     };
 
     if( cache.free.length ) {
@@ -63,6 +66,8 @@ Cache.prototype.birth = function( ChildClass, options ) {
 
         p.then ? p.then( complete ) : complete();
     }
+
+    return deferred.promise;
 };
 
 Cache.prototype.free = function( thing ) {

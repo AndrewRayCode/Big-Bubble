@@ -40,14 +40,8 @@ Bub.Fireball.prototype.loadGeometry = function() {
 Bub.Fireball.prototype.load = function( options ) {
     options = options || {};
 
-    var radius = options.radius || 10 + 5 * Math.random(),
-        frustrum = Bub.camera.data.frustrum;
-
-    this.mesh.position = new THREE.Vector3(
-        options.x || Bub.Utils.randFloat( frustrum.min.x, frustrum.max.x ),
-        options.y || frustrum.max.y + ( radius * 2 ),
-        options.z || 0
-    );
+    var radius = options.radius || 10 + 5 * Math.random();
+    this.mesh.position = options.position;
 
     this.inertia = options.inertia || new THREE.Vector3(
         0, -100 - ( Math.random() ), 0

@@ -28,16 +28,23 @@ Bub.ModeManager = {
 
         this.current = mode;
 
+        mode.spawner = new Bub.Spawner();
+        mode.updateSpawner();
+
         _.each( mode.entities, function( entity ) {
 
             var timeout = function() {
                 entity.timeout = Bub.Game.timeout( entity.offset + ( Math.random() * entity.frequency ), function() {
 
-                    var actual = _.isArray( entity.type ) ? Bub.Utils.randArr( entity.type ) : entity;
+                    var actual = _.isArray( entity.type ) ? Bub.Utils.randArr( entity.type ) : entity,
+                        opts = actual.options ? ( actual.options.call ?
+                            actual.options() : actual.options
+                        ) : {};
 
-                    var opts = actual.options ? ( actual.options.call ?
-                        actual.options() : actual.options
-                    ) : {};
+                    _.extend( opts, {
+                        position: mode.spawner.getRandomPoint()
+                    });
+
                     Bub.Cache.birth( actual.type, opts );
 
                     timeout();

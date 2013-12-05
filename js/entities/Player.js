@@ -32,7 +32,7 @@ Bub.Player = function() {
             if( player.isCollidingWith( bubble ) ) {
 
                 if( bubble.state === 'fire' ) {
-                    player.grow( bubble.r / Bub.Fireball.scaleValue );
+                    player.grow( bubble.r );
                     player.targetBrightness += 0.1;
 
                     if( player.build.radius > Bub.Level.level.next ) {

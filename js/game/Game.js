@@ -148,6 +148,7 @@ GameClass.prototype.restart = function() {
     Bub.camera.reset();
     Bub.Cache.reset();
     Bub.player.reset();
+    Bub.World.reset();
 };
 
 GameClass.prototype.reqFrame = function() {

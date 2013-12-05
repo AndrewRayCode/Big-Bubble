@@ -20,7 +20,7 @@ var World = function() {
 _.extend( World.prototype, Bub.Mixins.defaultable );
 
 World.prototype.phys = {
-    gravity: new THREE.Vector3( 0, -100, 0 ),
+    gravity: new THREE.Vector3(),
     dragCoefficient: 0.02,
     minCap: 9
 };
@@ -80,7 +80,8 @@ World.prototype.update = function() {
                 this.size.y + ( delta.y / 6 ) + 0.01
             );
         } else {
-            delete this.growTarget;
+            this.newSize = null;
+            this.growTarget = null;
         }
     }
 };

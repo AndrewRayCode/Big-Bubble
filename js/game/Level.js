@@ -3,7 +3,7 @@
 var Level = function() {};
 
 Level.prototype.levels = [{
-    next: 30,
+    next: 10,
     zoom: 100,
     start: function() {
         new Bub.Text3d({
@@ -33,6 +33,7 @@ Level.prototype.levels = [{
             text: 'Zoom out!'
         });
         text.introduce();
+        Bub.ModeManager.run('forward');
     },
     size: new THREE.Vector2( 400, 500 )
 }, {

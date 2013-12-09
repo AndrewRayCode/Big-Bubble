@@ -32,7 +32,7 @@ void main() {
 
     vNormal = normalize( vec3( projectionMatrix * modelViewMatrix * vec4( newPosition, 1.0 ) ) );
 
-    float mase = sin( ( time * speed ) - ( ( position.y + 102.0 ) * frequency ) ) * amplitude;
+    float mase = sin( time * speed + position.y ) * 0.05 + (sin( ( time * speed ) - ( ( position.y + 102.0 ) * frequency ) ) * amplitude);
     light = 1.1 * clamp( mase, 0.0, 1.0 );
 
     thingy = projectionMatrix * modelViewMatrix * vec4( newPosition, 1.0 );

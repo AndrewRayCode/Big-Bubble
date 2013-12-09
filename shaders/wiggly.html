@@ -18,13 +18,13 @@ varying vec4 thingy;
 void main() {
     vUv = uv;
 
-    float base = sin( ( time * speed ) + ( ( position.y + 100.0 ) * frequency ) ) * amplitude;
-    float base2 = cos( ( time * speed ) + ( ( position.y + 100.0 ) * frequency ) ) * amplitude;
+    float base = sin( ( time * speed ) - ( ( position.y + 100.0 ) * frequency ) ) * amplitude;
+    float base2 = cos( ( time * speed ) - ( ( position.y + 100.0 ) * frequency ) ) * amplitude;
     //wave = vec3( sin( base ) + cos( base ) ) * amplitude;
 
     newPosition = vec3( position );
-    newPosition.x += position.x * base;
-    newPosition.z += position.y * base2;
+    newPosition.x += position.x * base2;
+    newPosition.z += position.y * base;
 
     //newPosition.z += sin( base ) * amplitude;
     float halfHeight = 450.0;
@@ -32,8 +32,8 @@ void main() {
 
     vNormal = normalize( vec3( projectionMatrix * modelViewMatrix * vec4( newPosition, 1.0 ) ) );
 
-    float mase = sin( ( time * speed ) + ( ( position.y + 102.0 ) * frequency ) ) * amplitude;
-    light = 2.0 * clamp( mase, 0.0, 1.0 );
+    float mase = sin( ( time * speed ) - ( ( position.y + 102.0 ) * frequency ) ) * amplitude;
+    light = 1.1 * clamp( mase, 0.0, 1.0 );
 
     thingy = projectionMatrix * modelViewMatrix * vec4( newPosition, 1.0 );
     gl_Position = thingy;
@@ -68,6 +68,8 @@ void main() {
     vec2 scroll = vec2( vUv.y - ( 0.018 * time * speed ), vUv.x ) * 2.0;
     vec4 color = texture2D( tex, scroll );
     color.a = intensity;
-    gl_FragColor = color + light;
+    color.r += light * 2.0;
+    color.b += light;
+    gl_FragColor = color;
 }
 </script>

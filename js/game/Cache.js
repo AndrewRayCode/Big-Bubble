@@ -45,7 +45,7 @@ Cache.prototype.birth = function( ChildClass, options ) {
     var complete = function() {
         madeThing.id = me.id;
         madeThing.load( options );
-        madeThing.mesh.renderDepth = 500 + madeThing.id;
+        madeThing.mesh.renderDepth = parseFloat( '0.5' + madeThing.id );
 
         me.active[ madeThing.id ] = madeThing;
 

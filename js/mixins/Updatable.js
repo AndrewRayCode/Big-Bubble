@@ -14,6 +14,15 @@ Bub.Mixins.updatable = {
         });
     },
 
+    removeUpdater: function( name ) {
+        for( var x = 0; x < this.updateFns.length; x ++ ) {
+            if( this.updateFns[ x ].name === name ) {
+                this.updateFns.splice( x, 1 );
+                break;
+            }
+        }
+    },
+
     replaceUpdater: function( name, fn ) {
         var updater = this.getUpdateFn( name );
         this.replaced[ name ] = updater.fn;
@@ -21,9 +30,18 @@ Bub.Mixins.updatable = {
     },
 
     resetUpdater: function( name ) {
+        var updater;
+
         if( this.replaced[ name ] ) {
-            this.getUpdateFn( name ).fn = this.replaced[ name ];
-            delete this.replaced[ name ];
+
+            updater = this.getUpdateFn( name );
+            
+            if( updater.added ) {
+                this.removeUpdater( name );
+            } else {
+                updater.fn = this.replaced[ name ];
+                delete this.replaced[ name ];
+            }
         }
     },
 
@@ -39,6 +57,14 @@ Bub.Mixins.updatable = {
                 this.updateFns[ x ].fn.apply( this );
             }
         }
+    },
+
+    addUpdater: function( name, fn ) {
+        this.updateFns.push({
+            name: name,
+            fn: fn,
+            added: true
+        });
     }
 
 };

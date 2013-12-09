@@ -15,7 +15,7 @@ Bub.Mixins.forcable = {
 
         var velocity = this.phys.velocity.clone(),
             speed = velocity.length(),
-            dragMagnitude = -Bub.World.phys.dragCoefficient * speed * speed;
+            dragMagnitude = -( this.phys.dragCoefficient || Bub.World.phys.dragCoefficient ) * speed * speed;
     
         velocity.normalize().multiplyScalar( dragMagnitude );
     

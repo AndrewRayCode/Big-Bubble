@@ -189,7 +189,7 @@ Bub.Player.prototype.load = function() {
 
     // Force player bubble drawing over all other bubbles to avoid
     // z-fighting during bubble intersection
-    mesh.renderDepth = 1000;
+    mesh.renderDepth = 1;
 
     while( v = mesh.geometry.vertices[ vertexIndex-- ] ) {
         if( v.z <= 0 && v.z > -8) {
@@ -242,7 +242,7 @@ Bub.Player.prototype.updateFns = [{
     fn: function() {
         var delta = this.build.targetRadius - this.build.radius;
         if( Math.abs( delta ) > 0.1 ) {
-            this.scale( this.build.radius + ( delta / 5 ) + 0.01);
+            this.scale( this.build.radius + ( delta / 5 ) + 0.01 );
         }
         this.updateLocks();
         this.constrain();

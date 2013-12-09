@@ -7,11 +7,12 @@ Bub.Spawner.constructor = Bub.Spawner;
 
 Bub.Spawner.prototype.getRandomPoint = function() {
     var pos = new THREE.Vector3(
-        Bub.Utils.randFloat( -1, 1 ),
-        Bub.Utils.randFloat( -1, 1 ),
-        Bub.Utils.randFloat( -1, 1 )
+        Bub.Utils.randFloat( -0.5, 0.5 ),
+        Bub.Utils.randFloat( -0.5, 0.5 ),
+        Bub.Utils.randFloat( -0.5, 0.5 )
     );
-    return this.localToWorld( pos );
+    this.localToWorld( pos );
+    return pos;
 };
 
 Bub.Spawner.prototype.update = function() {

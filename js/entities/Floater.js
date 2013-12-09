@@ -7,11 +7,12 @@ _.extend( Bub.Floater.prototype, Bub.Mixins.entity );
 Bub.Floater.prototype.defaults = function() {
     return {
         fadeSpeed: 0.9,
-        opacity: 0.5,
+        opacity: 0.0,
         state: null,
         phys: {
             friction: 0.01,
             mass: 10,
+            dragCoefficient: Bub.World.phys.dragCoefficient,
             velocity: new THREE.Vector3( 0, 0, 0 ),
             acceleration: new THREE.Vector3( 0, 0, 0 )
         }
@@ -36,12 +37,14 @@ Bub.Floater.prototype.load = function( options ) {
         frustrum = Bub.camera.data.frustrum;
 
     this.mesh.position = options.position;
+    this.mesh.material.uniforms.opacity.value = this.opacity;
     this.inertia = options.inertia || new THREE.Vector3(
         0, -100 - ( Math.random() ), 0
     );
 
     this.scaleTo( radius * 2 );
     this.r = radius;
+    this.opacity = 1;
 
     Bub.trigger( 'initted', this );
 };
@@ -59,14 +62,20 @@ Bub.Floater.prototype.updateFns = [{
 }, {
     name: 'fade',
     fn: function() {
-        if( this.mesh.material.opacity < this.opacity ) {
-            this.mesh.material.opacity += Bub.Utils.speed( this.fadeSpeed );
+        var delta = this.opacity - this.mesh.material.uniforms.opacity.value;
+        if( Math.abs( delta ) >= 0.01 ) {
+            this.mesh.material.uniforms.opacity.value += Bub.Utils.speed( this.fadeSpeed ) * Bub.Utils.sign( delta );
+        } else {
+            this.mesh.material.uniforms.opacity.value = this.opacity;
         }
     }
 }, {
     name: 'collision',
     fn: function() {
         if( Bub.player.isCollidingWith( this ) ) {
+            this.opacity = 1;
+            this.mesh.material.uniforms.opacity.value = 1.0;
+
             this.lockTo( Bub.player );
 
             this.setLockDistance( Bub.player, this.r );
@@ -90,6 +99,7 @@ Bub.Floater.prototype.updateFns = [{
             });
             this.replaceUpdater( 'collision', function() {} );
             this.replaceUpdater( 'phys', function() {} );
+            this.removeUpdater( 'zPos' );
         }
     }
 }];

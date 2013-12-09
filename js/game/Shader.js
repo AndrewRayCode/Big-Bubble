@@ -181,8 +181,8 @@ Shader.prototype = {
         wiggly: function( shader, members ) {
             members = members || {};
 
-            shader.uniforms.amplitude.value = 0.085;
-            shader.uniforms.frequency.value = 0.1;
+            shader.uniforms.amplitude.value = 0.055;
+            shader.uniforms.frequency.value = 0.03;
             shader.uniforms.speed.value = 2.0;
             shader.uniforms.tex.value = Bub.Utils.textures.veiny;
 

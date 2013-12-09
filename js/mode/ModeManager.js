@@ -38,6 +38,8 @@ Bub.ModeManager = {
         mode.spawner = new Bub.Spawner();
         mode.updateSpawner();
 
+        mode.start();
+
         _.each( mode.entities, function( entity ) {
 
             var timeout = function() {
@@ -62,8 +64,6 @@ Bub.ModeManager = {
             timeout();
 
         });
-
-        mode.start();
     },
 
     end: function() {

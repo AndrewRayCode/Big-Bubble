@@ -9,7 +9,7 @@ Bub.Spawner.prototype.getRandomPoint = function() {
     var pos = new THREE.Vector3(
         Bub.Utils.randFloat( -1, 1 ),
         Bub.Utils.randFloat( -1, 1 ),
-        0
+        Bub.Utils.randFloat( -1, 1 )
     );
     return this.localToWorld( pos );
 };

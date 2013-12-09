@@ -178,6 +178,27 @@ Shader.prototype = {
             return mat;
         },
 
+        wiggly: function( shader, members ) {
+            members = members || {};
+
+            shader.uniforms.amplitude.value = 0.085;
+            shader.uniforms.frequency.value = 0.1;
+            shader.uniforms.speed.value = 2.0;
+            shader.uniforms.tex.value = Bub.Utils.textures.veiny;
+
+            var mat = new THREE.ShaderMaterial({
+                fragmentShader: shader.fragment,
+                vertexShader: shader.vertex,
+                uniforms: $.extend( {}, shader.uniforms, members.uniforms ),
+                attributes: $.extend( {}, shader.attributes, members.attributes ),
+                transparent: true
+            });
+
+            mat.depthWite = false;
+
+            return mat;
+        },
+
         fresnel: function( shader, members ) {
             members = members || {};
 

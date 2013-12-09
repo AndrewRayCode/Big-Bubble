@@ -193,6 +193,10 @@ Bub.Factory = {
         uvtest.wrapS = THREE.RepeatWrapping;
         uvtest.wrapT = THREE.RepeatWrapping;
 
+        var veins = Bub.Utils.textures.veiny = THREE.ImageUtils.loadTexture( 'media/veiny.jpg' );
+        veins.wrapS = THREE.RepeatWrapping;
+        veins.wrapT = THREE.RepeatWrapping;
+
         var lava = Bub.Utils.textures.lava = THREE.ImageUtils.loadTexture( 'media/lavatile.jpg' );
         lava.wrapS = THREE.RepeatWrapping;
         lava.wrapT = THREE.RepeatWrapping;

@@ -80,8 +80,6 @@ void main() {
 
     vec4 mixed = mix( refractedColor, reflectedColor, clamp( vReflectionFactor, 0.0, 1.0 ) );
 
-    vec3 interp = vec3( mixed.x, mixed.y, mixed.z ) * dot( vec3(-10.0, 10.0, 0.0), vNormal );
-    vec4 done = vec4( interp, 1.0 );
     mixed.a = clamp( intensity * 3.6, 0.4, 0.8 );
 
     gl_FragColor = mixed + ( 0.02 * amplitude * dot( vec3(0.0, 10.0, 0.0), tapered ) );

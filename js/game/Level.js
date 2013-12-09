@@ -3,14 +3,14 @@
 var Level = function() {};
 
 Level.prototype.levels = [{
-    next: 10,
+    next: 100,
     zoom: 100,
     start: function() {
         new Bub.Text3d({
             text: 'Big Bubble!',
             material: Bub.Shader.shaders.caustic()
         }).introduce();
-        Bub.ModeManager.run('descend');
+        Bub.ModeManager.next('forward');
 
         //setTimeout(function() {
             ////Bub.trigger( 'fireup', new Bub.Fireball() );
@@ -33,7 +33,7 @@ Level.prototype.levels = [{
             text: 'Zoom out!'
         });
         text.introduce();
-        Bub.ModeManager.run('forward');
+        Bub.ModeManager.next('forward');
     },
     size: new THREE.Vector2( 400, 500 )
 }, {
@@ -44,7 +44,7 @@ Level.prototype.levels = [{
             text: 'Bubble Madness!'
         });
         text.introduce();
-        Bub.ModeManager.run('maze');
+        Bub.ModeManager.next('maze');
     }
 }, {
     next: 300,

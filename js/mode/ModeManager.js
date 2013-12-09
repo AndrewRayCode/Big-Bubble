@@ -21,6 +21,13 @@ Bub.ModeManager = {
         }
     },
 
+    next: function( id ) {
+        if( this.current ) {
+            this.end() ;
+        }
+        this.run( id );
+    },
+
     run: function( id ) {
         var mode = this.modes[ id ],
             timeouts = [],
@@ -56,28 +63,18 @@ Bub.ModeManager = {
 
         });
 
-        this.active = function() {
-            mode.loop();
-        };
         mode.start();
     },
 
-    end: function( id ) {
-        var mode = this.modes[ id ];
-
-        _.each( mode.entities, function( entity ) {
-            if( entity.timeout ) {
-                Bub.Game.clearTimeout( entity.timeout );
-            }
-        });
-
-        delete this.active;
-        mode.end();
+    end: function() {
+        this.reset();
+        this.current.end();
+        delete this.current;
     },
 
     update: function() {
-        if( this.active ) {
-            this.active();
+        if( this.current ) {
+            this.current.loop();
         }
     }
 };

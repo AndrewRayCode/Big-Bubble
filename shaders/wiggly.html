@@ -1,0 +1,73 @@
+<script type="x-shader/x-vertex">
+uniform float scale;
+uniform float time;
+uniform float speed;
+uniform float frequency;
+uniform float amplitude;
+varying vec2 vUv;
+
+varying vec3 wave;
+varying vec3 vNormal;
+varying float light;
+varying vec3 newPosition;
+
+uniform vec3 viewVector;
+varying float intensity;
+varying vec4 thingy;
+
+void main() {
+    vUv = uv;
+
+    float base = sin( ( time * speed ) + ( ( position.y + 100.0 ) * frequency ) ) * amplitude;
+    float base2 = cos( ( time * speed ) + ( ( position.y + 100.0 ) * frequency ) ) * amplitude;
+    //wave = vec3( sin( base ) + cos( base ) ) * amplitude;
+
+    newPosition = vec3( position );
+    newPosition.x += position.x * base;
+    newPosition.z += position.y * base2;
+
+    //newPosition.z += sin( base ) * amplitude;
+    float halfHeight = 450.0;
+    intensity = clamp( ( ( position.y + 350.0 ) / 100.0 ), 0.0, 1.0 );
+
+    vNormal = normalize( vec3( projectionMatrix * modelViewMatrix * vec4( newPosition, 1.0 ) ) );
+
+    float mase = sin( ( time * speed ) + ( ( position.y + 102.0 ) * frequency ) ) * amplitude;
+    light = 2.0 * clamp( mase, 0.0, 1.0 );
+
+    thingy = projectionMatrix * modelViewMatrix * vec4( newPosition, 1.0 );
+    gl_Position = thingy;
+
+}
+</script>
+
+<script type="x-shader/x-fragment">
+//varying vec3 wave;
+varying vec3 newPosition;
+varying vec4 thingy;
+uniform float amplitude;
+uniform sampler2D tex;
+varying vec2 vUv;
+uniform float time;
+
+varying vec3 vNormal;
+varying float light;
+uniform float speed;
+
+varying float intensity;
+
+void main() {
+
+    vec3 base = vec3(0.8, 0.8, 0.8) + 0.2 * dot( vec3(0.0, 10.0, 0.0), vNormal );
+    vec4 mixed = vec4( vec3(0.8, 0.8, 0.8) + light, intensity );
+    //vec3 interp = vec3( mixed.x, mixed.y, mixed.z ) * dot( vec3(-10.0, 10.0, 0.0), vNormal );
+    //vec4 done = vec4( interp, 1.0 );
+    //mixed.a = clamp( intensity * 3.6, 0.4, 0.8 );
+    //mixed.g -= ( 90.05 * amplitude * dot( vec3(0.0, 10.0, 0.0), wave ) );
+
+    vec2 scroll = vec2( vUv.y - ( 0.018 * time * speed ), vUv.x ) * 2.0;
+    vec4 color = texture2D( tex, scroll );
+    color.a = intensity;
+    gl_FragColor = color + light;
+}
+</script>

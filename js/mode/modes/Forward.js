@@ -13,7 +13,7 @@ Bub.ModeManager.modes.forward = new Bub.Mode({
                     //if( thing.inertia.z > 0.1 ) {
                         //thing.inertia.z -= Bub.Utils.speed( 80.0 );
                     //}
-                    thing.mesh.material.uniforms.opacity.value -= Bub.Utils.speed( 0.01 );
+                    thing.mesh.material.uniforms.opacity.value -= Bub.Utils.speed( 0.1 );
 
                     if( thing.mesh.material.uniforms.opacity.value <= 0 ) {
                         Bub.trigger( 'free', thing );
@@ -55,6 +55,17 @@ Bub.ModeManager.modes.forward = new Bub.Mode({
         this.spawner.update();
     },
     start: function() {
+        var radius = ( Bub.camera.data.frustrum.max.x - Bub.camera.data.frustrum.min.x ) / 2;
+        var geom = new THREE.CylinderGeometry(radius, radius, 900, 20, 20, true);
+        //geom = new THREE.SphereGeometry(90,32,32);
+        var material = Bub.Shader.shaders.wiggly();
+        //material = new THREE.MeshPhongMaterial();
+        material.side = THREE.BackSide;
+        var mesh = new THREE.Mesh( geom, material );
+        Bub.World.scene.add( mesh );
+        mesh.rotation.x = THREE.Math.degToRad( 90 );
+        //mesh.renderDepth = 1;
+
         Bub.bind( 'initted', this.initBind );
         Bub.World.phys.gravity = new THREE.Vector3( 0, 0, 100 );
     },

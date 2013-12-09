@@ -124,8 +124,8 @@ GameClass.prototype.activate = function() {
     });
     var sharkGeometry = new THREE.PlaneGeometry(300, 300, 1, 1);
     var shark = new THREE.Mesh( sharkGeometry, sharkMaterial );
-    Bub.World.scene.add( shark );
-    Bub.World.shark = shark;
+    //Bub.World.scene.add( shark );
+    //Bub.World.shark = shark;
 
     this.restart();
     this.reqFrame();
@@ -134,7 +134,9 @@ GameClass.prototype.activate = function() {
 GameClass.prototype.restart = function() {
     this.running = true;
 
-    Bub.World.shark.position.set( 50, 50, -300 );
+    if( Bub.World.shark ) {
+        Bub.World.shark.position.set( 50, 50, -300 );
+    }
 
     this.time = {
         start: Bub.Utils.now(),
@@ -199,11 +201,15 @@ GameClass.prototype.loop = function() {
 
         Bub.Cache.updateThings();
 
-        Bub.World.shark.position.y -= 0.4;
+        if( Bub.World.shark ) {
+            Bub.World.shark.position.y -= 0.4;
+        }
     }
 
-    Bub.World.shark.rotation.x += Math.sin( 50 * ( timer % 1 ) ) / 100;
-    Bub.World.shark.position.x += Math.sin( 50 * ( timer % 1 ) );
+    if( Bub.World.shark ) {
+        Bub.World.shark.rotation.x += Math.sin( 50 * ( timer % 1 ) ) / 100;
+        Bub.World.shark.position.x += Math.sin( 50 * ( timer % 1 ) );
+    }
 
     Bub.Offset.offset();
     Bub.camera.update();

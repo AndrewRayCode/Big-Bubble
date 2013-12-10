@@ -193,6 +193,8 @@ Bub.Factory = {
         uvtest.wrapS = THREE.RepeatWrapping;
         uvtest.wrapT = THREE.RepeatWrapping;
 
+        var whaleSkin = Bub.Utils.textures.whaleSkin = THREE.ImageUtils.loadTexture( 'media/whale-texture.jpg' );
+
         var veins = Bub.Utils.textures.veiny = THREE.ImageUtils.loadTexture( 'media/veiny.jpg' );
         veins.wrapS = THREE.RepeatWrapping;
         veins.wrapT = THREE.RepeatWrapping;

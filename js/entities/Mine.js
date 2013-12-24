@@ -22,22 +22,15 @@ Bub.Mine.prototype.defaults = function() {
 Bub.Mine.prototype.loadGeometry = function() {
     var me = this;
 
-    return Bub.Utils.loadModel( 'media/mine.js' ).then( function( geometry ) {
-        geometry.computeBoundingBox();
-
-        me.dimensions = new THREE.Vector3(
-            geometry.boundingBox.max.x - geometry.boundingBox.min.x,
-            geometry.boundingBox.max.y - geometry.boundingBox.min.y,
-            geometry.boundingBox.max.z - geometry.boundingBox.min.z
-        );
-
-        var material = new THREE.MeshLambertMaterial({
-            shading: THREE.FlatShading,
-            map: Bub.Utils.textures.metal,
-            transparent: true
-        });
-        me.mesh = new THREE.Mesh( geometry, material );
+    var material = new THREE.MeshLambertMaterial({
+        shading: THREE.FlatShading,
+        map: Bub.Assets.textures.metal,
+        transparent: true
     });
+    me.dimensions = Bub.Assets.models.mine.dimensions;
+    me.mesh = new THREE.Mesh( Bub.Assets.models.mine, material );
+
+    return me;
 };
 
 Bub.Mine.prototype.load = function( options ) {

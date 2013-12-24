@@ -42,7 +42,7 @@ Bub.GraphBuilder.prototype.buildMaze = function( node ) {
     }
     mat = new THREE.MeshLambertMaterial({
         shading: THREE.FlatShading,
-        map: Bub.Utils.textures.rust,
+        map: Bub.Assets.textures.rust,
         transparent: true
     });
 

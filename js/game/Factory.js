@@ -172,44 +172,6 @@ Bub.Factory = {
         Bub.World.scene.add( plane.mesh );
 
         return cube;
-    },
-
-    loadAssets: function() {
-        var rust = Bub.Utils.textures.rust = THREE.ImageUtils.loadTexture( 'media/rust-peel.jpg' );
-        rust.wrapS = THREE.RepeatWrapping;
-        rust.wrapT = THREE.RepeatWrapping;
-
-        var metal = Bub.Utils.textures.metal = THREE.ImageUtils.loadTexture( 'media/metal.jpg' );
-        metal.wrapS = THREE.RepeatWrapping;
-        metal.wrapT = THREE.RepeatWrapping;
-
-        var caustic = Bub.Utils.textures.caustic = THREE.ImageUtils.loadTexture( 'media/caustic.jpg' );
-        caustic.wrapS = THREE.RepeatWrapping;
-        caustic.wrapT = THREE.RepeatWrapping;
-        caustic.repeat.set( 0.006, 0.006 );
-        caustic.mapping = THREE.SphericalRefractionMapping();
-
-        var uvtest = Bub.Utils.textures.uvtest = THREE.ImageUtils.loadTexture( 'media/uvtest.jpg' );
-        uvtest.wrapS = THREE.RepeatWrapping;
-        uvtest.wrapT = THREE.RepeatWrapping;
-
-        var whaleSkin = Bub.Utils.textures.whaleSkin = THREE.ImageUtils.loadTexture( 'media/whale-texture.jpg' );
-
-        var veins = Bub.Utils.textures.veiny = THREE.ImageUtils.loadTexture( 'media/veiny.jpg' );
-        veins.wrapS = THREE.RepeatWrapping;
-        veins.wrapT = THREE.RepeatWrapping;
-
-        var lava = Bub.Utils.textures.lava = THREE.ImageUtils.loadTexture( 'media/lavatile.jpg' );
-        lava.wrapS = THREE.RepeatWrapping;
-        lava.wrapT = THREE.RepeatWrapping;
-
-        var cloud = Bub.Utils.textures.cloud = THREE.ImageUtils.loadTexture( 'media/cloud.png' );
-        cloud.wrapS = THREE.RepeatWrapping;
-        cloud.wrapT = THREE.RepeatWrapping;
-
-        var flame = Bub.Utils.textures.flame = THREE.ImageUtils.loadTexture('media/flame-1.png');
-
-        Bub.Utils.textures.shark = THREE.ImageUtils.loadTexture( 'media/shark.png' );
     }
 
 };

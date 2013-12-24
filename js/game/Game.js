@@ -1,5 +1,7 @@
 (function( global ) {
 
+var clock = new THREE.Clock();
+
 var pointLight1 = new THREE.SpotLight(0xffffff);
 pointLight1.shadowDarkness = 0.5;
 pointLight1.intensity = 1;
@@ -86,49 +88,59 @@ GameClass.prototype.unpause = function() {
 
 GameClass.prototype.activate = function() {
     var me = this;
-    Bub.Factory.loadAssets();
 
-    this.initted = true;
+    Bub.Assets.load({
+        textures: [
+            'rust', 'metal', 'caustic', 'uvtest', 'whaleSkin', 'lava', 'cloud',
+            'flame', 'shark', 'veiny'
+        ],
+        colladas: [ 'whale' ],
+        models: [ 'mine' ]
+    }).then(function() {
+        me.initted = true;
 
-    $( window ).blur(function() {
+        $( window ).blur(function() {
+            me.releaseKeys();
+        });
+
         me.releaseKeys();
+        me.unbindKeys();
+        me.bindKeys();
+
+        // Listen for the key event(s) that pauses toggling
+        Bub.bind( 'pauseToggle', function() {
+            me.running = !me.running;
+            Bub.trigger( ( me.running ? 'un' : '' ) + 'pause' );
+        });
+
+        Bub.bind( 'pause', _.bind( me.pause, me ) );
+        Bub.bind( 'unpause', _.bind( me.unpause, me ) );
+
+        // set its position
+        pointLight1.position.z = 1060;
+        pointLight1.target = Bub.player.mesh;
+        Bub.player.mesh.castShadow = true;
+
+        // add to the scene
+        Bub.World.scene.add( pointLight1 );
+
+        Bub.World.scene.matrixAutoUpdate = false;
+
+        var sharkMaterial = new THREE.MeshBasicMaterial({
+            map: Bub.Assets.textures.shark,
+            transparent: true,
+            opacity:0.5
+        });
+        var sharkGeometry = new THREE.PlaneGeometry(300, 300, 1, 1);
+        var shark = new THREE.Mesh( sharkGeometry, sharkMaterial );
+        //Bub.World.scene.add( shark );
+        //Bub.World.shark = shark;
+
+        me.restart();
+        me.reqFrame();
+    }).fail(function( e ) {
+        console.error( e );
     });
-
-    this.releaseKeys();
-    this.unbindKeys();
-    this.bindKeys();
-
-    // Listen for the key event(s) that pauses toggling
-    Bub.bind( 'pauseToggle', function() {
-        me.running = !me.running;
-        Bub.trigger( ( me.running ? 'un' : '' ) + 'pause' );
-    });
-
-    Bub.bind( 'pause', _.bind( me.pause, me ) );
-    Bub.bind( 'unpause', _.bind( me.unpause, me ) );
-
-    // set its position
-    pointLight1.position.z = 1060;
-    pointLight1.target = Bub.player.mesh;
-    Bub.player.mesh.castShadow = true;
-
-    // add to the scene
-    Bub.World.scene.add( pointLight1 );
-
-    Bub.World.scene.matrixAutoUpdate = false;
-
-    var sharkMaterial = new THREE.MeshBasicMaterial({
-        map: Bub.Utils.textures.shark,
-        transparent: true,
-        opacity:0.5
-    });
-    var sharkGeometry = new THREE.PlaneGeometry(300, 300, 1, 1);
-    var shark = new THREE.Mesh( sharkGeometry, sharkMaterial );
-    //Bub.World.scene.add( shark );
-    //Bub.World.shark = shark;
-
-    this.restart();
-    this.reqFrame();
 };
 
 GameClass.prototype.restart = function() {
@@ -188,8 +200,12 @@ GameClass.prototype.loop = function() {
     // Only update certain things if the game is unpaused
     if( this.running ) {
         Bub.ModeManager.update();
+        //THREE.AnimationHandler.update( 0.1 );
+        if( window.animation ) {
+            var delta = clock.getDelta();
+            THREE.AnimationHandler.update( delta );
+        }
         
-        //TWEEN.update( this.time.now - this.pauseTime );
         TWEEN.update();
         Bub.Particle.update();
         Bub.TextManager.update();

@@ -39,35 +39,27 @@ Cache.prototype.reset = function() {
 Cache.prototype.birth = function( ChildClass, options ) {
     var me = this,
         cache = this.groupFor( ChildClass ),
-        deferred = Q.defer(),
         madeThing;
-
-    var complete = function() {
-        madeThing.id = me.id;
-        madeThing.load( options );
-        madeThing.mesh.renderDepth = parseFloat( '0.5' + madeThing.id );
-
-        me.active[ madeThing.id ] = madeThing;
-
-        Bub.World.scene.add( madeThing.mesh );
-
-        me.id++;
-
-        deferred.resolve( madeThing );
-    };
 
     if( cache.free.length ) {
         madeThing = cache.free.pop();
-        complete();
     } else {
         // Should all things load their geometry on init?
         madeThing = new ChildClass( options );
-        var p = madeThing.loadGeometry( options );
-
-        p.then ? p.then( complete ) : complete();
+        madeThing.loadGeometry( options );
     }
 
-    return deferred.promise;
+    madeThing.id = me.id;
+    madeThing.load( options );
+    madeThing.mesh.renderDepth = parseFloat( '0.5' + madeThing.id );
+
+    me.active[ madeThing.id ] = madeThing;
+
+    Bub.World.scene.add( madeThing.mesh );
+
+    me.id++;
+
+    return madeThing;
 };
 
 Cache.prototype.free = function( thing ) {

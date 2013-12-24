@@ -139,13 +139,30 @@ Bub.Utils = {
         return extended;
     },
 
-    loader: new THREE.JSONLoader(),
+    promisfy: function( scope, fName, names ) {
+        return function() {
+            var deferred = Q.defer(),
+                args = Array.prototype.slice.call(arguments, 0) || [];
 
-    loadModel: function( data ) {
-        var deferred = Q.defer();
-        this.loader.load( data, deferred.resolve );
-        return deferred.promise;
+            args.push(function() {
+                var ret = {};
+
+                if( names ) {
+                    for( var x = 0; x < names.length; x++ ) {
+                        ret[ names[ x ] ] = arguments[ x ];
+                    }
+                } else {
+                    ret = arguments[ 0 ];
+                }
+                deferred.resolve( ret );
+            });
+
+            scope[ fName ].apply( scope, args );
+
+            return deferred.promise;
+        };
     }
+
 };
 
 // Default a now() function to use window performance API if we have it. This

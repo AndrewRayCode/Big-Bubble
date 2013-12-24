@@ -30,7 +30,7 @@ Bub.Obj3d.prototype.loadGeometry = function() {
 
     Bub.trigger( 'initted', this );
 
-    return Bub.Utils.loadModel( options.path ).then( function( geometry, materials ) {
+    return Bub.Utils.loadScene( options.path ).then( function( geometry, materials ) {
         geometry.computeBoundingBox();
 
         me.dimensions = new THREE.Vector3(
@@ -40,7 +40,7 @@ Bub.Obj3d.prototype.loadGeometry = function() {
         );
 
         var material = new THREE.MeshLambertMaterial({
-            map: Bub.Utils.textures.whaleSkin
+            map: Bub.Assets.textures.whaleSkin
         });
         me.mesh = new THREE.Mesh( geometry, material );
         me.mesh.position = options.position;

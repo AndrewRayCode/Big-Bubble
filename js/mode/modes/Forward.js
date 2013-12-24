@@ -70,44 +70,63 @@ Bub.ModeManager.modes.forward = new Bub.Mode({
     },
     start: function() {
 
+        function ensureLoop( animation ) {
+
+            for ( var i = 0; i < animation.hierarchy.length; i ++ ) {
+
+                var bone = animation.hierarchy[ i ];
+
+                var first = bone.keys[ 0 ];
+                var last = bone.keys[ bone.keys.length - 1 ];
+
+                last.pos = first.pos;
+                last.rot = first.rot;
+                last.scl = first.scl;
+
+            }
+
+        }
+
+        var collada = Bub.Assets.colladas.whale;
+        var dae = collada.scene;
         var whale = new Bub.Obj3d({
-            path: 'media/whale.js',
-            position: new THREE.Vector3( 0, 0, 0 )
-        }).loadGeometry().then(function( obj ) {
-            Bub.World.scene.add( obj.mesh );
-            obj.scaleTo( 100, 100, 100 );
-            obj.mesh.position.x -= 50;
-            obj.mesh.rotation.y = THREE.Math.degToRad( -45 );
-            obj.mesh.rotation.x = THREE.Math.degToRad( 25 );
+            position: new THREE.Vector3( 0, -1000, 0 )
+        });
+        whale.mesh = dae.children[1];
+        whale.mesh.scale.set( 1, 1, 1 );
+        whale.mesh.position.set( -200, 0, -500 );
+        whale.mesh.updateMatrix();
 
-            obj.tween({
-                position: {
-                    z: 280,
-                    x: 10
-                }
-            }, 5000 );
-            obj.tween({
-                rotation: {
-                    y: THREE.Math.degToRad( -90 ),
-                    x: 0
-                }
-            }, 5000 );
+        Bub.World.scene.add( whale.mesh );
 
-            Bub.Game.timeout( 5000, function() {
-                Bub.World.scene.remove( obj.mesh );
+        whale.tween({
+            position: {
+                z: 200,
+                x: 4,
+                y: -13
+            }
+        }, 5000 );
+        whale.tween({
+            rotation: {
+                y: THREE.Math.degToRad( -90 ),
+                x: 0
+            }
+        }, 5000 );
 
-                var radius = ( Bub.camera.data.frustrum.max.x - Bub.camera.data.frustrum.min.x ) / 1;
-                var geom = new THREE.CylinderGeometry(radius, radius, 2500, 20, 100, true);
-                //geom = new THREE.SphereGeometry(90,32,32);
-                var material = Bub.Shader.shaders.wiggly();
-                //material = new THREE.MeshPhongMaterial();
-                material.side = THREE.BackSide;
-                var mesh = new THREE.Mesh( geom, material );
-                Bub.World.scene.add( mesh );
-                mesh.position.z -= 1000;
-                mesh.rotation.x = THREE.Math.degToRad( 90 );
-                mesh.renderDepth = 0.00;
-            });
+        Bub.Game.timeout( 5000, function() {
+            Bub.World.scene.remove( whale.mesh );
+
+            var radius = ( Bub.camera.data.frustrum.max.x - Bub.camera.data.frustrum.min.x ) / 1;
+            var geom = new THREE.CylinderGeometry(radius, radius, 2500, 20, 100, true);
+            //geom = new THREE.SphereGeometry(90,32,32);
+            var material = Bub.Shader.shaders.wiggly();
+            //material = new THREE.MeshPhongMaterial();
+            material.side = THREE.BackSide;
+            var mesh = new THREE.Mesh( geom, material );
+            Bub.World.scene.add( mesh );
+            mesh.position.z -= 1000;
+            mesh.rotation.x = THREE.Math.degToRad( 90 );
+            mesh.renderDepth = 0.00;
         });
 
         Bub.bind( 'initted', this.initBind );

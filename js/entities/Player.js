@@ -68,7 +68,7 @@ Bub.Player = function() {
                 });
 
                 mine.particleId = Bub.Particle.register( {}, {
-                    texture: Bub.Utils.textures.flame,
+                    texture: Bub.Assets.textures.flame,
                     maxAge: 0.7
                 }, {
                     type: 'sphere',
@@ -120,7 +120,7 @@ Bub.Player = function() {
         player.particleId = Bub.Particle.register({
             update: Bub.Particle.lockTo( player )
         }, {
-            texture: Bub.Utils.textures.flame,
+            texture: Bub.Assets.textures.flame,
             maxAge: 4
         }, {
             type: 'sphere',

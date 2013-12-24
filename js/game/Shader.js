@@ -15,6 +15,7 @@
 // sandy whores of time https://www.shadertoy.com/view/4dlGDN
 // blood vessel? https://www.shadertoy.com/view/lsj3zW
 // water caustic-ish https://glsl.heroku.com/e#12412.0 https://glsl.heroku.com/e#12010.0 https://glsl.heroku.com/e#12002.2
+// sex cloud rainbow trails https://glsl.heroku.com/e#12881.0
 
 // game assets
 // http://www.blendswap.com/
@@ -119,8 +120,8 @@ Shader.prototype = {
         lava: function( shader, members ) {
             members = members || {};
 
-            shader.uniforms.texture1.value = Bub.Utils.textures.cloud;
-            shader.uniforms.texture2.value = Bub.Utils.textures.lava;
+            shader.uniforms.texture1.value = Bub.Assets.textures.cloud;
+            shader.uniforms.texture2.value = Bub.Assets.textures.lava;
             shader.uniforms.fog.value = 0.1;
             shader.uniforms.offset.value = Bub.Utils.randInt( -100, 100 );
             shader.uniforms.speed.value = Bub.Utils.randFloat( 0.2, 2.2 );
@@ -184,7 +185,7 @@ Shader.prototype = {
             shader.uniforms.amplitude.value = 0.055;
             shader.uniforms.frequency.value = 0.03;
             shader.uniforms.speed.value = 2.0;
-            shader.uniforms.tex.value = Bub.Utils.textures.veiny;
+            shader.uniforms.tex.value = Bub.Assets.textures.veiny;
 
             var mat = new THREE.ShaderMaterial({
                 fragmentShader: shader.fragment,

@@ -1,7 +1,7 @@
 Bub.Letter = function( options ) {
 
     var material = options.material || new THREE.MeshPhongMaterial({
-        map: Bub.Utils.textures.caustic,
+        map: Bub.Assets.textures.caustic,
         color: 0xc4feff,
         emissive: 0x48694c,
         transparent: true

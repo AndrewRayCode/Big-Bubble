@@ -16,6 +16,7 @@
 // blood vessel? https://www.shadertoy.com/view/lsj3zW
 // water caustic-ish https://glsl.heroku.com/e#12412.0 https://glsl.heroku.com/e#12010.0 https://glsl.heroku.com/e#12002.2
 // sex cloud rainbow trails https://glsl.heroku.com/e#12881.0
+// dualing spirals https://glsl.heroku.com/e#13068.2
 
 // game assets
 // http://www.blendswap.com/

@@ -49,6 +49,40 @@ Bub.Floater.prototype.load = function( options ) {
     Bub.trigger( 'initted', this );
 };
 
+Bub.Floater.prototype.attachToPlayer = function( options ) {
+    this.opacity = 1;
+    this.mesh.material.uniforms.opacity.value = 1.0;
+    this.mesh.position.z = Bub.player.mesh.position.z;
+
+    this.mesh.material.uniforms.glowColor.value = new THREE.Color( 0x69D2E7 );
+    this.mesh.material.uniforms.addColor.value = new THREE.Color( 0x000000 );
+
+    this.lockTo( Bub.player );
+
+    this.setLockDistance( Bub.player, this.r );
+
+    this.replaceUpdater( 'move', function() {
+
+        this.mesh.material.uniforms.c.value += Bub.Utils.speed( 0.2 );
+        this.speedLockTowards( Bub.player, 4 );
+        this.mesh.lookAt( Bub.camera.main.position );
+
+        if( new Date() - this.lockTime > 1600 ) {
+            Bub.trigger( 'free', this );
+
+            Bub.player.grow( this.r );
+            Bub.player.ripple( this, 1 + this.r );
+
+            if( Bub.player.build.radius > Bub.Level.level.next ) {
+                Bub.Level.advance();
+            }
+        }
+    });
+    this.replaceUpdater( 'collision', function() {} );
+    this.replaceUpdater( 'phys', function() {} );
+    this.removeUpdater( 'zPos' );
+};
+
 Bub.Floater.prototype.updateFns = [{
     name: 'move',
     fn: function() {
@@ -73,33 +107,7 @@ Bub.Floater.prototype.updateFns = [{
     name: 'collision',
     fn: function() {
         if( Bub.player.isCollidingWith( this ) ) {
-            this.opacity = 1;
-            this.mesh.material.uniforms.opacity.value = 1.0;
-
-            this.lockTo( Bub.player );
-
-            this.setLockDistance( Bub.player, this.r );
-
-            this.replaceUpdater( 'move', function() {
-
-                this.mesh.material.uniforms.c.value += Bub.Utils.speed( 0.2 );
-                this.speedLockTowards( Bub.player, 4 );
-                this.mesh.lookAt( Bub.camera.main.position );
-
-                if( new Date() - this.lockTime > 1600 ) {
-                    Bub.trigger( 'free', this );
-
-                    Bub.player.grow( this.r );
-                    Bub.player.ripple( this, 1 + this.r );
-
-                    if( Bub.player.build.radius > Bub.Level.level.next ) {
-                        Bub.Level.advance();
-                    }
-                }
-            });
-            this.replaceUpdater( 'collision', function() {} );
-            this.replaceUpdater( 'phys', function() {} );
-            this.removeUpdater( 'zPos' );
+            this.attachToPlayer();
         }
     }
 }];

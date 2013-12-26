@@ -3,13 +3,40 @@ Bub.ModeManager.modes.forward = new Bub.Mode({
     entities: Bub.Mode.defaultEntities,
 
     initBind: function( thing ) {
-        if( thing instanceof Bub.Floater ) {
-            thing.addUpdater( 'zPos', function() {
-                thing.scaleTo( Bub.player.build.radius );
-                var zPos = thing.mesh.position.z;
 
+        if( thing instanceof Bub.Floater ) {
+
+            thing.tweening = false;
+            thing.mesh.material.uniforms.glowColor.value = new THREE.Color( 0x2d4963 );
+
+            thing.replaceUpdater( 'collision', function() {
+                if( thing.mesh.position.z >= -Bub.player.build.radius * 3 &&
+                        Bub.player.lockedZisCollidingWith( thing ) ) {
+                    thing.attachToPlayer();
+                }
+            });
+
+            thing.scaleTo( Bub.player.build.radius * 2 );
+
+            thing.addUpdater( 'zPos', function() {
+                var zPos = thing.mesh.position.z,
+                    fadeTime = 4000;
+
+                if( !thing.tweening && zPos > -Bub.player.build.radius * 12.1 ) {
+                    thing.tweening = true;
+                    thing.tween({
+                        shader: {
+                            addColor: new THREE.Color( 0x999999 )
+                        }
+                    }, fadeTime );
+                    thing.tween({
+                        shader: {
+                            glowColor: new THREE.Color( 0xffffff )
+                        }
+                    }, fadeTime );
+                }
                 if( zPos > -Bub.player.build.radius * 3.1 ) {
-                    thing.phys.dragCoefficient += Bub.Utils.speed( 0.3 );
+                    thing.phys.dragCoefficient += Bub.Utils.speed( 0.25 );
                     thing.opacity = 0;
 
                     if( thing.mesh.material.uniforms.opacity.value <= 0 ) {
@@ -41,9 +68,10 @@ Bub.ModeManager.modes.forward = new Bub.Mode({
     },
     updateSpawner: function() {
         var frustrum = Bub.camera.data.frustrum,
-            depth = -1000;
+            frustrumScale = 0.8,
+            depth = -500;
 
-        this.spawner.scale.set( frustrum.width, frustrum.height, 0 );
+        this.spawner.scale.set( frustrum.width * frustrumScale, frustrum.height * frustrumScale, 0 );
         this.spawner.position.set( 0, 0, depth );
         this.spawner.update();
 
@@ -68,6 +96,7 @@ Bub.ModeManager.modes.forward = new Bub.Mode({
             depth
         ));
     },
+
     start: function() {
 
         function ensureLoop( animation ) {
@@ -113,7 +142,7 @@ Bub.ModeManager.modes.forward = new Bub.Mode({
             }
         }, 5000 );
 
-        Bub.Game.timeout( 5000, function() {
+        Bub.Game.timeout( 0, function() {
             Bub.World.scene.remove( whale.mesh );
 
             var radius = ( Bub.camera.data.frustrum.max.x - Bub.camera.data.frustrum.min.x ) / 1;
@@ -126,7 +155,7 @@ Bub.ModeManager.modes.forward = new Bub.Mode({
             Bub.World.scene.add( mesh );
             mesh.position.z -= 1000;
             mesh.rotation.x = THREE.Math.degToRad( 90 );
-            mesh.renderDepth = 0.00;
+            //mesh.renderDepth = 0.00;
         });
 
         Bub.bind( 'initted', this.initBind );

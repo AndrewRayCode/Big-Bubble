@@ -129,9 +129,9 @@ GameClass.prototype.activate = function() {
         var sharkMaterial = new THREE.MeshBasicMaterial({
             map: Bub.Assets.textures.shark,
             transparent: true,
-            opacity:0.5
+            opacity: 0.5
         });
-        var sharkGeometry = new THREE.PlaneGeometry(300, 300, 1, 1);
+        var sharkGeometry = new THREE.PlaneGeometry( 300, 300, 1, 1 );
         var shark = new THREE.Mesh( sharkGeometry, sharkMaterial );
         //Bub.World.scene.add( shark );
         //Bub.World.shark = shark;

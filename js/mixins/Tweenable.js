@@ -7,15 +7,13 @@ Bub.Mixins.tweenable = {
             key, sendTo;
 
         if( 'material' in to ) {
-            key =  Object.keys( to.material )[0];
+            key = Bub.Utils.getKey( to.material );
             tweener = this.mesh.material.map[ key ];
             sendTo = to.material[ key ];
         } else if( 'shader' in to ) {
-            key =  Object.keys( to.shader )[0];
-            tweener = this.mesh.material.uniforms[ key ];
-            sendTo = {
-                    value: to.shader[ key ]
-            };
+            key = Bub.Utils.getKey( to.shader );
+            tweener = this.mesh.material.uniforms[ key ].value;
+            sendTo = to.shader[ key ];
         } else if( 'position' in to ) {
             tweener = this.mesh.position;
             sendTo = to.position;
@@ -34,6 +32,12 @@ Bub.Mixins.tweenable = {
             update = function() {
                 me.mesh.material.opacity = this.opacity;
             };
+        }
+
+        var sendValue = Bub.Utils.getValue( sendTo );
+
+        if( sendTo instanceof THREE.Color ) {
+            sendTo = _.pick( sendTo, 'r', 'g', 'b' );
         }
 
         return new TWEEN.Tween( tweener )

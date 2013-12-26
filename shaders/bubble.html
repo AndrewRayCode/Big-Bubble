@@ -20,7 +20,7 @@ uniform float opacity;
 varying float intensity;
 
 void main() {
-    vec4 glow = vec4( ( glowColor * intensity) + addColor, 1.0 );
+    vec4 glow = vec4( ( glowColor * intensity ) + addColor, 1.0 );
     glow.a = clamp( intensity * 1.6, 0.0, 0.9 ) * opacity;
 
     gl_FragColor = glow;

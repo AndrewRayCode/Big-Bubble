@@ -33,6 +33,13 @@ Bub.Mixins.dynamic = {
         );
     },
 
+    lockedZisCollidingWith: function( sphere ) {
+        var mesh = sphere.mesh;
+        return Bub.Utils.sphereCollision(
+            mesh.position.clone().setZ( this.mesh.position.z ), this.mesh.position, sphere.r, this.build.radius
+        );
+    },
+
     speedLockTowards: function( entity, speed ) {
         var computed = Bub.Utils.vecMoveOffset( this.mesh.position, entity.mesh.position, Bub.Utils.speed( speed ) );
         this.lockOffset = computed.sub( this.master.mesh.position );

@@ -9,7 +9,15 @@ var speed = function( val ) {
 
 Bub.Utils = {
 
-    textures: {},
+    getKey: function( obj ) {
+        return Object.keys( obj )[0];
+    },
+
+    getValue: function( obj ) {
+        for( var key in obj ) {
+            return obj[ key ];
+        }
+    },
 
     limit: function( vector, cap ) {
         if( vector.length() > cap ) {

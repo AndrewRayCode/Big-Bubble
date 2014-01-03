@@ -31,6 +31,8 @@ Bub.Camera.prototype.activate = function() {
         this.data.fov, Bub.World.size.x / Bub.World.size.y, 1, 100000
     );
 
+    Bub.World.scene.add( this.main );
+
     var mirror = this.mirror = new THREE.CubeCamera( 0.1, 10000, 128 );
     mirror.renderTarget.minFilter = THREE.LinearMipMapLinearFilter;
     mirror.rotation.z += THREE.Math.degToRad( 180 );

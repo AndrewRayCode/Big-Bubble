@@ -3,14 +3,13 @@
 var Level = function() {};
 
 Level.prototype.levels = [{
-    next: 100,
+    next: 10,
     zoom: 100,
     start: function() {
         new Bub.Text3d({
-            text: 'Big Bubble!',
-            material: Bub.Shader.shaders.caustic()
+            text: 'Big Bubble!'
         }).introduce();
-        Bub.ModeManager.next('forward');
+        Bub.ModeManager.next('descend');
 
         //setTimeout(function() {
             ////Bub.trigger( 'fireup', new Bub.Fireball() );

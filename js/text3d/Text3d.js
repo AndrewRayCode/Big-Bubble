@@ -32,6 +32,7 @@ Bub.Text3d = function( options ) {
 
     this.group.width = tally - kearning;
     this.group.position.y = Bub.camera.data.frustrum.max.y - 60;
+    this.group.position.z = -300;
 
     this.center();
 
@@ -127,13 +128,13 @@ Bub.Text3d.prototype.introduce = function() {
         me.destroy();
     });
 
-    Bub.World.scene.add( this.group );
+    Bub.camera.main.add( this.group );
 
     return this.fitToScreen();
 };
 
 Bub.Text3d.prototype.destroy = function() {
-    Bub.World.scene.remove( this.group );
+    Bub.camera.main.remove( this.group );
     _.each( this.letters, function( letter, index ) {
         Bub.Offset.free( letter );
     });

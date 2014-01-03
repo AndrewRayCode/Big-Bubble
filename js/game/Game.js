@@ -158,10 +158,10 @@ GameClass.prototype.restart = function() {
     Bub.TextManager.reset();
     Bub.Cache.reset();
     Bub.ModeManager.reset();
-    Bub.Level.reset();
-    Bub.Level.advance();
     Bub.camera.reset();
     Bub.player.reset();
+    Bub.Level.reset();
+    Bub.Level.advance();
     Bub.World.reset();
 };
 

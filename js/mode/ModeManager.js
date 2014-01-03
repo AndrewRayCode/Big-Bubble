@@ -38,31 +38,34 @@ Bub.ModeManager = {
         mode.spawner = new Bub.Spawner();
         mode.updateSpawner();
 
-        mode.start();
+        ( mode.intro ? mode.intro() : window.Q() ).then( function() {
 
-        _.each( mode.entities, function( entity ) {
+            mode.start();
 
-            var timeout = function() {
-                entity.timeout = Bub.Game.timeout( entity.offset + ( Math.random() * entity.frequency ), function() {
+            _.each( mode.entities, function( entity ) {
 
-                    var actual = _.isArray( entity.type ) ? Bub.Utils.randArr( entity.type ) : entity,
-                        opts = actual.options ? ( actual.options.call ?
-                            actual.options() : actual.options
-                        ) : {};
+                var timeout = function() {
+                    entity.timeout = Bub.Game.timeout( entity.offset + ( Math.random() * entity.frequency ), function() {
 
-                    _.extend( opts, {
-                        position: mode.spawner.getRandomPoint()
+                        var actual = _.isArray( entity.type ) ? Bub.Utils.randArr( entity.type ) : entity,
+                            opts = actual.options ? ( actual.options.call ?
+                                actual.options() : actual.options
+                            ) : {};
+
+                        _.extend( opts, {
+                            position: mode.spawner.getRandomPoint()
+                        });
+
+                        Bub.Cache.birth( actual.type, opts );
+
+                        timeout();
+
                     });
+                };
 
-                    Bub.Cache.birth( actual.type, opts );
+                timeout();
 
-                    timeout();
-
-                });
-            };
-
-            timeout();
-
+            });
         });
     },
 

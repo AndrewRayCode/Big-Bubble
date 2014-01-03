@@ -9,7 +9,8 @@ Bub.Mine.prototype.collision = [ Bub.player ],
 Bub.Mine.prototype.defaults = function() {
     return {
         fadeSpeed: 0.9,
-        opacity: 0.5,
+        opacity: 1.0,
+        tweening: false,
         phys: {
             friction: 0,
             mass: 100,
@@ -55,8 +56,11 @@ Bub.Mine.prototype.updateFns = [{
 }, {
     name: 'fade',
     fn: function() {
-        if( this.mesh.material.opacity < 1 ) {
-            this.mesh.material.opacity += Bub.Utils.speed( this.fadeSpeed );
+        var delta = this.opacity - this.mesh.material.opacity;
+        if( Math.abs( delta ) >= 0.01 ) {
+            this.mesh.material.opacity += Bub.Utils.speed( this.fadeSpeed ) * Bub.Utils.sign( delta );
+        } else {
+            this.mesh.material.opacity = this.opacity;
         }
     }
 }, {

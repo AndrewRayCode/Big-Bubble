@@ -9,6 +9,7 @@ Bub.Floater.prototype.defaults = function() {
         fadeSpeed: 0.9,
         opacity: 0.0,
         state: null,
+        tweening: false,
         phys: {
             friction: 0.01,
             mass: 10,

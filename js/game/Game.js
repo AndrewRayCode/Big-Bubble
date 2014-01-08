@@ -89,14 +89,7 @@ GameClass.prototype.unpause = function() {
 GameClass.prototype.activate = function() {
     var me = this;
 
-    Bub.Assets.load({
-        textures: [
-            'rust', 'metal', 'caustic', 'uvtest', 'whaleSkin', 'lava', 'cloud',
-            'flame', 'shark', 'veiny'
-        ],
-        colladas: [ 'whale' ],
-        models: [ 'mine' ]
-    }).then(function() {
+    Bub.Assets.loadAllAssets().then(function() {
         me.initted = true;
 
         $( window ).blur(function() {

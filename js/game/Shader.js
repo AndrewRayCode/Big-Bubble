@@ -141,6 +141,22 @@ Shader.prototype = {
             return mat;
         },
 
+        particleShader: function( shader, members ) {
+            members = members || {};
+
+            shader.uniforms.color.value = new THREE.Vector3( 0xff0000 );
+
+            var mat = new THREE.ShaderMaterial({
+                fragmentShader: shader.fragment,
+                vertexShader: shader.vertex,
+                uniforms: $.extend( {}, shader.uniforms, members.uniforms ),
+                attributes: $.extend( {}, shader.attributes, members.attributes ),
+                transparent: true
+            });
+
+            return mat;
+        },
+
         caustic: function( shader, members ) {
             members = members || {};
 

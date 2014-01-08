@@ -17,7 +17,49 @@ Bub.assets = {
         veiny: 'veiny.jpg',
         lava: 'lavatile.jpg',
         cloud: 'cloud.png',
-        flame:'flame-1.png',
+        explosionParticle: {
+            asset: 'explosion-particle.png',
+            attributes: function( texture ) {
+                texture.wrapS = texture.wrapT = THREE.ClampToEdgeWrapping;
+            }
+        },
+        colorVolumeParticle: {
+            asset: 'volume-particle-colorized.png',
+            attributes: function( texture ) {
+                texture.wrapS = texture.wrapT = THREE.ClampToEdgeWrapping;
+            }
+        },
+        volumeParticle1: {
+            asset: 'volume-particle-1.png',
+            attributes: function( texture ) {
+                texture.wrapS = texture.wrapT = THREE.ClampToEdgeWrapping;
+            }
+        },
+        volumeParticle2: {
+            asset: 'volume-particle-2.png',
+            attributes: function( texture ) {
+                texture.wrapS = texture.wrapT = THREE.ClampToEdgeWrapping;
+            }
+        },
+        volumeParticle3: {
+            asset: 'volume-particle-3.png',
+            attributes: function( texture ) {
+                texture.wrapS = texture.wrapT = THREE.ClampToEdgeWrapping;
+            }
+        },
+        volumeParticle4: {
+            asset: 'volume-particle-4.png',
+            attributes: function( texture ) {
+                texture.wrapS = texture.wrapT = THREE.ClampToEdgeWrapping;
+            }
+        },
+        flame: {
+            asset: 'flame-1.png',
+            attributes: function( texture ) {
+                texture.wrapS = texture.wrapT = THREE.ClampToEdgeWrapping;
+            }
+        },
+        flame2: 'flame-2.png',
         shark: 'shark.png',
     },
 

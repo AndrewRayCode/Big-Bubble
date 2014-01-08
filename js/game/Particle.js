@@ -25,6 +25,20 @@ Bub.Particle = {
         particleGroup.addEmitter( particleEmitter );
         Bub.World.scene.add( particleGroup.mesh );
 
+        //particleGroup.material = Bub.Shader.shaders.particleShader();
+        //particleGroup.material.attributes.rotation.value = [];
+        //particleGroup.material.attributes.size.value = [];
+
+        //window.pg = particleGroup;
+
+        //_.each( particleGroup.geometry.vertices, function( vertex, index ) {
+            //particleGroup.material.attributes.rotation.value[ index ] = new Date().getTime();
+            //particleGroup.material.attributes.size.value[ index ] = 100;
+        //});
+
+        //particleGroup.material.attributes.size.needsUpdate = true;
+        //particleGroup.material.attributes.rotation.needsUpdate = true;
+
         this.emitters[ id ] = group;
 
         this.id++;

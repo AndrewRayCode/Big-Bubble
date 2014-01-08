@@ -40,6 +40,21 @@ Bub.Assets = {
         }
     },
 
+    loadAllAssets: function() {
+        return this.load(
+            _.reduce(
+                // Get a copy of the assets object only including keys we have
+                // loaders for
+                _.pick( Bub.assets, _.keys( Bub.Assets.loaders ) ),
+
+                // Then copy the keys out of each loader
+                function( obj, item, key ) {
+                    obj[ key ] = _.keys( item ); return obj;
+                },
+            {} )
+        );
+    },
+
     load: function( groups ) {
         var promises = [],
             i, assetGroup, groupType, group;

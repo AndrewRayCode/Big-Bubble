@@ -117,7 +117,16 @@ Bub.Camera.prototype.update = function() {
     _.each( Bub.player.locks, function( lock ) {
         lock.mesh.visible = false;
     });
+
+    Bub.Particle.each(function( emitter ) {
+        emitter.group.mesh.visible = false;
+    });
+
     this.mirror.updateCubeMap( Bub.World.renderer, Bub.World.scene );
+
+    Bub.Particle.each(function( emitter ) {
+        emitter.group.mesh.visible = true;
+    });
     _.each( Bub.player.locks, function( lock ) {
         lock.mesh.visible = true;
     });

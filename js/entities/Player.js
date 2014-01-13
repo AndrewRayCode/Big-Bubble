@@ -67,24 +67,7 @@ Bub.Player = function() {
 
                 });
 
-                mine.particleId = Bub.Particle.register( {}, {
-                    texture: Bub.Assets.textures.flame,
-                    maxAge: 0.7
-                }, {
-                    type: 'sphere',
-                    position: mine.mesh.position,
-                    speed: 80,
-                    sizeSpread: 20,
-                    particlesPerSecond: 500,
-                    sizeStart: Bub.player.build.radius * 20,
-                    sizeEnd: Bub.player.build.radius * 30,
-                    opacityStart: 1,
-                    opacityEnd: 0,
-                    emitterDuration: 0.08
-                });
-                Bub.Game.timeout( 1000, function() {
-                    Bub.Particle.destroy( mine.particleId );
-                });
+                Bub.Utils.explosion( mine.mesh.position, Bub.camera.data.frustrum.width / 2 );
                 Bub.trigger( 'free', mine );
             }
         };

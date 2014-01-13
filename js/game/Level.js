@@ -10,124 +10,15 @@ Level.prototype.levels = [{
             text: 'Big Bubble!'
         }).introduce();
 
-        var cluster = function( position, size ) {
+        Bub.ModeManager.next('descend');
 
-            var particleId = Bub.Particle.register( {}, {
-                texture: Bub.Assets.textures.flame,
-                blending: THREE.NormalBlending,
-                maxAge: 0.9
-            }, {
-                position: position,
-                type: 'sphere',
-                radius: 10,
-                speed: 8,
-                sizeSpread: 10,
-                particlesPerSecond: 50,
-                particleRotation: 0,
-                particleRotationSpread: Math.PI,
-                size: size / 1.5,
-                sizeEnd: size / 1.1,
-                opacityStart: 0.2,
-                opacityMiddle: 0.5,
-                opacityEnd: 0,
-                emitterDuration: 0.08
-            });
-
-            var particleId3 = Bub.Particle.register( {}, {
-                texture: Bub.Assets.textures.explosionParticle,
-                blending: THREE.NormalBlending,
-                maxAge: 0.7
-            }, {
-                type: 'sphere',
-                radius: 10,
-                colorize: true,
-                colorStart: new THREE.Color( 0xfefeda ),
-                //colorEnd: new THREE.Color( 0xf87115 ),
-                colorEnd: new THREE.Color( 0xf84515 ),
-                //colorStart: new THREE.Color( 0xffffff ),
-                //colorEnd: new THREE.Color( 0xffffff ),
-                position: position,
-                speed: 15,
-                sizeSpread: 10,
-                particleRotation: 0,
-                particleRotationSpread: Math.PI,
-                particlesPerSecond: 4000,
-                size: size / 2,
-                sizeEnd: size,
-                opacityStart: 0,
-                opacityMiddle: 0.2,
-                opacityEnd: 0,
-                emitterDuration: 0.01
-            });
-
-            var particleId2;
-            setTimeout(function() {
-                particleId2 = Bub.Particle.register( {}, {
-                    texture: Bub.Assets.textures.volumeParticle1,
-                    blending: THREE.AdditiveBlending,
-                    maxAge: 0.8
-                }, {
-                    position: position,
-                    type: 'sphere',
-                    colorize: true,
-                    colorStart: new THREE.Color( 0xfefeda ),
-                    colorEnd: new THREE.Color( 0xf87115 ),
-                    //colorStart: new THREE.Color( 0xffffff ),
-                    //colorEnd: new THREE.Color( 0xffffff ),
-                    radius: 20,
-                    speed: 20,
-                    sizeSpread: 10,
-                    particleRotation: 0,
-                    particleRotationSpread: Math.PI,
-                    particlesPerSecond: 500,
-                    size: size / 2,
-                    sizeEnd: size / 2,
-                    opacityStart: 0,
-                    opacityMiddle: 0.7,
-                    opacityEnd: 0,
-                    emitterDuration: 0.04
-                });
-            }, 50);
-
-            Bub.Game.timeout( 1000, function() {
-                Bub.Particle.destroy( particleId );
-                Bub.Particle.destroy( particleId2 );
-                Bub.Particle.destroy( particleId3 );
-            });
-        };
-
-        setInterval( function() {
-            var range = 20,
-                size = Bub.World.size.x / 1.5,
-                sizeRange = 100;
-
-            cluster(
-                new THREE.Vector3( Bub.Utils.randInt( -range, range ), Bub.Utils.randInt( -range, range ), -10 ),
-                Bub.Utils.randFloat( size, size + sizeRange )
-            );
-            setTimeout( function() {
-                cluster(
-                    new THREE.Vector3( Bub.Utils.randInt( -range, range ), Bub.Utils.randInt( -range, range ), 0 ),
-                    Bub.Utils.randFloat( size, size + sizeRange )
-                );
-            }, Bub.Utils.randFloat( 50, 100 ) );
-            setTimeout( function() {
-                cluster(
-                    new THREE.Vector3( Bub.Utils.randInt( -range, range ), Bub.Utils.randInt( -range, range ), 0 ),
-                    Bub.Utils.randFloat( size, size + sizeRange )
-                );
-            }, Bub.Utils.randFloat( 90, 140 ) );
-        }, 1000 );
-
-        //Bub.ModeManager.next('descend');
-
-        //setTimeout(function() {
-            ////Bub.trigger( 'fireup', new Bub.Fireball() );
+        setTimeout(function() {
+            Bub.trigger( 'fireup', new Bub.Fireball() );
 
             //Bub.Cache.birth( Bub.Floater, {
                 //radius: 40
             //});
-        //}, 10);
+        }, 10);
 
         //var geometry = new THREE.SphereGeometry( 70, 32, 32 );
         //var mesh = new THREE.Mesh( geometry, Bub.Shader.shaders.lava() );

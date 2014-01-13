@@ -58,6 +58,10 @@ Bub.Particle = {
         });
     },
 
+    each: function( fn ) {
+        _.each( this.emitters, fn ) ;
+    },
+
     lockTo: function( thing ) {
         return function() {
             this.emitter.position.copy( thing.mesh.position );

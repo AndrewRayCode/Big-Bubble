@@ -9,6 +9,132 @@ var speed = function( val ) {
 
 Bub.Utils = {
 
+    explosion: function( position, size ) {
+        var radius = size / 2,
+            sparks1, sparks2, smoke, flame1, flame2;
+            
+        sparks1 = Bub.Particle.register( {}, {
+            texture: Bub.Assets.textures.explosionParticle,
+            maxAge: 0.9
+        }, {
+            position: position,
+            type: 'sphere',
+            radius: radius * 0.1,
+            speed: 100,
+            colorize: true,
+            colorStart: new THREE.Color( 0xff0000 ),
+            colorEnd: new THREE.Color( 0xff0000 ),
+            size: 10,
+            sizeEnd: 5,
+            particlesPerSecond: 2000,
+            emitterDuration: 0.3,
+        });
+
+        sparks2 = Bub.Particle.register( {}, {
+            //texture: THREE.ImageUtils.loadTexture('./img/smokeparticle.png'),
+            texture: Bub.Assets.textures.explosionParticle,
+            maxAge: 1.2
+        }, {
+            position: position,
+            type: 'sphere',
+            radius: radius * 0.2,
+            speed: 150,
+            colorize: true,
+            colorStart: new THREE.Color( 0xffffff ),
+            colorEnd: new THREE.Color( 0x000000 ),
+            size: 10,
+            sizeEnd: 5,
+            particlesPerSecond: 1000,
+            emitterDuration: 0.05,
+        });
+
+        smoke = Bub.Particle.register( {}, {
+            texture: Bub.Assets.textures.colorVolumeParticle,
+            blending: THREE.NormalBlending,
+            maxAge: 0.8
+        }, {
+            position: position,
+            type: 'sphere',
+            radius: radius * 0.5,
+            speed: 20,
+            sizeSpread: 10,
+            particlesPerSecond: 200,
+            particleRotation: 0,
+            particleRotationSpread: Math.PI,
+            size: size * 2.5,
+            sizeEnd: size * 1.5,
+            opacityStart: 0.5,
+            opacityMiddle: 0.5,
+            opacityEnd: 0,
+            emitterDuration: 0.08
+        });
+
+        flame1 = Bub.Particle.register( {}, {
+            texture: Bub.Assets.textures.flame,
+            blending: THREE.NormalBlending,
+            maxAge: 0.8
+        }, {
+            type: 'sphere',
+            radius: radius * 0.3,
+            colorize: true,
+            colorStart: new THREE.Color( 0xfefeda ),
+            //colorEnd: new THREE.Color( 0xf87115 ),
+            colorEnd: new THREE.Color( 0xf84515 ),
+            //colorStart: new THREE.Color( 0xffffff ),
+            //colorEnd: new THREE.Color( 0xffffff ),
+            position: position,
+            speed: 15,
+            sizeSpread: 10,
+            particleRotation: 0,
+            particleRotationSpread: Math.PI,
+            particlesPerSecond: 4000,
+            size: size * 2,
+            sizeEnd: size * 2,
+            opacityStart: 0,
+            opacityMiddle: 0.2,
+            opacityEnd: 0,
+            emitterDuration: 0.01
+        });
+
+        Bub.Game.timeout( 20, function() {
+            flame2 = Bub.Particle.register( {}, {
+                texture: Bub.Assets.textures.volumeParticle1,
+                blending: THREE.AdditiveBlending,
+                maxAge: 0.8
+            }, {
+                position: position,
+                type: 'sphere',
+                colorize: true,
+                colorStart: new THREE.Color( 0xfefeda ),
+                colorEnd: new THREE.Color( 0xf87115 ),
+                //colorStart: new THREE.Color( 0xffffff ),
+                //colorEnd: new THREE.Color( 0xffffff ),
+                radius: radius * 0.4,
+                speed: 10,
+                //velocity: new THREE.Vector3( 0, 0, 0 ),
+                //acceleration: new THREE.Vector3( 0, 0, 0 ),
+                sizeSpread: 10,
+                particleRotation: 0,
+                particleRotationSpread: Math.PI,
+                particlesPerSecond: 100,
+                size: size * 2,
+                sizeEnd: size * 2,
+                opacityStart: 0,
+                opacityMiddle: 0.7,
+                opacityEnd: 0,
+                emitterDuration: 0.04
+            });
+        });
+
+        Bub.Game.timeout( 1000, function() {
+            Bub.Particle.destroy( sparks1 );
+            Bub.Particle.destroy( sparks2 );
+            Bub.Particle.destroy( smoke );
+            Bub.Particle.destroy( flame1 );
+            Bub.Particle.destroy( flame2 );
+        });
+    },
+
     getKey: function( obj ) {
         return Object.keys( obj )[0];
     },

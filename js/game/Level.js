@@ -12,6 +12,10 @@ Level.prototype.levels = [{
 
         Bub.ModeManager.next('descend');
 
+        Bub.bind( 'action', function() {
+            Bub.Utils.explosion( Bub.player.mesh.position, Bub.camera.data.frustrum.width / 2 );
+        });
+
         setTimeout(function() {
             Bub.trigger( 'fireup', new Bub.Fireball() );
 

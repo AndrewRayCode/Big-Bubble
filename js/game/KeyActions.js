@@ -1,6 +1,10 @@
 (function() {
 
 Bub.KeyActions = {
+    action: {
+        once: true,
+        keys: ['x']
+    },
     right: {
         keys: ['right', 'd']
     },

@@ -59,6 +59,42 @@ Bub.assets = {
                 texture.wrapS = texture.wrapT = THREE.ClampToEdgeWrapping;
             }
         },
+        explosion_sprite_4x4_1: {
+            asset: 'explosion_sprite_4x4_1.jpg',
+            attributes: function( texture ) {
+                texture.wrapS = texture.wrapT = THREE.ClampToEdgeWrapping;
+            }
+        },
+        explosion_sprite_4x4_2: {
+            asset: 'explosion_sprite_4x4_2.jpg',
+            attributes: function( texture ) {
+                texture.wrapS = texture.wrapT = THREE.ClampToEdgeWrapping;
+            }
+        },
+        explosion_sprite_5x5_1: {
+            asset: 'explosion_sprite_5x5_1.jpg',
+            attributes: function( texture ) {
+                texture.wrapS = texture.wrapT = THREE.ClampToEdgeWrapping;
+            }
+        },
+        smokeTrail: {
+            asset: 'smoke-trail.png',
+            attributes: function( texture ) {
+                texture.wrapS = texture.wrapT = THREE.ClampToEdgeWrapping;
+            }
+        },
+        sparkTexture: {
+            asset: 'spark-texture.png',
+            attributes: function( texture ) {
+                texture.wrapS = texture.wrapT = THREE.ClampToEdgeWrapping;
+            }
+        },
+        shockwave: {
+            asset: 'shockwave.png',
+            attributes: function( texture ) {
+                texture.wrapS = texture.wrapT = THREE.ClampToEdgeWrapping;
+            }
+        },
         flame2: 'flame-2.png',
         shark: 'shark.png',
     },

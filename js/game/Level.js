@@ -10,7 +10,7 @@ Level.prototype.levels = [{
             text: 'Big Bubble!'
         }).introduce();
 
-        Bub.ModeManager.next('descend');
+        //Bub.ModeManager.next('descend');
 
         Bub.bind( 'action', function() {
             Bub.Utils.explosion( Bub.player.mesh.position, Bub.camera.data.frustrum.width / 2 );

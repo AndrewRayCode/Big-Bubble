@@ -53,6 +53,52 @@ Bub.Utils = {
             emitterDuration: 0.05,
         });
 
+        var sparks = Bub.Particle.register( {}, {
+            texture: Bub.Assets.textures.smokeTrail,
+            maxAge: 0.75,
+            blending: THREE.AdditiveBlending
+        }, {
+            position: position,
+            type: 'sphere',
+            radius: 10,
+            angleAlignVelocity: true,
+            speed: 80,
+            colorize: true,
+            colorStartSpread: new THREE.Vector3( 1.0, 1.0, 1.0 ),
+            colorStart: new THREE.Color( 0xffaa00 ),
+            colorEnd: new THREE.Color( 0x882200 ),
+            opacityStart: 0.1,
+            opacityMiddle: 1.0,
+            opacityEnd: 0.0,
+            sizeStart: size * 0.5,
+            sizeEnd: size * 3.5,
+            particlesPerSecond: 30,
+            emitterDuration: 0.2,
+        });
+
+        var shockwave = Bub.Particle.register( {}, {
+            texture: Bub.Assets.textures.shockwave,
+            maxAge: 0.75,
+            blending: THREE.AdditiveBlending
+        }, {
+            position: position,
+            type: 'sphere',
+            radius: 0,
+            angle: 0,
+            angularVelocity: 0.1,
+            speed: 0,
+            colorize: true,
+            colorStart: new THREE.Color( 0xffaa00 ),
+            colorEnd: new THREE.Color( 0x882200 ),
+            opacityStart: 0.1,
+            opacityMiddle: 0.7,
+            opacityEnd: 0.0,
+            sizeStart: size,
+            sizeEnd: size * 6,
+            particlesPerSecond: 2,
+            emitterDuration: 0.75,
+        });
+
         fireSparks = Bub.Particle.register( {}, {
             texture: Bub.Assets.textures.explosionParticle,
             maxAge: 0.75,
@@ -170,12 +216,12 @@ Bub.Utils = {
         });
 
         Bub.Game.timeout( 1000, function() {
-            Bub.Particle.destroy( sparks1 );
-            Bub.Particle.destroy( sparks2 );
-            Bub.Particle.destroy( fireSparks );
-            //Bub.Particle.destroy( smoke );
-            Bub.Particle.destroy( flame1 );
-            Bub.Particle.destroy( flame2 );
+            //Bub.Particle.destroy( sparks1 );
+            //Bub.Particle.destroy( sparks2 );
+            //Bub.Particle.destroy( fireSparks );
+            ////Bub.Particle.destroy( smoke );
+            //Bub.Particle.destroy( flame1 );
+            //Bub.Particle.destroy( flame2 );
         });
     },
 

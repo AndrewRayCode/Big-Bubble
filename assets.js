@@ -95,6 +95,12 @@ Bub.assets = {
                 texture.wrapS = texture.wrapT = THREE.ClampToEdgeWrapping;
             }
         },
+        numberedTiles: {
+            asset: 'numbered-tiles.png',
+            attributes: function( texture ) {
+                texture.wrapS = texture.wrapT = THREE.ClampToEdgeWrapping;
+            }
+        },
         flame2: 'flame-2.png',
         shark: 'shark.png',
     },

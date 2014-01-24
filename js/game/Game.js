@@ -193,11 +193,13 @@ GameClass.prototype.loop = function() {
     // Only update certain things if the game is unpaused
     if( this.running ) {
         Bub.ModeManager.update();
-        //THREE.AnimationHandler.update( 0.1 );
+
         if( window.animation ) {
             var delta = clock.getDelta();
             THREE.AnimationHandler.update( delta );
         }
+
+        Bub.SpriteAnimator.update( this.time.delta );
         
         TWEEN.update();
         Bub.Particle.update();

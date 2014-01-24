@@ -16,6 +16,40 @@ Level.prototype.levels = [{
             Bub.Utils.explosion( Bub.player.mesh.position, Bub.camera.data.frustrum.width / 2 );
         });
 
+        Bub.SpriteAnimator.add({
+            texture: Bub.Assets.textures.explosion_sprite_5x5_1,
+            tilesHorizontal: 5,
+            tilesVertical: 5,
+        });
+        var material = new THREE.MeshBasicMaterial({
+            blending: THREE.AdditiveBlending,
+            transparent: true,
+            map: Bub.Assets.textures.explosion_sprite_5x5_1
+        });
+
+        Bub.thingus = Bub.Particle.register( {}, {
+            texture: Bub.Assets.textures.explosion_sprite_5x5_1,
+            blending: THREE.AdditiveBlending,
+            maxAge: 2000
+        }, {
+            type: 'sphere',
+            radius: 20,
+            speed: 20,
+            //colorize: true,
+            //colorStart: new THREE.Color( 0xff0000 ),
+            //colorEnd: new THREE.Color( 0xff0000 ),
+            opacityStart: 1.0,
+            opacityEnd: 1.0,
+            sizeStart: 200,
+            sizeEnd: 200,
+            particlesPerSecond: 20,
+            emitterDuration: 1,
+        });
+
+        //var geometry = new THREE.PlaneGeometry( 80, 80, 32 ),
+            //mesh = new THREE.Mesh( geometry, material );
+        //Bub.World.scene.add( mesh );
+
         setTimeout(function() {
             Bub.trigger( 'fireup', new Bub.Fireball() );
 

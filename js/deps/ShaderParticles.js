@@ -341,6 +341,8 @@ function ShaderParticleGroup( options ) {
         sizeStart:              { type: 'f',    value: [] },
         sizeEnd:                { type: 'f',    value: [] },
 
+        currentTile:            { type: 'f',    value: [] },
+
         angle:                  { type: 'f',    value: [] },
         angularVelocity:        { type: 'f',    value: [] },
         angleAlignVelocity:     { type: 'f',    value: [] },
@@ -386,7 +388,6 @@ function ShaderParticleGroup( options ) {
     // set so that THREE.js knows to update it on each frame.
     that.mesh = new THREE.ParticleSystem( that.geometry, that.material );
     that.mesh.dynamic = true;
-    that.mesh.renderDepth = ( 'renderDepth' in options ) ? options.renderDepth : 1;
 }
 
 ShaderParticleGroup.prototype = {
@@ -408,6 +409,7 @@ ShaderParticleGroup.prototype = {
         that.attributes.alive.needsUpdate = true;
         that.attributes.angle.needsUpdate = true;
         that.attributes.angleAlignVelocity.needsUpdate = true;
+        that.attributes.currentTile.needsUpdate = true;
         that.attributes.velocity.needsUpdate = true;
         that.attributes.acceleration.needsUpdate = true;
         that.geometry.verticesNeedUpdate = true;
@@ -446,6 +448,7 @@ ShaderParticleGroup.prototype = {
             sizeStart           = a.sizeStart.value,
             sizeEnd             = a.sizeEnd.value,
             angle               = a.angle.value,
+            currentTile         = a.currentTile.value,
             angularVelocity     = a.angularVelocity.value,
             angleAlignVelocity  = a.angleAlignVelocity.value,
             colorStart          = a.colorStart.value,
@@ -482,6 +485,8 @@ ShaderParticleGroup.prototype = {
             angle[i]                = that._randomFloat( emitter.angle, emitter.angleSpread );
             angularVelocity[i]      = that._randomFloat( emitter.angularVelocity, emitter.angularVelocitySpread );
             angleAlignVelocity[i]   = emitter.angleAlignVelocity ? 1.0 : 0.0;
+
+            currentTile[i]          = emitter.currentTile;
 
             age[i]                  = 0.0;
             alive[i]                = emitter.isStatic ? 1.0 : 0.0;
@@ -712,15 +717,11 @@ ShaderParticleGroup.shaders = {
     vertex: [
         'uniform float duration;',
         'uniform int hasPerspective;',
-        'uniform int hasGravity;',
-        'uniform vec3 planetPosition;',
-
 
         'attribute vec3 colorStart;',
         'attribute vec3 colorMiddle;',
         'attribute vec3 colorEnd;',
         'attribute float opacityStart;',
-        'attribute float opacityMiddle;',
         'attribute float opacityEnd;',
 
         'attribute vec3 acceleration;',
@@ -732,11 +733,12 @@ ShaderParticleGroup.shaders = {
         'attribute float angle;',
         'attribute float angularVelocity;',
         'attribute float angleAlignVelocity;',
+        'attribute float currentTile;',
 
         // values to be passed to the fragment shader
         'varying vec4 vColor;',
         'varying float vAngle;',
-
+        'varying vec2 vTexCoord;',
 
         // Integrate acceleration into velocity and apply it to the particle's position
         'vec4 GetPos() {',
@@ -769,23 +771,28 @@ ShaderParticleGroup.shaders = {
             'float halfDuration = duration / 2.0;',
             'vAngle = angle;',
 
+            'float currentColumn = mod( currentTile, 5.0 );',
+            'float currentRow = floor( currentTile / 5.0 );',
+
+            'vTexCoord.x = currentColumn;',
+            'vTexCoord.y = 4.0 - currentRow;',
+
             'if( alive > 0.5 ) {',
 
                 // lerp the color and opacity
                 'if( positionInTime < 0.5) {',
-                    'vColor = vec4( mix(colorStart, colorMiddle, lerpAmount1), mix(opacityStart, opacityMiddle, lerpAmount1) );',
+                    'vColor = vec4( mix(colorStart, colorMiddle, lerpAmount1), mix(opacityStart, opacityStart, lerpAmount1) );',
                 '}',
                 'else {',
-                    'vColor = vec4( mix(colorMiddle, colorEnd, lerpAmount2), mix(opacityMiddle, opacityEnd, lerpAmount2) );',
+                    'vColor = vec4( mix(colorMiddle, colorEnd, lerpAmount2), mix(opacityStart, opacityEnd, lerpAmount2) );',
                 '}',
 
                 // Get the position of this particle so we can use it
                 // when we calculate any perspective that might be required.
-                'vec4 pos = vec4(0.0, 0.0, 0.0, 0.0);',
-                'pos = GetPos();',
+                'vec4 pos = GetPos();',
 
                 'if( angleAlignVelocity == 1.0 ) {',
-                    'vAngle = -atan(pos.y, pos.x);',
+                    'vAngle = -atan(pos.y - position.y, pos.x - position.x);',
                 '}',
                 'else {',
                     'vAngle = angle + ( angularVelocity * age );',
@@ -818,15 +825,18 @@ ShaderParticleGroup.shaders = {
 
         'varying vec4 vColor;',
         'varying float vAngle;',
+        'varying vec2 vTexCoord;',
 
         'void main() {',
             'float c = cos(vAngle);',
             'float s = sin(vAngle);',
 
-            'vec2 rotatedUV = vec2(c * (gl_PointCoord.x - 0.5) + s * (gl_PointCoord.y - 0.5) + 0.5,',
-                                  'c * (gl_PointCoord.y - 0.5) - s * (gl_PointCoord.x - 0.5) + 0.5);',
+            'vec2 zoom = ( gl_PointCoord + vTexCoord ) * ( 1.0 / 5.0 );',
 
-            'vec4 rotatedTexture = texture2D( texture, rotatedUV );',
+            'vec2 rotatedUV = vec2(c * (zoom.x - 0.5) + s * (zoom.y - 0.5) + 0.5,',
+                                  'c * (zoom.y - 0.5) - s * (zoom.x - 0.5) + 0.5);',
+
+            'vec4 rotatedTexture = texture2D( texture, ( rotatedUV ) );',
 
             'if( colorize == 1 ) {',
                 'gl_FragColor = vColor * rotatedTexture;',
@@ -884,6 +894,8 @@ function ShaderParticleEmitter( options ) {
     that.sizeStart              = parseFloat( typeof options.sizeStart === 'number' ? options.sizeStart : 1.0 );
     that.sizeStartSpread        = parseFloat( typeof options.sizeStartSpread === 'number' ? options.sizeStartSpread : 0.0 );
     that.sizeEnd                = parseFloat( typeof options.sizeEnd === 'number' ? options.sizeEnd : that.sizeStart );
+
+    that.currentTile            = 0;
 
     that.angle                  = parseFloat( typeof options.angle === 'number' ? options.angle : 0 );
     that.angleSpread            = parseFloat( typeof options.angleSpread === 'number' ? options.angleSpread : 0 );
@@ -1024,6 +1036,9 @@ ShaderParticleEmitter.prototype = {
             a.angle.value[ i ] = that.angle;
             a.angle.needsUpdate = true;
         }
+
+        a.currentTile.value[ i ] = that.currentTile;
+        a.currentTile.needsUpdate = true;
     },
 
     /**

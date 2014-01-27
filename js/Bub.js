@@ -32,7 +32,7 @@ global.Bub = {
     unbind: function( evt, fn ) {
         if( !fn ) {
             this.binder.unbind( evt );
-        } else {
+        } else if( this.bounds[ evt ] ) {
             for( var x = 0; x < this.bounds[ evt ].length; x++ ) {
                 if( this.bounds[ evt ][ x ].orig === fn ) {
                     this.binder.unbind( evt, this.bounds[ evt ][ x ].bound );

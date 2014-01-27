@@ -1,10 +1,6 @@
 (function() {
 
 Bub.KeyActions = {
-    action: {
-        once: true,
-        keys: ['x']
-    },
     right: {
         keys: ['right', 'd']
     },
@@ -22,5 +18,25 @@ Bub.KeyActions = {
         once: true
     }
 };
+
+// Testing stuff
+_.extend( Bub.KeyActions, {
+    action: {
+        once: true,
+        keys: ['x']
+    },
+    birth: {
+        once: true,
+        keys: ['b']
+    },
+    powerup: {
+        once: true,
+        keys: ['p']
+    },
+    levelAdvance: {
+        once: true,
+        keys: ['l']
+    }
+});
 
 }());

@@ -7,27 +7,35 @@ Level.prototype.levels = [{
     zoom: 100,
     start: function() {
         new Bub.Text3d({
-            text: 'Big Bubble!'
+            text: 'Big Bubble!',
+            material: Bub.Shader.shaders.caustic()
         }).introduce();
-
-        //Bub.ModeManager.next('descend');
 
         Bub.bind( 'action', function() {
             Bub.Utils.explosion( Bub.player.mesh.position, Bub.camera.data.frustrum.width / 2 );
         });
-
-        setTimeout(function() {
+        Bub.bind( 'powerup', function() {
             Bub.trigger( 'fireup', new Bub.Fireball() );
+        });
+        Bub.bind( 'birth', function() {
+            Bub.Cache.birth( Bub.Floater, {
+                position: new THREE.Vector3( 0, 0, 0 ),
+                radius: 40
+            });
+        });
+        Bub.bind( 'levelAdvance', function() {
+            Bub.Level.advance();
+        });
+    }
+}, {
+    next: 10,
+    zoom: 100,
+    start: function() {
+        new Bub.Text3d({
+            text: 'Big Bubble!'
+        }).introduce();
 
-            //Bub.Cache.birth( Bub.Floater, {
-                //radius: 40
-            //});
-        }, 10);
-
-        //var geometry = new THREE.SphereGeometry( 70, 32, 32 );
-        //var mesh = new THREE.Mesh( geometry, Bub.Shader.shaders.lava() );
-        //Bub.World.scene.add( mesh );
-        //Bub.Game.running = false;
+        Bub.ModeManager.next('descend');
     }
 }, {
     next: 100,

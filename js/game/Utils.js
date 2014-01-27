@@ -13,10 +13,9 @@ Bub.Utils = {
         position = position.clone();
 
         var radius = size / 2,
-            sparks1, sparks2, fireSparks, smoke, flame1, flame2;
+            sparks1, sparks2, fireSparks, smoke, flame1, flame2, sparks, shockwave;
             
         sparks1 = Bub.Particle.register( {}, {
-            //texture: Bub.Assets.textures.explosionParticle,
             maxAge: 0.4
         }, {
             position: position,
@@ -35,7 +34,6 @@ Bub.Utils = {
         });
 
         sparks2 = Bub.Particle.register( {}, {
-            //texture: THREE.ImageUtils.loadTexture('./img/smokeparticle.png'),
             maxAge: 0.8
         }, {
             position: position,
@@ -53,7 +51,7 @@ Bub.Utils = {
             emitterDuration: 0.05,
         });
 
-        var sparks = Bub.Particle.register( {}, {
+        sparks = Bub.Particle.register( {}, {
             texture: Bub.Assets.textures.smokeTrail,
             maxAge: 0.75,
             blending: THREE.AdditiveBlending
@@ -76,7 +74,7 @@ Bub.Utils = {
             emitterDuration: 0.2,
         });
 
-        var shockwave = Bub.Particle.register( {}, {
+        shockwave = Bub.Particle.register( {}, {
             texture: Bub.Assets.textures.shockwave,
             maxAge: 0.75,
             blending: THREE.AdditiveBlending
@@ -94,7 +92,7 @@ Bub.Utils = {
             opacityMiddle: 0.7,
             opacityEnd: 0.0,
             sizeStart: size,
-            sizeEnd: size * 6,
+            sizeEnd: size * 16,
             particlesPerSecond: 2,
             emitterDuration: 0.75,
         });
@@ -161,10 +159,7 @@ Bub.Utils = {
             colorize: true,
             colorStart: new THREE.Color( 0xfefeda ),
             colorStartSpread: new THREE.Vector3( 1.2, 1.2, 1.2 ),
-            //colorEnd: new THREE.Color( 0xf87115 ),
             colorEnd: new THREE.Color( 0xf84515 ),
-            //colorStart: new THREE.Color( 0xffffff ),
-            //colorEnd: new THREE.Color( 0xffffff ),
             position: position,
             speed: 15,
             sizeSpread: 10,
@@ -216,12 +211,14 @@ Bub.Utils = {
         });
 
         Bub.Game.timeout( 1000, function() {
-            //Bub.Particle.destroy( sparks1 );
-            //Bub.Particle.destroy( sparks2 );
-            //Bub.Particle.destroy( fireSparks );
-            ////Bub.Particle.destroy( smoke );
-            //Bub.Particle.destroy( flame1 );
-            //Bub.Particle.destroy( flame2 );
+            Bub.Particle.destroy( sparks1 );
+            Bub.Particle.destroy( sparks2 );
+            Bub.Particle.destroy( fireSparks );
+            Bub.Particle.destroy( sparks );
+            Bub.Particle.destroy( shockwave );
+            //Bub.Particle.destroy( smoke );
+            Bub.Particle.destroy( flame1 );
+            Bub.Particle.destroy( flame2 );
         });
     },
 

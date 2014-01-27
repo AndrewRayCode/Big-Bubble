@@ -12,8 +12,8 @@ Bub.Mixins.tweenable = {
             sendTo = to.material[ key ];
         } else if( 'shader' in to ) {
             key = Bub.Utils.getKey( to.shader );
-            tweener = this.mesh.material.uniforms[ key ].value;
-            sendTo = to.shader[ key ];
+            tweener = this.mesh.material.uniforms[ key ];
+            sendTo = { value: to.shader[ key ] };
         } else if( 'position' in to ) {
             tweener = this.mesh.position;
             sendTo = to.position;

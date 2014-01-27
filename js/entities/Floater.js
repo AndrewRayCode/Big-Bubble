@@ -37,7 +37,7 @@ Bub.Floater.prototype.load = function( options ) {
     var radius = options.radius || 10 + 5 * Math.random(),
         frustrum = Bub.camera.data.frustrum;
 
-    this.mesh.position = options.position;
+    this.mesh.position = options.position || new THREE.Vector3( 0, 0, 0 );
     this.mesh.material.uniforms.opacity.value = this.opacity;
     this.inertia = options.inertia || new THREE.Vector3(
         0, -100 - ( Math.random() ), 0

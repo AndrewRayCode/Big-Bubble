@@ -1,10 +1,27 @@
 Bub.ModeManager.modes.maze = new Bub.Mode({
+
+    updateSpawner: function() {
+        var frustrum = Bub.camera.data.frustrum,
+            frustrumScale = 0.8,
+            depth = -500;
+
+        this.spawner.scale.set( frustrum.width * frustrumScale, frustrum.height * frustrumScale, 0 );
+        this.spawner.position.set( 0, 0, depth );
+        this.spawner.update();
+    },
+
     initBind: function( thing ) {
         //if( thing.type === 'floater' ) {
         //} else if( thing.type === 'mine' ) {
         //}
     },
+
+    end: function() {
+        Bub.unbind( 'initted', this.initBind );
+    },
+
     start: function() {
+
         Bub.bind( 'initted', this.initBind );
 
         this.cameraInertia = new THREE.Vector3( 0, 0, 0 );
@@ -23,14 +40,8 @@ Bub.ModeManager.modes.maze = new Bub.Mode({
         });
 
         this.replaceFn( 'loop', this.startLoop );
-    },
-    end: function() {
-        Bub.unbind( 'initted', this.initBind );
-    },
-    loop: function() {
-        this.update();
-    },
-    startLoop: function() {
+
+
         this.maze.inertia.z += 6;
         this.maze.group.traverse( function( node ) {
             if( node.material ) {
@@ -49,7 +60,9 @@ Bub.ModeManager.modes.maze = new Bub.Mode({
             this.replaceFn( 'loop', this.playLoop );
         }
     },
-    playLoop: function() {
+
+    loop: function() {
+
         this.maze.inertia.y -= 0.2;
         var originPoint = Bub.player.mesh.position.clone(),
             bottomHit, bottomDist, backHit, i, vertex, directionVector, ray, collisionResults;

@@ -1,11 +1,14 @@
 Bub.Letter = function( options ) {
 
-    var material = options.material || new THREE.MeshPhongMaterial({
-        map: Bub.Assets.textures.caustic,
-        color: 0xc4feff,
-        emissive: 0x48694c,
-        transparent: true
-    });
+    var material = Bub.Utils.optionsArg( options.material ) ||
+        Bub.Shader.shaders.caustic();
+        
+    //new THREE.MeshPhongMaterial({
+        //map: Bub.Assets.textures.caustic,
+        //color: 0xc4feff,
+        //emissive: 0x48694c,
+        //transparent: true
+    //});
 
     //material.color.g += Bub.Utils.randFloat( -0.05, 0.05 );
     //material.color.b += Bub.Utils.randFloat( -0.05, 0.05 );

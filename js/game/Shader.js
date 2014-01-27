@@ -46,16 +46,13 @@ Shader.prototype = {
             }
 
             shader.src = shader.fragment + '\n' + shader.vertex;
-            $.extend( shader, me.parseMembers( shader.src ) );
+            _.extend( shader, me.parseMembers( shader.src ) );
 
             me.shaders[ shaderName ] = function() {
                 var args = Array.prototype.slice( arguments, 0 ),
                     material;
 
                 shader.uniforms = THREE.UniformsUtils.clone( shader.uniforms );
-
-                // Defaults
-                shader.uniforms.opacity = { type: 'f', value: 1 };
 
                 args = [ shader ].concat( args );
                 material = _fn.apply( me, args );
@@ -113,6 +110,11 @@ Shader.prototype = {
             type:'v2'
         };
 
+        members.uniforms.opacity = {
+            type: 'f',
+            value: 1
+        };
+
         return members;
     },
 
@@ -162,7 +164,7 @@ Shader.prototype = {
 
             // http://www.goodboydigital.com/pixijs/examples/15/indexAll.html
             // http://www.goodboydigital.com/pixijs/docs/files/src_pixi_filters_DisplacementFilter.js.html#l6
-            shader.uniforms.opacity.value = 1.0;
+            shader.uniforms.opacity.value = 1;
             var mat = new THREE.ShaderMaterial({
                 fragmentShader: shader.fragment,
                 vertexShader: shader.vertex,

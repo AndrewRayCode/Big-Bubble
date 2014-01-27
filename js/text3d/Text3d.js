@@ -42,22 +42,19 @@ Bub.Text3d = function( options ) {
 _.extend( Bub.Text3d.prototype, Bub.Mixins.tweenable, Bub.Mixins.updatable );
 
 Bub.Text3d.prototype.center = function() {
-    this.group.position.x = -( this.scale * ( this.group.width / 2.0 ) );
+    this.group.position.x = -( this.scale * this.group.width ) / 2.0;
     return this;
 };
 
 Bub.Text3d.prototype.fitToScreen = function( options ) {
     options = options || {};
 
-    // The padding calcluation is not accurate and works by chance
-    var padding = options.padding || 50,
-        scale = this.scale = Bub.World.size.x / ( this.group.width + ( padding * 2 ) );
+    var padding = options.padding || -5,
+        scale = this.scale =( Bub.camera.data.frustrum.width - ( padding * 2 ) ) / this.group.width;
 
     this.group.scale = new THREE.Vector3( scale, scale, scale );
 
-    this.center();
-
-    return this;
+    return this.center();
 };
 
 Bub.Text3d.prototype.introduce = function() {
@@ -87,9 +84,9 @@ Bub.Text3d.prototype.introduce = function() {
             }
 
             if( letter.mesh.material instanceof THREE.ShaderMaterial ) {
-                letter.tween({ shader: { opacity: 0.8 } }, fadeTime);
+                letter.tween({ shader: { opacity: 0.7 } }, fadeTime);
             } else {
-                letter.tween({ opacity: 0.8 }, fadeTime);
+                letter.tween({ opacity: 0.7 }, fadeTime);
             }
             letter.tween({
                 position: {

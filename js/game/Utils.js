@@ -9,6 +9,10 @@ var speed = function( val ) {
 
 Bub.Utils = {
 
+    optionsArg: function( funcOrObj ) {
+        return _.isFunction( funcOrObj ) ? funcOrObj() : funcOrObj;
+    },
+
     explosion: function( position, size ) {
         position = position.clone();
 

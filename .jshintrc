@@ -25,6 +25,7 @@
         "afterEach",
         "beforeEach",
         "google",
+        "Prattle",
 
         // deps
         "angular",

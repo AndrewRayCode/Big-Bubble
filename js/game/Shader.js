@@ -17,6 +17,17 @@
 // water caustic-ish https://glsl.heroku.com/e#12412.0 https://glsl.heroku.com/e#12010.0 https://glsl.heroku.com/e#12002.2
 // sex cloud rainbow trails https://glsl.heroku.com/e#12881.0
 // dualing spirals https://glsl.heroku.com/e#13068.2
+// causticy waves https://glsl.heroku.com/e#13858.4
+// simple perlin cloud-like noise https://www.shadertoy.com/view/4dS3Ry
+// glowing sine waves https://glsl.heroku.com/e#13979.51
+// invert caustics https://glsl.heroku.com/e#1450.0
+// fire noise https://www.shadertoy.com/view/Md23Wc
+// cloud tunnel https://glsl.heroku.com/e#17354.0
+// sun surface https://www.shadertoy.com/view/lsSGzy type 4
+// burning effect http://glslsandbox.com/e#18935.0
+// bright light in water http://glslsandbox.com/e#18770.0
+// do acid reflections http://glslsandbox.com/e#19941.0
+// light rays tied to mouse position http://glslsandbox.com/e#20188.0
 
 // game assets
 // http://www.blendswap.com/
